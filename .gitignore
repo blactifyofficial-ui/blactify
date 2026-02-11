@@ -39,3 +39,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# CSV files (sensitive keys/data)
+*.csv
+
+# local editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.tmp
