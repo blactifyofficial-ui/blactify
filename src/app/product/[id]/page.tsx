@@ -9,6 +9,8 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/store/AuthContext";
 import { fetchReviews, postReview } from "@/lib/review-sync";
+import { ALL_PRODUCTS } from "@/lib/mock-data";
+import { ProductCard } from "@/components/ui/ProductCard";
 
 export default function ProductDetailPage() {
     const { id } = useParams();
@@ -23,6 +25,11 @@ export default function ProductDetailPage() {
     const [newRating, setNewRating] = useState(5);
     const [newComment, setNewComment] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isLoadingReviews, setIsLoadingReviews] = useState(true);
+
+    const relatedProducts = ALL_PRODUCTS
+        .filter(p => p.category === product?.category && p.id !== product?.id)
+        .slice(0, 4);
 
     useEffect(() => {
         if (product) {
@@ -31,8 +38,10 @@ export default function ProductDetailPage() {
     }, [product]);
 
     const loadReviews = async () => {
+        setIsLoadingReviews(true);
         const data = await fetchReviews(product!.id);
         setReviews(data);
+        setIsLoadingReviews(false);
     };
 
     const handlePostReview = async (e: React.FormEvent) => {
@@ -188,7 +197,27 @@ export default function ProductDetailPage() {
                     </div>
 
                     <div className="flex flex-col gap-8">
-                        {reviews.length === 0 ? (
+                        {isLoadingReviews ? (
+                            // Skeleton loaders
+                            [...Array(3)].map((_, i) => (
+                                <div key={i} className="pb-8 border-b border-zinc-50 animate-pulse">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex gap-1">
+                                            {[...Array(5)].map((_, j) => (
+                                                <div key={j} className="h-3 w-3 bg-zinc-100 rounded-full" />
+                                            ))}
+                                        </div>
+                                        <div className="h-3 w-16 bg-zinc-100 rounded-full" />
+                                    </div>
+                                    <div className="h-4 w-full bg-zinc-50 rounded-full mb-2" />
+                                    <div className="h-4 w-2/3 bg-zinc-50 rounded-full mb-4" />
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-6 w-6 rounded-full bg-zinc-100" />
+                                        <div className="h-3 w-20 bg-zinc-100 rounded-full" />
+                                    </div>
+                                </div>
+                            ))
+                        ) : reviews.length === 0 ? (
                             <p className="text-zinc-500 font-sans italic text-center py-10">No reviews yet. Be the first to share your experience!</p>
                         ) : (
                             reviews.map((review) => (
@@ -235,6 +264,18 @@ export default function ProductDetailPage() {
                             Write a Review
                         </button>
                     </div>
+
+                    {/* Related Products */}
+                    {relatedProducts.length > 0 && (
+                        <div className="mt-20">
+                            <h3 className="font-empire text-3xl mb-8">Related Products</h3>
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-10">
+                                {relatedProducts.map((p) => (
+                                    <ProductCard key={p.id} product={p} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </section>
             </div>
 

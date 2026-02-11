@@ -19,15 +19,16 @@ export interface Product {
 interface ProductCardProps {
     product: Product;
     className?: string;
+    onClick?: () => void;
 }
 
-export function ProductCard({ product, className }: ProductCardProps) {
+export function ProductCard({ product, className, onClick }: ProductCardProps) {
     const { addItem } = useCartStore();
 
     return (
         <div className={cn("group flex flex-col gap-3", className)}>
             <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-100">
-                <Link href={`/product/${product.id}`} className="block h-full w-full">
+                <Link href={`/product/${product.id}`} className="block h-full w-full" onClick={onClick}>
                     <Image
                         src={product.imageUrl}
                         alt={product.name}
@@ -51,7 +52,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                 </button>
             </div>
             <div className="flex flex-col gap-1">
-                <Link href={`/product/${product.id}`}>
+                <Link href={`/product/${product.id}`} onClick={onClick}>
                     <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-300 mb-1 block">
                         {product.category}
                     </span>
