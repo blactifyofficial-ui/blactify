@@ -89,7 +89,7 @@ export default function CheckoutPage() {
                         {showOrderSummary && (
                             <div className="pt-6 space-y-4 animate-in slide-in-from-top-2 duration-200">
                                 {items.map((item) => (
-                                    <div key={item.id} className="flex gap-4">
+                                    <div key={item.cartId || item.id} className="flex gap-4">
                                         <div className="relative w-16 h-16 border border-zinc-200 rounded-lg bg-white overflow-hidden flex-shrink-0">
                                             <div className="absolute top-0 right-0 bg-zinc-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-bl-lg font-medium opacity-90 z-10">
                                                 {item.quantity}
@@ -285,7 +285,7 @@ export default function CheckoutPage() {
             <div className="hidden md:block flex-1 bg-zinc-50 border-l border-zinc-200 pt-8 px-6 lg:px-12 order-1 md:order-2">
                 <div className="w-full max-w-[420px] lg:pl-10 space-y-6 sticky top-8">
                     {items.map((item) => (
-                        <div key={item.id} className="flex gap-4 items-center">
+                        <div key={item.cartId || item.id} className="flex gap-4 items-center">
                             <div className="relative w-16 h-16 border border-zinc-200 rounded-lg bg-white overflow-hidden flex-shrink-0">
                                 <div className="absolute top-0 right-0 bg-zinc-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-bl-lg font-medium opacity-90 z-10">
                                     {item.quantity}

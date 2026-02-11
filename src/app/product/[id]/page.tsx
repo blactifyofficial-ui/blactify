@@ -153,7 +153,7 @@ export default function ProductDetailPage() {
 
                 <div className="flex flex-col gap-3">
                     <button
-                        onClick={() => addItem(product)}
+                        onClick={() => addItem(product, selectedSize || undefined)}
                         className="w-full h-16 bg-black text-white rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-2xl"
                     >
                         <ShoppingBag size={18} />
@@ -161,7 +161,7 @@ export default function ProductDetailPage() {
                     </button>
                     <button
                         onClick={() => {
-                            addItem(product);
+                            addItem(product, selectedSize || undefined);
                             router.push("/checkout");
                         }}
                         className="w-full h-16 bg-white text-black border border-black rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all"

@@ -4,13 +4,15 @@ import { Product } from "@/components/ui/ProductCard";
 
 interface CartItem extends Product {
     quantity: number;
+    size?: string;
+    cartId: string;
 }
 
 interface CartStore {
     items: CartItem[];
-    addItem: (product: Product) => void;
-    removeItem: (productId: string) => void;
-    updateQuantity: (productId: string, quantity: number) => void;
+    addItem: (product: Product, size?: string) => void;
+    removeItem: (cartId: string) => void;
+    updateQuantity: (cartId: string, quantity: number) => void;
     clearCart: () => void;
     getTotalItems: () => number;
     getTotalPrice: () => number;
@@ -20,31 +22,32 @@ export const useCartStore = create<CartStore>()(
     persist(
         (set, get) => ({
             items: [],
-            addItem: (product) => {
+            addItem: (product, size) => {
                 const items = get().items;
-                const existingItem = items.find((item) => item.id === product.id);
+                const cartId = size ? `${product.id}-${size}` : product.id;
+                const existingItem = items.find((item) => (item.cartId || item.id) === cartId);
 
                 if (existingItem) {
                     set({
                         items: items.map((item) =>
-                            item.id === product.id
+                            (item.cartId || item.id) === cartId
                                 ? { ...item, quantity: item.quantity + 1 }
                                 : item
                         ),
                     });
                 } else {
-                    set({ items: [...items, { ...product, quantity: 1 }] });
+                    set({ items: [...items, { ...product, quantity: 1, size, cartId }] });
                 }
             },
-            removeItem: (productId) => {
+            removeItem: (cartId) => {
                 set({
-                    items: get().items.filter((item) => item.id !== productId),
+                    items: get().items.filter((item) => (item.cartId || item.id) !== cartId),
                 });
             },
-            updateQuantity: (productId, quantity) => {
+            updateQuantity: (cartId, quantity) => {
                 set({
                     items: get().items.map((item) =>
-                        item.id === productId ? { ...item, quantity } : item
+                        (item.cartId || item.id) === cartId ? { ...item, quantity } : item
                     ),
                 });
             },

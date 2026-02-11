@@ -70,7 +70,7 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                         ) : (
                             <div className="space-y-8">
                                 {items.map((item) => (
-                                    <div key={item.id} className="flex gap-4">
+                                    <div key={item.cartId || item.id} className="flex gap-4">
                                         <div className="relative h-24 w-20 overflow-hidden bg-zinc-100">
                                             <Image
                                                 src={item.imageUrl}
@@ -83,21 +83,21 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                                             <div>
                                                 <div className="flex justify-between">
                                                     <h3 className="text-sm font-bold uppercase tracking-tight text-black">{item.name}</h3>
-                                                    <button onClick={() => removeItem(item.id)} className="text-xs font-bold text-zinc-400 uppercase tracking-widest hover:text-black">Remove</button>
+                                                    <button onClick={() => removeItem(item.cartId || item.id)} className="text-xs font-bold text-zinc-400 uppercase tracking-widest hover:text-black">Remove</button>
                                                 </div>
                                                 <p className="text-xs text-zinc-400 uppercase tracking-widest">{item.category}</p>
                                             </div>
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center border border-zinc-100">
                                                     <button
-                                                        onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                                                        onClick={() => updateQuantity(item.cartId || item.id, Math.max(1, item.quantity - 1))}
                                                         className="p-1 hover:bg-zinc-50 text-black"
                                                     >
                                                         <Minus size={14} />
                                                     </button>
                                                     <span className="w-8 text-center text-xs font-bold text-black">{item.quantity}</span>
                                                     <button
-                                                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                        onClick={() => updateQuantity(item.cartId || item.id, item.quantity + 1)}
                                                         className="p-1 hover:bg-zinc-50 text-black"
                                                     >
                                                         <Plus size={14} />
