@@ -23,7 +23,7 @@ export default function Home() {
           </a>
         </div>
 
-        <div className="grid grid-cols-2 gap-x-4 gap-y-10">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4 lg:grid-cols-6">
           {MOCK_PRODUCTS.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

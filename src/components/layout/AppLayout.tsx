@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { BottomNavbar } from "@/components/layout/BottomNavbar";
+import { Footer } from "@/components/layout/Footer";
 import { WelcomeOffer } from "@/components/ui/WelcomeOffer";
 import { AuthProvider } from "@/store/AuthContext";
 import { CartDrawer } from "@/components/ui/CartDrawer";
@@ -20,7 +21,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return (
         <AuthProvider>
             <div className="relative min-h-screen bg-white text-black antialiased">
-                <main className="pb-20">{children}</main>
+                <main className="">{children}</main>
+                <Footer />
                 <BottomNavbar
                     onCartClick={() => setIsCartOpen(true)}
                     onProfileClick={() => setIsAuthOpen(true)}
