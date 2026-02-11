@@ -52,10 +52,10 @@ export function ProductCard({ product, className }: ProductCardProps) {
             </div>
             <div className="flex flex-col gap-1">
                 <Link href={`/product/${product.id}`}>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-300 mb-1 block">
                         {product.category}
                     </span>
-                    <h3 className="text-sm font-semibold tracking-tight text-black">
+                    <h3 className="text-sm font-normal text-zinc-500 lowercase leading-tight">
                         {product.name}
                     </h3>
                 </Link>

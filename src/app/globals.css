@@ -8,21 +8,28 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui;
+  --font-sans: var(--font-outfit), var(--font-inter), ui-sans-serif, system-ui;
+  --font-aesthetic: var(--font-space-grotesk), ui-serif, serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  font-family: var(--font-outfit), var(--font-inter), Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 @layer utilities {
   .font-empire {
-    font-weight: 900;
-    letter-spacing: -0.05em;
-    text-transform: uppercase;
+    font-family: var(--font-outfit);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-transform: capitalize;
+  }
+
+  .text-aesthetic {
+    font-family: var(--font-space-grotesk);
+    letter-spacing: -0.01em;
   }
 }

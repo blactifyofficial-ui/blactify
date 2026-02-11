@@ -16,9 +16,9 @@ export default function Home() {
       />
 
       <section className="px-6 py-12">
-        <div className="mb-8 flex items-end justify-between">
-          <h2 className="font-empire text-3xl leading-none">Shop All</h2>
-          <a href="/shop" className="text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-black">
+        <div className="mb-12 flex items-end justify-between">
+          <h2 className="text-3xl font-medium tracking-tight text-black">Best Sellers</h2>
+          <a href="/shop" className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-300 hover:text-black transition-colors">
             View All
           </a>
         </div>
