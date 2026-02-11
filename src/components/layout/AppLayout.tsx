@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { TopNavbar } from "@/components/layout/TopNavbar";
 import { BottomNavbar } from "@/components/layout/BottomNavbar";
 import { Footer } from "@/components/layout/Footer";
 import { WelcomeOffer } from "@/components/ui/WelcomeOffer";
@@ -21,7 +22,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return (
         <AuthProvider>
             <div className="relative min-h-screen bg-white text-black antialiased">
-                <main className="">{children}</main>
+                <TopNavbar />
+                <main>{children}</main>
                 <Footer />
                 <BottomNavbar
                     onCartClick={() => setIsCartOpen(true)}
