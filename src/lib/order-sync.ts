@@ -18,7 +18,7 @@ export async function saveOrder(orderData: {
                 user_id: orderData.user_id,
                 amount: orderData.amount,
                 currency: orderData.currency,
-                items: orderData.items as any, // Supabase needs json, any is fine for the insert call if we know the shape
+                items: orderData.items as unknown, // Supabase needs json
                 status: orderData.status,
                 created_at: new Date().toISOString(),
             });

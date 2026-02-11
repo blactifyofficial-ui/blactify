@@ -5,6 +5,14 @@ import { useAuth } from "@/store/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { Package, ChevronLeft, Calendar, CreditCard, ExternalLink } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
+
+interface OrderItem {
+    name: string;
+    quantity: number;
+    price: number;
+    image?: string;
+}
 
 interface Order {
     id: string;
@@ -12,7 +20,7 @@ interface Order {
     amount: number;
     currency: string;
     status: string;
-    items: any[];
+    items: OrderItem[];
     payment_id: string;
 }
 
@@ -85,7 +93,7 @@ export default function OrdersPage() {
                             <Package size={48} className="text-zinc-200" />
                         </div>
                         <h2 className="text-xl font-bold mb-2">No orders found</h2>
-                        <p className="text-zinc-500 mb-8 max-w-xs">Looks like you haven't made any purchases yet.</p>
+                        <p className="text-zinc-500 mb-8 max-w-xs">Looks like you haven&apos;t made any purchases yet.</p>
                         <Link href="/shop" className="bg-black text-white px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest">
                             Shop Now
                         </Link>
@@ -125,10 +133,10 @@ export default function OrdersPage() {
                                 </div>
                                 <div className="p-6">
                                     <div className="space-y-4">
-                                        {Array.isArray(order.items) && order.items.map((item: any, idx: number) => (
+                                        {Array.isArray(order.items) && order.items.map((item, idx) => (
                                             <div key={idx} className="flex items-center gap-4">
-                                                <div className="h-16 w-16 overflow-hidden rounded-xl bg-zinc-50 border border-zinc-100 flex-shrink-0">
-                                                    {item.image && <img src={item.image} alt={item.name} className="h-full w-full object-cover" />}
+                                                <div className="relative h-16 w-16 overflow-hidden rounded-xl bg-zinc-50 border border-zinc-100 flex-shrink-0">
+                                                    {item.image && <Image src={item.image} alt={item.name} fill className="object-cover" />}
                                                 </div>
                                                 <div className="flex-grow">
                                                     <h4 className="text-sm font-bold uppercase tracking-tight">{item.name}</h4>

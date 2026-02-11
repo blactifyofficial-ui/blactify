@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import { X, Minus, Plus, ShoppingBag } from "lucide-react";
 import { useCartStore } from "@/store/useCartStore";
 import { cn } from "@/lib/utils";
@@ -9,6 +11,13 @@ import { useAuth } from "@/store/AuthContext";
 import { useState } from "react";
 import { saveOrder } from "@/lib/order-sync";
 
+declare global {
+    interface Window {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        Razorpay: any;
+    }
+}
+
 export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
     isOpen: boolean;
     onClose: () => void;
@@ -16,73 +25,17 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
 }) {
     const { items, removeItem, updateQuantity, getTotalPrice, clearCart } = useCartStore();
     const { user } = useAuth();
+    const router = useRouter();
     const [isCheckingOut, setIsCheckingOut] = useState(false);
 
-    const handleCheckout = async () => {
+    const handleCheckout = () => {
         if (!user) {
             onAuthRequired();
             return;
         }
 
-        setIsCheckingOut(true);
-        try {
-            const res = await fetch("/api/checkout", {
-                method: "POST",
-                body: JSON.stringify({
-                    amount: getTotalPrice(),
-                    currency: "INR",
-                    receipt: `order_${Date.now()}`,
-                }),
-            });
-
-            const order = await res.json();
-
-            const isLoaded = await loadRazorpay();
-            if (!isLoaded) {
-                alert("Razorpay SDK failed to load");
-                return;
-            }
-
-            const options = {
-                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // Use public key here
-                amount: order.amount,
-                currency: order.currency,
-                name: "Blactify",
-                description: "Premium Essentials Order",
-                order_id: order.id,
-                handler: async function (response: { razorpay_payment_id: string }) {
-                    // Save to Supabase
-                    await saveOrder({
-                        razorpay_order_id: order.id,
-                        razorpay_payment_id: response.razorpay_payment_id,
-                        user_id: user.uid,
-                        amount: getTotalPrice(),
-                        currency: "INR",
-                        items: items,
-                        status: "paid"
-                    });
-
-                    alert(`Payment Successful: ${response.razorpay_payment_id}`);
-                    clearCart();
-                    onClose();
-                },
-                prefill: {
-                    name: user.displayName || "",
-                    email: user.email || "",
-                },
-                theme: {
-                    color: "#000000",
-                },
-            };
-
-            const rzp = new (window as any).Razorpay(options);
-            rzp.open();
-        } catch (err: unknown) {
-            console.error("Checkout error:", err);
-            alert("Something went wrong during checkout");
-        } finally {
-            setIsCheckingOut(false);
-        }
+        onClose();
+        router.push("/checkout");
     };
 
     return (

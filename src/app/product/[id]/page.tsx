@@ -1,39 +1,52 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { getProductById } from "@/lib/mock-data";
 import Image from "next/image";
 import { useCartStore } from "@/store/useCartStore";
-import { ChevronRight, Star, ShoppingBag, ShieldCheck, Truck, RotateCcw, Send, X } from "lucide-react";
+import { ChevronRight, Star, ShoppingBag, ShieldCheck, Truck, RotateCcw, Send, X, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/store/AuthContext";
 import { fetchReviews, postReview } from "@/lib/review-sync";
 
+interface Review {
+    id: string;
+    product_id: string;
+    user_id: string;
+    rating: number;
+    comment: string;
+    created_at: string;
+    profiles?: {
+        full_name: string;
+    };
+}
+
 export default function ProductDetailPage() {
     const { id } = useParams();
+    const router = useRouter();
     const product = getProductById(id as string);
     const { addItem } = useCartStore();
     const { user } = useAuth();
     const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
     // Review states
-    const [reviews, setReviews] = useState<any[]>([]);
+    const [reviews, setReviews] = useState<Review[]>([]);
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
     const [newRating, setNewRating] = useState(5);
     const [newComment, setNewComment] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    useEffect(() => {
-        if (product) {
-            loadReviews();
-        }
+    const loadReviews = useCallback(async () => {
+        if (!product) return;
+        const data = await fetchReviews(product.id);
+        setReviews(data);
     }, [product]);
 
-    const loadReviews = async () => {
-        const data = await fetchReviews(product!.id);
-        setReviews(data);
-    };
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        loadReviews();
+    }, [loadReviews]);
 
     const handlePostReview = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -138,13 +151,25 @@ export default function ProductDetailPage() {
                     </div>
                 </div>
 
-                <button
-                    onClick={() => addItem(product)}
-                    className="w-full h-16 bg-black text-white rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-2xl"
-                >
-                    <ShoppingBag size={18} />
-                    Add to Bag
-                </button>
+                <div className="flex flex-col gap-3">
+                    <button
+                        onClick={() => addItem(product)}
+                        className="w-full h-16 bg-black text-white rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-2xl"
+                    >
+                        <ShoppingBag size={18} />
+                        Add to Bag
+                    </button>
+                    <button
+                        onClick={() => {
+                            addItem(product);
+                            router.push("/checkout");
+                        }}
+                        className="w-full h-16 bg-white text-black border border-black rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all"
+                    >
+                        Buy Now
+                        <ArrowRight size={18} />
+                    </button>
+                </div>
 
                 {/* Features */}
                 <div className="mt-12 grid grid-cols-1 gap-6 py-8 border-t border-zinc-50">

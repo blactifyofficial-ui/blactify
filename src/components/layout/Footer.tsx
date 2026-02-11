@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Instagram, Twitter, Facebook, ArrowUp } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 
 export function Footer() {
     const scrollToTop = () => {
@@ -9,7 +9,7 @@ export function Footer() {
     };
 
     return (
-        <footer className="border-t border-zinc-50 bg-white px-6 py-12 pb-32 md:pb-12 font-sans">
+        <footer className="border-t border-zinc-50 bg-white px-6 py-12 pb-40 md:pb-12 font-sans">
             <div className="mx-auto max-w-7xl">
                 <div className="grid grid-cols-1 gap-12 md:grid-cols-3">
                     <div className="space-y-6">
@@ -17,11 +17,9 @@ export function Footer() {
                         <p className="max-w-xs text-xs font-medium leading-relaxed text-zinc-400 uppercase tracking-widest">
                             Premium essentials for the modern aesthetic. Curated for those who appreciate the subtle art of details.
                         </p>
-                        <div className="flex items-center gap-4 text-zinc-400">
-                            <Link href="#" className="hover:text-black transition-colors"><Instagram size={18} /></Link>
-                            <Link href="#" className="hover:text-black transition-colors"><Twitter size={18} /></Link>
-                            <Link href="#" className="hover:text-black transition-colors"><Facebook size={18} /></Link>
-                        </div>
+                        <p className="max-w-xs text-xs font-medium leading-relaxed text-zinc-400 uppercase tracking-widest">
+
+                        </p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-8 md:col-span-1">
@@ -36,9 +34,10 @@ export function Footer() {
                         <div className="space-y-4">
                             <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-black">Support</h3>
                             <ul className="space-y-3 text-[10px] font-medium uppercase tracking-widest text-zinc-400">
-                                <li><Link href="#" className="hover:text-black transition-colors">Orders</Link></li>
-                                <li><Link href="#" className="hover:text-black transition-colors">Shipping</Link></li>
-                                <li><Link href="#" className="hover:text-black transition-colors">Contact</Link></li>
+                                <li><Link href="/orders" className="hover:text-black transition-colors">Orders</Link></li>
+                                <li><Link href="/policy/shipping" className="hover:text-black transition-colors">Shipping</Link></li>
+                                <li><Link href="/policy/privacy" className="hover:text-black transition-colors">Privacy</Link></li>
+                                <li><Link href="/policy/terms" className="hover:text-black transition-colors">Terms</Link></li>
                             </ul>
                         </div>
                     </div>
