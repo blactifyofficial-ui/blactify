@@ -3,6 +3,7 @@
 import { useEffect, useState, use } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
     ChevronLeft,
     Link as LinkIcon,
@@ -59,10 +60,11 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                 .eq("id", id);
 
             if (error) throw error;
+            toast.success(`Order status updated to ${newStatus}`);
             setOrder({ ...order, status: newStatus });
         } catch (err) {
             console.error("Error updating status:", err);
-            alert("Failed to update status");
+            toast.error("Failed to update status");
         } finally {
             setUpdating(false);
         }

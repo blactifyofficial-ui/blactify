@@ -3,6 +3,7 @@
 import { useEffect, useState, use } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
     ChevronLeft,
     Save,
@@ -16,7 +17,8 @@ import {
     AlignLeft,
     Link as LinkIcon,
     ChevronDown,
-    Loader2
+    Loader2,
+    Sparkles
 } from "lucide-react";
 import ImageCropper from "@/components/admin/ImageCropper";
 
@@ -93,7 +95,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
             });
         } catch (err) {
             console.error("Error fetching product:", err);
-            alert("Failed to fetch product data");
+            toast.error("Failed to fetch product data");
         } finally {
             setLoading(false);
         }
@@ -134,7 +136,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
             }
         } catch (err) {
             console.error("Upload error:", err);
-            alert("Failed to upload image. Please try again.");
+            toast.error("Failed to upload image. Please try again.");
         } finally {
             setUploading(null);
         }
@@ -143,6 +145,14 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
     const validate = () => {
         const newErrors: { [key: string]: string } = {};
 
+        if (!formData.name?.trim()) newErrors.name = "Product name is required";
+        if (!isEditing && !formData.id?.trim()) newErrors.id = "Product ID is required";
+        if (!formData.price_base) newErrors.price_base = "Base price is required";
+        if (!formData.category_id) newErrors.category_id = "Please select a category";
+        if (formData.stock === undefined || formData.stock === null) newErrors.stock = "Stock is required";
+        if (!formData.main_image) newErrors.main_image = "Main product image is required";
+        if (formData.size_variants.length === 0) newErrors.size_variants = "At least one size is required";
+
         // Handle: kebab-case
         const handleRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
         if (formData.handle && !handleRegex.test(formData.handle)) {
@@ -150,7 +160,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
         }
 
         // Product ID: p-001 (only if not editing)
-        if (!isEditing) {
+        if (!isEditing && formData.id?.trim()) {
             const idRegex = /^p-[0-9]+$/i;
             if (!idRegex.test(formData.id)) {
                 newErrors.id = "Product ID must follow 'p-001' format";
@@ -164,7 +174,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!validate()) {
-            alert("Please fix the errors before saving.");
+            toast.error("Please fix the validation errors.");
             return;
         }
         setSaving(true);
@@ -191,13 +201,50 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                 : await supabase.from("products").insert([dataToSave]);
 
             if (error) throw error;
+
+            toast.success(isEditing ? "Product updated successfully!" : "Product created successfully!");
             router.push("/admin/products");
             router.refresh();
-        } catch (err) {
-            console.error("Error saving product:", err);
-            alert("Failed to save product. Check required fields or unique constraints.");
+        } catch (err: any) {
+            console.error("Error saving product:", {
+                message: err.message,
+                details: err.details,
+                hint: err.hint,
+                error: err
+            });
+            toast.error(err.message || "Failed to save product. Please try again.");
         } finally {
             setSaving(false);
+        }
+    };
+
+    const generateNextId = async () => {
+        try {
+            const { data, error } = await supabase
+                .from("products")
+                .select("id")
+                .ilike("id", "p-%")
+                .order("id", { ascending: false })
+                .limit(1);
+
+            if (error) throw error;
+
+            let nextNumber = 1;
+            if (data && data.length > 0) {
+                const lastId = data[0].id;
+                const match = lastId.match(/p-(\d+)/i);
+                if (match) {
+                    nextNumber = parseInt(match[1]) + 1;
+                }
+            }
+
+            const newId = `p-${String(nextNumber).padStart(3, '0')}`;
+            setFormData(prev => ({ ...prev, id: newId }));
+            if (errors.id) setErrors(prev => ({ ...prev, id: "" }));
+            toast.success(`Suggested ID: ${newId}`);
+        } catch (err) {
+            console.error("Error generating ID:", err);
+            toast.error("Failed to generate ID");
         }
     };
 
@@ -227,7 +274,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit} noValidate className="space-y-8">
                 {/* Visual Section */}
                 <div className="bg-white p-8 rounded-[2rem] border border-zinc-100 shadow-sm space-y-6">
                     <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2">
@@ -246,7 +293,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                 <div key={img.key} className="space-y-2">
                                     <div
                                         onClick={() => document.getElementById(`file-${img.key}`)?.click()}
-                                        className="aspect-square bg-zinc-50 rounded-2xl border border-zinc-100 overflow-hidden relative group cursor-pointer hover:border-black/10 transition-all hover:shadow-lg"
+                                        className={`aspect-square bg-zinc-50 rounded-2xl border ${errors.main_image && img.key === 'main_image' ? 'border-red-400' : 'border-zinc-100'} overflow-hidden relative group cursor-pointer hover:border-black/10 transition-all hover:shadow-lg`}
                                     >
                                         <input
                                             type="file"
@@ -299,7 +346,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                 </div>
 
                 {/* Variants Section */}
-                <div className="bg-white p-8 rounded-[2rem] border border-zinc-100 shadow-sm space-y-6">
+                <div className={`bg-white p-8 rounded-[2rem] border ${errors.size_variants ? 'border-red-400' : 'border-zinc-100'} shadow-sm space-y-6`}>
                     <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2">
                         <Tag size={14} />
                         Variants & Sizes
@@ -329,28 +376,28 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                         </div>
 
                         <div className="flex gap-2">
-                            <input
-                                type="text"
-                                placeholder="Add size (e.g. S, XL, 9, 10)..."
-                                value={newSize}
-                                onChange={(e) => setNewSize(e.target.value)}
-                                className="flex-1 px-4 py-3 bg-zinc-50/50 border border-zinc-100 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all text-zinc-500 font-normal"
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                        e.preventDefault();
-                                        if (newSize) {
-                                            setFormData({ ...formData, size_variants: [...formData.size_variants, newSize] });
-                                            setNewSize("");
-                                        }
-                                    }
-                                }}
-                            />
+                            <div className="relative flex-1">
+                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-300 pointer-events-none" size={16} />
+                                <select
+                                    value={newSize}
+                                    onChange={(e) => {
+                                        setNewSize(e.target.value);
+                                    }}
+                                    className="w-full pl-6 pr-10 py-3 bg-zinc-50/50 border border-zinc-100 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all text-zinc-500 font-medium appearance-none"
+                                >
+                                    <option value="">Select Size...</option>
+                                    {["OneSize", "xs", "s", "m", "l", "xl", "xxl", "xxxl", "no size"].map(sz => (
+                                        <option key={sz} value={sz}>{sz}</option>
+                                    ))}
+                                </select>
+                            </div>
                             <button
                                 type="button"
                                 onClick={() => {
-                                    if (newSize) {
+                                    if (newSize && !formData.size_variants.includes(newSize)) {
                                         setFormData({ ...formData, size_variants: [...formData.size_variants, newSize] });
                                         setNewSize("");
+                                        if (errors.size_variants) setErrors(prev => ({ ...prev, size_variants: "" }));
                                     }
                                 }}
                                 className="px-6 bg-zinc-50 text-zinc-400 border border-zinc-100 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-zinc-100 transition-all active:scale-95"
@@ -359,6 +406,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                             </button>
                         </div>
                     </div>
+                    {errors.size_variants && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.size_variants}</p>}
                 </div>
 
                 {/* Info Section */}
@@ -378,30 +426,45 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                     required
                                     placeholder="Enter product title..."
                                     value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full pl-12 pr-6 py-4 bg-zinc-50/50 border border-zinc-100 rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-normal"
+                                    onChange={(e) => {
+                                        setFormData({ ...formData, name: e.target.value });
+                                        if (errors.name) setErrors(prev => ({ ...prev, name: "" }));
+                                    }}
+                                    className={`w-full pl-12 pr-6 py-4 bg-zinc-50/50 border ${errors.name ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-normal`}
                                 />
+                                {errors.name && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.name}</p>}
                             </div>
                         </label>
 
                         {!isEditing && (
                             <label className="block">
                                 <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block italic">Product ID (Unique)</span>
-                                <div className="relative">
-                                    <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={16} />
-                                    <input
-                                        type="text"
-                                        required
-                                        placeholder="p-001, etc."
-                                        value={formData.id}
-                                        onChange={(e) => {
-                                            setFormData({ ...formData, id: e.target.value });
-                                            if (errors.id) setErrors(prev => ({ ...prev, id: "" }));
-                                        }}
-                                        className={`w-full pl-12 pr-6 py-4 bg-zinc-50/50 border ${errors.id ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all uppercase font-semibold`}
-                                    />
-                                    {errors.id && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.id}</p>}
+                                <div className="flex gap-2">
+                                    <div className="relative flex-1">
+                                        <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={16} />
+                                        <input
+                                            type="text"
+                                            required
+                                            placeholder="p-001, etc."
+                                            value={formData.id}
+                                            onChange={(e) => {
+                                                setFormData({ ...formData, id: e.target.value });
+                                                if (errors.id) setErrors(prev => ({ ...prev, id: "" }));
+                                            }}
+                                            className={`w-full pl-12 pr-6 py-4 bg-zinc-50/50 border ${errors.id ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all uppercase font-semibold`}
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={generateNextId}
+                                        className="px-4 bg-zinc-50 text-zinc-400 border border-zinc-100 rounded-2xl hover:bg-zinc-100 transition-all active:scale-95 flex items-center gap-2 group"
+                                        title="Generate next ID"
+                                    >
+                                        <Sparkles size={16} className="group-hover:text-black transition-colors" />
+                                        <span className="text-[10px] font-bold uppercase tracking-widest hidden sm:inline">Generate</span>
+                                    </button>
                                 </div>
+                                {errors.id && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.id}</p>}
                             </label>
                         )}
 
@@ -414,9 +477,13 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                     required
                                     placeholder="0"
                                     value={formData.price_base}
-                                    onChange={(e) => setFormData({ ...formData, price_base: e.target.value })}
-                                    className="w-full pl-12 pr-6 py-4 bg-zinc-50/50 border border-zinc-100 rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-bold"
+                                    onChange={(e) => {
+                                        setFormData({ ...formData, price_base: e.target.value });
+                                        if (errors.price_base) setErrors(prev => ({ ...prev, price_base: "" }));
+                                    }}
+                                    className={`w-full pl-12 pr-6 py-4 bg-zinc-50/50 border ${errors.price_base ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-bold`}
                                 />
+                                {errors.price_base && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.price_base}</p>}
                             </div>
                         </label>
 
@@ -441,8 +508,11 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                 <select
                                     required
                                     value={formData.category_id}
-                                    onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                                    className="w-full pl-12 pr-10 py-4 bg-zinc-50/50 border border-zinc-100 rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all cursor-pointer font-medium appearance-none"
+                                    onChange={(e) => {
+                                        setFormData({ ...formData, category_id: e.target.value });
+                                        if (errors.category_id) setErrors(prev => ({ ...prev, category_id: "" }));
+                                    }}
+                                    className={`w-full pl-12 pr-10 py-4 bg-zinc-50/50 border ${errors.category_id ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all cursor-pointer font-medium appearance-none`}
                                 >
                                     <option value="">Select Category</option>
                                     {categories.map((cat) => (
@@ -450,6 +520,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                     ))}
                                 </select>
                                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-300 pointer-events-none" size={16} />
+                                {errors.category_id && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.category_id}</p>}
                             </div>
                         </label>
 
@@ -474,9 +545,13 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                 type="number"
                                 required
                                 value={formData.stock}
-                                onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) })}
-                                className="w-full px-6 py-4 bg-zinc-50/50 border border-zinc-100 rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-semibold"
+                                onChange={(e) => {
+                                    setFormData({ ...formData, stock: parseInt(e.target.value) });
+                                    if (errors.stock) setErrors(prev => ({ ...prev, stock: "" }));
+                                }}
+                                className={`w-full px-6 py-4 bg-zinc-50/50 border ${errors.stock ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-semibold`}
                             />
+                            {errors.stock && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.stock}</p>}
                         </label>
                     </div>
 

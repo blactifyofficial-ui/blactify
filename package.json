@@ -23,6 +23,7 @@
     "react-cropper": "^2.3.3",
     "react-dom": "19.2.3",
     "resend": "^6.9.2",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "zustand": "^5.0.11"
   },

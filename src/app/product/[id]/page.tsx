@@ -127,20 +127,20 @@ export default function ProductDetailPage() {
     const hasDiscount = product.price_offer && product.price_offer < product.price_base;
 
     return (
-        <main className="min-h-screen bg-white pb-24 relative">
+        <main className="min-h-screen bg-white text-black pb-24 font-inter">
             {/* Breadcrumbs */}
             <nav className="px-6 py-6 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
-                <Link href="/" className="hover:text-black">Home</Link>
+                <Link href="/" className="hover:text-black transition-colors">Home</Link>
                 <ChevronRight size={10} />
-                <Link href="/shop" className="hover:text-black">Shop</Link>
+                <Link href="/shop" className="hover:text-black transition-colors">Shop</Link>
                 <ChevronRight size={10} />
-                <span className="text-black">{product.name}</span>
+                <span className="text-black truncate">{product.name}</span>
             </nav>
 
-            {/* Images Gallery */}
-            <div className="flex flex-col gap-4">
+            {/* Images Gallery - 2x2 Grid */}
+            <div className="grid grid-cols-2 gap-1">
                 {productImages.map((img, index) => (
-                    <div key={index} className="relative aspect-[4/5] w-full bg-zinc-100 overflow-hidden">
+                    <div key={index} className="relative aspect-[4/5] w-full bg-zinc-50 overflow-hidden">
                         <Image
                             src={img}
                             alt={`${product.name} - ${index}`}
@@ -152,48 +152,49 @@ export default function ProductDetailPage() {
                 ))}
             </div>
 
-            {/* Product Details */}
-            <div className="px-6 pt-8">
-                <div className="flex flex-col gap-2 mb-6">
+            {/* Product Details Section */}
+            <div className="px-6 pt-10 pb-20">
+                <div className="flex flex-col gap-2 mb-8">
                     <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">
                         {product.categories?.name || product.category || "General"}
                     </span>
                     <h1 className="font-empire text-4xl text-black leading-tight uppercase">{product.name}</h1>
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-4 mt-1">
+                        <div className="flex items-center gap-3">
                             {hasDiscount ? (
                                 <>
-                                    <span className="text-2xl font-bold text-black">₹{displayPrice.toFixed(2)}</span>
-                                    <span className="text-lg text-zinc-400 line-through">₹{product.price_base.toFixed(2)}</span>
+                                    <span className="text-2xl font-bold text-black">₹{displayPrice.toLocaleString()}</span>
+                                    <span className="text-lg text-zinc-300 line-through">₹{product.price_base.toLocaleString()}</span>
                                 </>
                             ) : (
-                                <span className="text-2xl font-bold text-black">₹{displayPrice.toFixed(2)}</span>
+                                <span className="text-2xl font-bold text-black">₹{displayPrice.toLocaleString()}</span>
                             )}
                         </div>
-                        <div className="flex items-center gap-1 text-black">
+                        <div className="h-4 w-[1px] bg-zinc-100" />
+                        <div className="flex items-center gap-1.5 text-black">
                             <Star size={14} fill="currentColor" />
-                            <span className="text-xs font-bold">4.8</span>
-                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">({reviews.length} Reviews)</span>
+                            <span className="text-sm font-bold">4.8</span>
+                            <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest ml-1">({reviews.length})</span>
                         </div>
                     </div>
                 </div>
 
-                <p className="text-sm text-zinc-500 font-sans leading-relaxed mb-8">
+                <p className="text-sm text-zinc-500 font-sans leading-relaxed mb-10">
                     Elevate your everyday rotation with the {product.name}. Crafted from premium materials for unmatched comfort and a modern silhouette that fits any occasion. Features signature branding and refined detailing.
                 </p>
 
                 {/* Size Selection */}
-                <div className="mb-8">
+                <div className="mb-10">
                     <div className="flex items-center justify-between mb-4">
                         <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Select Size</span>
-                        <button className="text-[10px] font-bold uppercase tracking-widest text-black underline">Size Guide</button>
+                        <button className="text-[10px] font-bold uppercase tracking-widest text-black underline underline-offset-4">Size Guide</button>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex gap-4">
                         {sizes.map((size: string) => (
                             <button
                                 key={size}
                                 onClick={() => setSelectedSize(size)}
-                                className={`h-14 w-14 rounded-2xl flex items-center justify-center text-xs font-bold transition-all
+                                className={`h-16 w-16 rounded-2xl flex items-center justify-center text-xs font-bold transition-all duration-300
                                     ${selectedSize === size
                                         ? "bg-black text-white shadow-xl scale-105"
                                         : "bg-white text-black border border-zinc-100 hover:border-zinc-300"
@@ -208,7 +209,7 @@ export default function ProductDetailPage() {
                 <div className="flex flex-col gap-3">
                     <button
                         onClick={() => addItem(product, selectedSize || undefined)}
-                        className="w-full h-16 bg-black text-white rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-2xl"
+                        className="w-full h-16 bg-black text-white rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-2xl shadow-black/10"
                     >
                         <ShoppingBag size={18} />
                         Add to Bag
@@ -218,61 +219,63 @@ export default function ProductDetailPage() {
                             addItem(product, selectedSize || undefined);
                             router.push("/checkout");
                         }}
-                        className="w-full h-16 bg-white text-black border border-black rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all"
+                        className="w-full h-16 bg-white text-black border border-zinc-200 rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all"
                     >
                         Buy Now
                         <ArrowRight size={18} />
                     </button>
                 </div>
 
-                {/* Features */}
-                <div className="mt-12 grid grid-cols-1 gap-6 py-8 border-t border-zinc-50">
-                    <div className="flex items-start gap-4">
-                        <div className="p-3 bg-zinc-50 rounded-xl text-black">
+                {/* Features Grid */}
+                <div className="mt-16 grid grid-cols-1 gap-8 py-10 border-t border-zinc-50">
+                    <div className="flex items-start gap-5">
+                        <div className="p-3.5 bg-zinc-50 rounded-2xl text-black">
                             <Truck size={20} />
                         </div>
                         <div>
-                            <h4 className="text-xs font-bold uppercase tracking-widest text-black mb-1">Free Delivery</h4>
-                            <p className="text-xs text-zinc-400 font-sans">Complimentary shipping on all orders over $99.</p>
+                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-black mb-1">Free Delivery</h4>
+                            <p className="text-xs text-zinc-400 font-sans leading-relaxed">Complimentary shipping on all orders over ₹3,499.</p>
                         </div>
                     </div>
-                    <div className="flex items-start gap-4">
-                        <div className="p-3 bg-zinc-50 rounded-xl text-black">
+                    <div className="flex items-start gap-5">
+                        <div className="p-3.5 bg-zinc-50 rounded-2xl text-black">
                             <RotateCcw size={20} />
                         </div>
                         <div>
-                            <h4 className="text-xs font-bold uppercase tracking-widest text-black mb-1">Easy Returns</h4>
-                            <p className="text-xs text-zinc-400 font-sans">30-day effortless return policy for your peace of mind.</p>
+                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-black mb-1">Easy Returns</h4>
+                            <p className="text-xs text-zinc-400 font-sans leading-relaxed">30-day effortless return policy for your peace of mind.</p>
                         </div>
                     </div>
-                    <div className="flex items-start gap-4">
-                        <div className="p-3 bg-zinc-50 rounded-xl text-black">
+                    <div className="flex items-start gap-5">
+                        <div className="p-3.5 bg-zinc-50 rounded-2xl text-black">
                             <ShieldCheck size={20} />
                         </div>
                         <div>
-                            <h4 className="text-xs font-bold uppercase tracking-widest text-black mb-1">Authentic Care</h4>
-                            <p className="text-xs text-zinc-400 font-sans">Every piece is verified for premium quality assurance.</p>
+                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-black mb-1">Authentic Care</h4>
+                            <p className="text-xs text-zinc-400 font-sans leading-relaxed">Every piece is verified for premium quality assurance.</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Review Section */}
-                <section className="mt-12 pt-12 border-t border-zinc-100">
-                    <div className="flex items-center justify-between mb-8">
-                        <h3 className="font-empire text-3xl">Customer Reviews</h3>
-                        <div className="flex items-center gap-1 text-black">
+                <section className="mt-16 pt-16 border-t border-zinc-50">
+                    <div className="flex items-center justify-between mb-10">
+                        <h3 className="font-empire text-3xl text-black uppercase">Customer Reviews</h3>
+                        <div className="flex items-center gap-1.5 text-black">
                             <Star size={18} fill="currentColor" />
-                            <span className="text-xl font-bold">4.8</span>
+                            <span className="text-2xl font-bold">4.8</span>
                         </div>
                     </div>
 
-                    <div className="flex flex-col gap-8">
+                    <div className="flex flex-col gap-10">
                         {reviews.length === 0 ? (
-                            <p className="text-zinc-500 font-sans italic text-center py-10">No reviews yet. Be the first to share your experience!</p>
+                            <div className="py-20 bg-zinc-50 rounded-3xl text-center">
+                                <p className="text-zinc-500 font-sans italic">No reviews yet. Be the first to share your experience!</p>
+                            </div>
                         ) : (
                             reviews.map((review) => (
-                                <div key={review.id} className="pb-8 border-b border-zinc-50 last:border-0">
-                                    <div className="flex items-center justify-between mb-3">
+                                <div key={review.id} className="pb-10 border-b border-zinc-50 last:border-0">
+                                    <div className="flex items-center justify-between mb-4">
                                         <div className="flex items-center gap-1 text-black">
                                             {[...Array(5)].map((_, i) => (
                                                 <Star
@@ -283,15 +286,15 @@ export default function ProductDetailPage() {
                                                 />
                                             ))}
                                         </div>
-                                        <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-widest">
+                                        <span className="text-[10px] uppercase font-bold text-zinc-300 tracking-widest">
                                             {new Date(review.created_at).toLocaleDateString()}
                                         </span>
                                     </div>
-                                    <p className="text-sm font-sans text-zinc-600 leading-relaxed mb-4">
+                                    <p className="text-sm font-sans text-zinc-600 leading-relaxed mb-6">
                                         {review.comment}
                                     </p>
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-6 w-6 rounded-full bg-zinc-100 flex items-center justify-center text-[10px] font-bold uppercase">
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-8 w-8 rounded-full bg-zinc-100 flex items-center justify-center text-[10px] font-bold uppercase text-zinc-500">
                                             {review.profiles?.full_name?.charAt(0) || "U"}
                                         </div>
                                         <span className="text-[10px] font-bold uppercase tracking-widest text-black">
@@ -304,73 +307,73 @@ export default function ProductDetailPage() {
                     </div>
 
                     {/* Write Review Trigger */}
-                    <div className="mt-10 p-10 bg-zinc-50 rounded-[40px] text-center">
-                        <h4 className="font-empire text-2xl mb-2 text-black">Share Your Thoughts</h4>
-                        <p className="text-xs text-zinc-500 font-sans mb-6">Have you purchased this item? We value your feedback.</p>
+                    <div className="mt-12 p-10 bg-black rounded-[40px] text-center text-white">
+                        <h4 className="font-empire text-2xl mb-2 uppercase">Share Your Thoughts</h4>
+                        <p className="text-xs text-zinc-400 font-sans mb-8">Have you purchased this item? We value your feedback.</p>
                         <button
                             onClick={() => setIsReviewModalOpen(true)}
-                            className="px-10 py-4 bg-black rounded-full text-[10px] font-bold uppercase tracking-widest text-white shadow-xl active:scale-95 transition-all"
+                            className="px-10 py-4 bg-white text-black rounded-full text-[10px] font-bold uppercase tracking-widest shadow-xl shadow-white/5 active:scale-95 transition-all"
                         >
                             Write a Review
                         </button>
                     </div>
                 </section>
-            </div>
 
-            {/* Review Modal */}
-            {isReviewModalOpen && (
-                <>
-                    <div
-                        className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm transition-opacity"
-                        onClick={() => setIsReviewModalOpen(false)}
-                    />
-                    <div className="fixed inset-x-0 bottom-0 z-[110] mx-auto w-full max-w-md bg-white rounded-t-[40px] p-8 shadow-2xl animate-in slide-in-from-bottom duration-500">
-                        <div className="flex items-center justify-between mb-8">
-                            <h3 className="font-empire text-3xl">Write Review</h3>
-                            <button onClick={() => setIsReviewModalOpen(false)} className="p-2 hover:bg-zinc-100 rounded-full">
-                                <X size={20} />
-                            </button>
-                        </div>
+                {/* Review Modal */}
+                {isReviewModalOpen && (
+                    <>
+                        <div
+                            className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm transition-opacity"
+                            onClick={() => setIsReviewModalOpen(false)}
+                        />
+                        <div className="fixed inset-x-0 bottom-0 z-[110] mx-auto w-full max-w-md bg-white rounded-t-[40px] p-10 shadow-2xl animate-in slide-in-from-bottom duration-500">
+                            <div className="flex items-center justify-between mb-8">
+                                <h3 className="font-empire text-3xl uppercase text-black">Write Review</h3>
+                                <button onClick={() => setIsReviewModalOpen(false)} className="p-2 hover:bg-zinc-100 rounded-full transition-colors">
+                                    <X size={20} />
+                                </button>
+                            </div>
 
-                        <form onSubmit={handlePostReview} className="space-y-8 font-sans">
-                            <div className="space-y-4 text-center">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Rating</label>
-                                <div className="flex justify-center gap-3">
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                        <button
-                                            key={star}
-                                            type="button"
-                                            onClick={() => setNewRating(star)}
-                                            className={`transition-all ${newRating >= star ? "text-black scale-110" : "text-zinc-200"}`}
-                                        >
-                                            <Star size={32} fill={newRating >= star ? "currentColor" : "none"} />
-                                        </button>
-                                    ))}
+                            <form onSubmit={handlePostReview} className="space-y-8 font-sans">
+                                <div className="space-y-4 text-center">
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Rating</label>
+                                    <div className="flex justify-center gap-4">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <button
+                                                key={star}
+                                                type="button"
+                                                onClick={() => setNewRating(star)}
+                                                className={`transition-all duration-300 ${newRating >= star ? "text-black scale-110" : "text-zinc-100"}`}
+                                            >
+                                                <Star size={32} fill={newRating >= star ? "currentColor" : "none"} />
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Comment</label>
-                                <textarea
-                                    required
-                                    value={newComment}
-                                    onChange={(e) => setNewComment(e.target.value)}
-                                    className="w-full h-32 bg-zinc-50 border-none rounded-3xl p-6 text-sm outline-none focus:ring-2 focus:ring-black transition-all resize-none"
-                                    placeholder="Tell us what you think..."
-                                />
-                            </div>
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Comment</label>
+                                    <textarea
+                                        required
+                                        value={newComment}
+                                        onChange={(e) => setNewComment(e.target.value)}
+                                        className="w-full h-32 bg-zinc-50 border-none rounded-3xl p-6 text-sm outline-none focus:ring-2 focus:ring-black transition-all resize-none"
+                                        placeholder="Tell us what you think..."
+                                    />
+                                </div>
 
-                            <button
-                                disabled={isSubmitting}
-                                className="w-full py-5 bg-black text-white rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-3 shadow-2xl active:scale-95 transition-all disabled:opacity-50"
-                            >
-                                {isSubmitting ? "Posting..." : "Post Review"}
-                                <Send size={16} />
-                            </button>
-                        </form>
-                    </div>
-                </>
-            )}
+                                <button
+                                    disabled={isSubmitting}
+                                    className="w-full h-16 bg-black text-white rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-3 shadow-2xl shadow-black/10 active:scale-95 transition-all disabled:opacity-50"
+                                >
+                                    {isSubmitting ? "Posting..." : "Post Review"}
+                                    <Send size={16} />
+                                </button>
+                            </form>
+                        </div>
+                    </>
+                )}
+            </div>
         </main>
     );
 }

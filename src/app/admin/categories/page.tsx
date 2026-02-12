@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 import {
     Tag,
     Plus,
@@ -54,11 +55,12 @@ export default function AdminCategoriesPage() {
 
             if (insertError) throw insertError;
 
+            toast.success("Category added successfully!");
             setNewCategoryName("");
             fetchCategories();
         } catch (err: any) {
             console.error("Error adding category:", err);
-            setError(err.message || "Failed to add category. Likely a duplicate name.");
+            toast.error(err.message || "Failed to add category. Likely a duplicate name.");
         } finally {
             setAdding(false);
         }
@@ -74,10 +76,11 @@ export default function AdminCategoriesPage() {
                 .eq("id", id);
 
             if (deleteError) throw deleteError;
+            toast.success("Category deleted successfully!");
             setCategories(categories.filter(c => c.id !== id));
         } catch (err) {
             console.error("Error deleting category:", err);
-            alert("Failed to delete category.");
+            toast.error("Failed to delete category.");
         }
     };
 
@@ -90,7 +93,7 @@ export default function AdminCategoriesPage() {
 
             {/* Add Category Form */}
             <div className="bg-white p-8 rounded-[2.5rem] border border-zinc-100 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <form onSubmit={handleAddCategory} className="space-y-4">
+                <form onSubmit={handleAddCategory} noValidate className="space-y-4">
                     <label className="block">
                         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-3 block">New Category Name</span>
                         <div className="flex gap-4">
