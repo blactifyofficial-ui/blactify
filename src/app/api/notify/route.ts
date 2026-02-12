@@ -66,9 +66,15 @@ export async function POST(req: Request) {
                             <h3>Customer Details:</h3>
                             <p>Name: ${order.customer_details.name}</p>
                             <p>Phone: ${order.customer_details.phone}</p>
+                            ${order.customer_details.secondary_phone ? `<p>Alt Phone: ${order.customer_details.secondary_phone}</p>` : ''}
                             <hr />
                             <h3>Shipping Address:</h3>
-                            <p>${order.shipping_address.address}, ${order.shipping_address.city}, ${order.shipping_address.state} - ${order.shipping_address.pincode}</p>
+                            <p>
+                                ${order.shipping_address.address}<br />
+                                ${order.shipping_address.apartment ? `${order.shipping_address.apartment}<br />` : ''}
+                                ${order.shipping_address.district ? `${order.shipping_address.district}, ` : ''}${order.shipping_address.city}<br />
+                                ${order.shipping_address.state} - ${order.shipping_address.pincode}
+                            </p>
                         </div>
                     `,
                 });

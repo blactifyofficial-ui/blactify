@@ -73,7 +73,7 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                                     <div key={item.cartId || item.id} className="flex gap-4">
                                         <div className="relative h-24 w-20 overflow-hidden bg-zinc-100">
                                             <Image
-                                                src={item.imageUrl}
+                                                src={item.main_image}
                                                 alt={item.name}
                                                 fill
                                                 className="object-cover"
@@ -85,7 +85,10 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                                                     <h3 className="text-sm font-bold uppercase tracking-tight text-black">{item.name}</h3>
                                                     <button onClick={() => removeItem(item.cartId || item.id)} className="text-xs font-bold text-zinc-400 uppercase tracking-widest hover:text-black">Remove</button>
                                                 </div>
-                                                <p className="text-xs text-zinc-400 uppercase tracking-widest">{item.category}</p>
+                                                <p className="text-xs text-zinc-400 uppercase tracking-widest">{item.categories?.name || item.category}</p>
+                                                {item.size && (
+                                                    <p className="text-xs text-zinc-400 uppercase tracking-widest">Size: {item.size}</p>
+                                                )}
                                             </div>
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center border border-zinc-100">
@@ -103,7 +106,7 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                                                         <Plus size={14} />
                                                     </button>
                                                 </div>
-                                                <span className="text-sm font-bold text-black">₹{(item.price * item.quantity).toFixed(2)}</span>
+                                                <span className="text-sm font-bold text-black">₹{((item.price_offer || item.price_base) * item.quantity).toFixed(2)}</span>
                                             </div>
                                         </div>
                                     </div>

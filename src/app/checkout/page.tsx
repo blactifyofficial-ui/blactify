@@ -278,7 +278,7 @@ export default function CheckoutPage() {
                                         </div>
                                         <div className="flex-1 flex flex-col justify-center">
                                             <h4 className="text-sm font-medium text-zinc-900">{item.name}</h4>
-                                            <p className="text-xs text-zinc-500">Size: {item.size || 'Standard'}</p>
+                                            {item.size && <p className="text-xs text-zinc-500">Size: {item.size.toUpperCase()}</p>}
                                         </div>
                                         <div className="flex flex-col justify-center items-end">
                                             <span className="text-sm font-medium text-zinc-900">₹{((item.price_offer || item.price_base) * item.quantity).toFixed(2)}</span>
@@ -560,7 +560,7 @@ export default function CheckoutPage() {
                             </div>
                             <div className="flex-1 flex flex-col justify-center">
                                 <h4 className="text-sm font-medium text-zinc-900">{item.name}</h4>
-                                <p className="text-xs text-zinc-500">Size: {item.size || 'Standard'}</p>
+                                {item.size && <p className="text-xs text-zinc-500">Size: {item.size.toUpperCase()}</p>}
                             </div>
                             <div className="flex flex-col justify-center items-end">
                                 <span className="text-sm font-medium text-zinc-900">₹{((item.price_offer || item.price_base) * item.quantity).toFixed(2)}</span>

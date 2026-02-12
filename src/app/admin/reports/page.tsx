@@ -14,6 +14,7 @@ import {
 export default function AdminReportsPage() {
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [filterType, setFilterType] = useState<'daily' | 'monthly' | 'yearly'>('monthly');
 
     useEffect(() => {
         async function fetchOrders() {
@@ -39,12 +40,32 @@ export default function AdminReportsPage() {
     const totalRevenue = orders.reduce((sum, o) => sum + Number(o.amount), 0);
     const averageOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
 
-    // Group by month (simplified)
-    const monthlyData = orders.reduce((acc: any, o) => {
-        const month = new Date(o.created_at).toLocaleString('default', { month: 'short' });
-        acc[month] = (acc[month] || 0) + Number(o.amount);
+    // Dynamic grouping based on filter
+    const chartData = orders.reduce((acc: any, o) => {
+        const date = new Date(o.created_at);
+        let key = '';
+
+        if (filterType === 'daily') {
+            key = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+        } else if (filterType === 'monthly') {
+            key = date.toLocaleString('default', { month: 'short', year: '2-digit' });
+        } else {
+            key = date.getFullYear().toString();
+        }
+
+        acc[key] = (acc[key] || 0) + Number(o.amount);
         return acc;
     }, {});
+
+    // Sort data? Objects in JS aren't strictly ordered, but for charts/lists usually we want chronological.
+    // However, the current UI just maps Object.entries.
+    // If we want chronological, we might need better key handling or sorting.
+    // For now, let's keep it simple as per existing code, or ideally sort it.
+    // Actually, `orders` is sorted by `created_at` desc.
+    // If we reduce sequentially, keys might be inserted in that order?
+    // Let's rely on simple insertion order for now or maybe reverse it for the chart to show oldest to newest?
+    // The existing code showed months.
+    // Let's actually process it to be generic.
 
     return (
         <div className="space-y-8 pb-20 font-inter">
@@ -53,10 +74,24 @@ export default function AdminReportsPage() {
                     <h2 className="text-3xl font-bold tracking-tight">Sales Report</h2>
                     <p className="text-zinc-500 text-sm font-medium italic">Detailed analysis of your store's financial performance.</p>
                 </div>
-                <button className="flex items-center justify-center gap-2 bg-zinc-100 text-black px-6 py-3 rounded-2xl text-sm font-bold hover:bg-zinc-200 transition-all active:scale-95">
-                    <Download size={18} />
-                    Export CSV
-                </button>
+                <div className="flex items-center gap-4">
+                    <div className="flex bg-zinc-100 p-1 rounded-xl">
+                        {(['daily', 'monthly', 'yearly'] as const).map((type) => (
+                            <button
+                                key={type}
+                                onClick={() => setFilterType(type)}
+                                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${filterType === type ? 'bg-black text-white shadow-md' : 'text-zinc-500 hover:text-black'
+                                    }`}
+                            >
+                                {type}
+                            </button>
+                        ))}
+                    </div>
+                    <button className="flex items-center justify-center gap-2 bg-zinc-100 text-black px-6 py-3 rounded-2xl text-sm font-bold hover:bg-zinc-200 transition-all active:scale-95">
+                        <Download size={18} />
+                        <span className="hidden sm:inline">Export</span>
+                    </button>
+                </div>
             </div>
 
             {/* Top Cards */}
@@ -101,13 +136,16 @@ export default function AdminReportsPage() {
                             <BarChart size={20} />
                             Revenue Breakdown
                         </h3>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 bg-zinc-50 px-3 py-1 rounded-full">
+                            {filterType} View
+                        </span>
                     </div>
 
-                    <div className="space-y-6">
-                        {Object.entries(monthlyData).map(([month, amount]: [string, any]) => (
-                            <div key={month} className="space-y-2">
+                    <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                        {Object.entries(chartData).map(([label, amount]: [string, any]) => (
+                            <div key={label} className="space-y-2">
                                 <div className="flex justify-between text-xs font-semibold uppercase tracking-widest">
-                                    <span className="text-zinc-400 italic">{month}</span>
+                                    <span className="text-zinc-400 italic">{label}</span>
                                     <span className="font-bold">₹{amount.toLocaleString()}</span>
                                 </div>
                                 <div className="h-2 w-full bg-zinc-50 rounded-full overflow-hidden">

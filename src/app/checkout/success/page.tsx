@@ -4,7 +4,7 @@ import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import confetti from "canvas-confetti";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 interface OrderDetail {
@@ -97,6 +97,18 @@ export default function CheckoutSuccessPage() {
         fetchOrderAndNotify();
     }, [orderId, notified]);
 
+    const [countdown, setCountdown] = useState(5);
+    const router = useRouter();
+
+    useEffect(() => {
+        if (countdown > 0) {
+            const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+            return () => clearTimeout(timer);
+        } else {
+            router.push("/");
+        }
+    }, [countdown, router]);
+
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-white p-6 text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
@@ -106,13 +118,16 @@ export default function CheckoutSuccessPage() {
             <p className="text-zinc-500 mb-8 max-w-md">
                 Thank you for your purchase. We have received your order and automated notifications have been sent to the seller.
             </p>
+            <p className="text-zinc-400 text-xs mb-8">
+                Redirecting to home in {countdown}s...
+            </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
                 <Link
-                    href="/shop"
+                    href="/"
                     className="px-8 py-3 bg-black text-white text-sm font-medium rounded-md hover:bg-zinc-800 transition-colors"
                 >
-                    Continue Shopping
+                    Return Home Now
                 </Link>
             </div>
 

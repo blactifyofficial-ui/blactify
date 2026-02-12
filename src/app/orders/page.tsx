@@ -10,8 +10,12 @@ import Image from "next/image";
 interface OrderItem {
     name: string;
     quantity: number;
-    price: number;
+    price?: number;
+    price_offer?: number;
+    price_base?: number;
     image?: string;
+    main_image?: string;
+    size?: string;
 }
 
 interface Order {
@@ -136,13 +140,14 @@ export default function OrdersPage() {
                                         {Array.isArray(order.items) && order.items.map((item, idx) => (
                                             <div key={idx} className="flex items-center gap-4">
                                                 <div className="relative h-16 w-16 overflow-hidden rounded-xl bg-zinc-50 border border-zinc-100 flex-shrink-0">
-                                                    {item.image && <Image src={item.image} alt={item.name} fill className="object-cover" />}
+                                                    {(item.image || item.main_image) && <Image src={(item.image || item.main_image)!} alt={item.name} fill className="object-cover" />}
                                                 </div>
                                                 <div className="flex-grow">
                                                     <h4 className="text-sm font-bold uppercase tracking-tight">{item.name}</h4>
                                                     <p className="text-xs text-zinc-500">Qty: {item.quantity}</p>
+                                                    {item.size && <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Size: {item.size}</p>}
                                                 </div>
-                                                <p className="text-sm font-bold">₹{item.price.toLocaleString()}</p>
+                                                <p className="text-sm font-bold">₹{(item.price || item.price_offer || item.price_base || 0).toLocaleString()}</p>
                                             </div>
                                         ))}
                                     </div>

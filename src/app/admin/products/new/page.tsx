@@ -151,7 +151,6 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
         if (!formData.category_id) newErrors.category_id = "Please select a category";
         if (formData.stock === undefined || formData.stock === null) newErrors.stock = "Stock is required";
         if (!formData.main_image) newErrors.main_image = "Main product image is required";
-        if (formData.size_variants.length === 0) newErrors.size_variants = "At least one size is required";
 
         // Handle: kebab-case
         const handleRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
