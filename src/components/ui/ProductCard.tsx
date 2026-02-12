@@ -9,11 +9,21 @@ import { Plus } from "lucide-react";
 export interface Product {
     id: string;
     name: string;
-    price: number;
-    discountPrice?: number;
-    imageUrl: string;
-    category: string;
+    handle: string;
+    price_base: number;
+    price_offer?: number;
+    main_image: string;
+    image1?: string;
+    image2?: string;
+    image3?: string;
+    category_id?: string;
+    categories?: {
+        name: string;
+    };
+    category?: string; // Fallback
     tag?: string;
+    size_variants?: string[];
+    description?: string;
 }
 
 interface ProductCardProps {
@@ -24,12 +34,16 @@ interface ProductCardProps {
 export function ProductCard({ product, className }: ProductCardProps) {
     const { addItem } = useCartStore();
 
+    // Use price_offer as the primary price if available
+    const displayPrice = product.price_offer || product.price_base;
+    const hasDiscount = product.price_offer && product.price_offer < product.price_base;
+
     return (
         <div className={cn("group flex flex-col gap-3", className)}>
             <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-100">
                 <Link href={`/product/${product.id}`} className="block h-full w-full">
                     <Image
-                        src={product.imageUrl}
+                        src={product.main_image || ""}
                         alt={product.name}
                         fill
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -53,25 +67,25 @@ export function ProductCard({ product, className }: ProductCardProps) {
             <div className="flex flex-col gap-1">
                 <Link href={`/product/${product.id}`}>
                     <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-300 mb-1 block">
-                        {product.category}
+                        {product.categories?.name || product.category || "General"}
                     </span>
                     <h3 className="text-sm font-normal text-zinc-500 lowercase leading-tight">
                         {product.name}
                     </h3>
                 </Link>
                 <div className="flex items-center gap-2">
-                    {product.discountPrice ? (
+                    {hasDiscount ? (
                         <>
                             <span className="text-sm font-bold text-black">
-                                ₹{product.discountPrice.toFixed(2)}
+                                ₹{displayPrice.toFixed(2)}
                             </span>
                             <span className="text-sm text-zinc-400 line-through">
-                                ₹{product.price.toFixed(2)}
+                                ₹{product.price_base.toFixed(2)}
                             </span>
                         </>
                     ) : (
                         <span className="text-sm font-bold text-black">
-                            ₹{product.price.toFixed(2)}
+                            ₹{displayPrice.toFixed(2)}
                         </span>
                     )}
                 </div>

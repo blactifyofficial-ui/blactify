@@ -1,17 +1,43 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 import { Hero } from "@/components/ui/Hero";
-import { ProductCard } from "@/components/ui/ProductCard";
-import { MOCK_PRODUCTS } from "@/lib/mock-data";
+import { ProductCard, type Product } from "@/components/ui/ProductCard";
 import Link from "next/link";
 
 export default function Home() {
-  const heroProduct = MOCK_PRODUCTS[0];
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .limit(8)
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        setProducts(data || []);
+      } catch (err) {
+        console.error("Error fetching best sellers:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, []);
+
+  const heroProduct = products[0];
 
   return (
     <main className="flex flex-col">
       <Hero
         title="Essentials"
         subtitle={heroProduct?.name?.toUpperCase() || "'REAL' OUT NOW"}
-        images={MOCK_PRODUCTS.slice(0, 3).map(p => p.imageUrl)}
+        images={products.slice(0, 3).map(p => p.main_image)}
         ctaText="Shop Now"
         ctaLink="/shop"
       />
@@ -25,12 +51,21 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4 lg:grid-cols-6">
-          {MOCK_PRODUCTS.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+          {loading ? (
+            [...Array(6)].map((_, i) => (
+              <div key={i} className="flex flex-col gap-4">
+                <div className="aspect-[4/5] bg-zinc-100 rounded-3xl"></div>
+                <div className="h-4 bg-zinc-100 rounded-full w-3/4"></div>
+                <div className="h-3 bg-zinc-100 rounded-full w-1/2"></div>
+              </div>
+            ))
+          ) : (
+            products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))
+          )}
         </div>
       </section>
     </main>
   );
 }
-

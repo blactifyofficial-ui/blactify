@@ -55,7 +55,7 @@ export const useCartStore = create<CartStore>()(
             getTotalItems: () =>
                 get().items.reduce((acc, item) => acc + item.quantity, 0),
             getTotalPrice: () =>
-                get().items.reduce((acc, item) => acc + item.price * item.quantity, 0),
+                get().items.reduce((acc, item) => acc + (item.price_offer || item.price_base) * item.quantity, 0),
         }),
         {
             name: "blactify-cart-storage",

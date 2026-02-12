@@ -11,13 +11,18 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.95.3",
     "canvas-confetti": "^1.9.4",
+    "cloudinary": "^2.5.1",
     "clsx": "^2.1.1",
+    "cropperjs": "^1.6.2",
+    "dotenv": "^17.2.4",
     "firebase": "^12.9.0",
     "lucide-react": "^0.563.0",
     "next": "16.1.6",
     "razorpay": "^2.9.6",
     "react": "19.2.3",
+    "react-cropper": "^2.3.3",
     "react-dom": "19.2.3",
+    "resend": "^6.9.2",
     "tailwind-merge": "^3.4.0",
     "zustand": "^5.0.11"
   },

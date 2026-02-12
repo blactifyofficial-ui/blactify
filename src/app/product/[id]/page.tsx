@@ -1,14 +1,15 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { getProductById } from "@/lib/mock-data";
+import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
+import { supabase } from "@/lib/supabase";
 import { useCartStore } from "@/store/useCartStore";
 import { ChevronRight, Star, ShoppingBag, ShieldCheck, Truck, RotateCcw, Send, X, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/store/AuthContext";
 import { fetchReviews, postReview } from "@/lib/review-sync";
+import { type Product } from "@/components/ui/ProductCard";
 
 interface Review {
     id: string;
@@ -25,7 +26,8 @@ interface Review {
 export default function ProductDetailPage() {
     const { id } = useParams();
     const router = useRouter();
-    const product = getProductById(id as string);
+    const [product, setProduct] = useState<Product | null>(null);
+    const [loading, setLoading] = useState(true);
     const { addItem } = useCartStore();
     const { user } = useAuth();
     const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -37,6 +39,27 @@ export default function ProductDetailPage() {
     const [newComment, setNewComment] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    useEffect(() => {
+        async function fetchProduct() {
+            try {
+                // Try fetching by ID first, then by handle
+                const { data, error } = await supabase
+                    .from("products")
+                    .select("*, categories(name)")
+                    .or(`id.eq.${id},handle.eq.${id}`)
+                    .single();
+
+                if (error) throw error;
+                setProduct(data);
+            } catch (err) {
+                console.error("Error fetching product:", err);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchProduct();
+    }, [id]);
+
     const loadReviews = useCallback(async () => {
         if (!product) return;
         const data = await fetchReviews(product.id);
@@ -44,7 +67,6 @@ export default function ProductDetailPage() {
     }, [product]);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         loadReviews();
     }, [loadReviews]);
 
@@ -66,12 +88,20 @@ export default function ProductDetailPage() {
         if (result.success) {
             setNewComment("");
             setIsReviewModalOpen(false);
-            loadReviews();
+            await loadReviews();
         } else {
             alert("Failed to post review. Please try again.");
         }
         setIsSubmitting(false);
     };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
+            </div>
+        );
+    }
 
     if (!product) {
         return (
@@ -85,7 +115,16 @@ export default function ProductDetailPage() {
         );
     }
 
-    const sizes = ["S", "M", "L", "XL"];
+    const sizes = (product?.size_variants && product.size_variants.length > 0) ? product.size_variants : ["S", "M", "L", "XL"];
+    const productImages = [
+        product.main_image,
+        product.image1,
+        product.image2,
+        product.image3
+    ].filter(Boolean) as string[];
+
+    const displayPrice = product.price_offer || product.price_base;
+    const hasDiscount = product.price_offer && product.price_offer < product.price_base;
 
     return (
         <main className="min-h-screen bg-white pb-24 relative">
@@ -98,24 +137,39 @@ export default function ProductDetailPage() {
                 <span className="text-black">{product.name}</span>
             </nav>
 
-            {/* Hero Image */}
-            <div className="relative aspect-[4/5] w-full bg-zinc-100 overflow-hidden">
-                <Image
-                    src={product.imageUrl}
-                    alt={product.name}
-                    fill
-                    className="object-cover"
-                    priority
-                />
+            {/* Images Gallery */}
+            <div className="flex flex-col gap-4">
+                {productImages.map((img, index) => (
+                    <div key={index} className="relative aspect-[4/5] w-full bg-zinc-100 overflow-hidden">
+                        <Image
+                            src={img}
+                            alt={`${product.name} - ${index}`}
+                            fill
+                            className="object-cover"
+                            priority={index === 0}
+                        />
+                    </div>
+                ))}
             </div>
 
             {/* Product Details */}
             <div className="px-6 pt-8">
                 <div className="flex flex-col gap-2 mb-6">
-                    <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">{product.category}</span>
+                    <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">
+                        {product.categories?.name || product.category || "General"}
+                    </span>
                     <h1 className="font-empire text-4xl text-black leading-tight uppercase">{product.name}</h1>
                     <div className="flex items-center gap-4">
-                        <span className="text-2xl font-bold text-black">₹{product.price.toFixed(2)}</span>
+                        <div className="flex items-center gap-2">
+                            {hasDiscount ? (
+                                <>
+                                    <span className="text-2xl font-bold text-black">₹{displayPrice.toFixed(2)}</span>
+                                    <span className="text-lg text-zinc-400 line-through">₹{product.price_base.toFixed(2)}</span>
+                                </>
+                            ) : (
+                                <span className="text-2xl font-bold text-black">₹{displayPrice.toFixed(2)}</span>
+                            )}
+                        </div>
                         <div className="flex items-center gap-1 text-black">
                             <Star size={14} fill="currentColor" />
                             <span className="text-xs font-bold">4.8</span>
@@ -135,7 +189,7 @@ export default function ProductDetailPage() {
                         <button className="text-[10px] font-bold uppercase tracking-widest text-black underline">Size Guide</button>
                     </div>
                     <div className="flex gap-3">
-                        {sizes.map((size) => (
+                        {sizes.map((size: string) => (
                             <button
                                 key={size}
                                 onClick={() => setSelectedSize(size)}

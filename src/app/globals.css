@@ -32,4 +32,8 @@ body {
     font-family: var(--font-space-grotesk);
     letter-spacing: -0.01em;
   }
+
+  .font-inter {
+    font-family: var(--font-inter);
+  }
 }

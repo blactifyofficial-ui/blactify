@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { TopNavbar } from "@/components/layout/TopNavbar";
 import { BottomNavbar } from "@/components/layout/BottomNavbar";
 import { Footer } from "@/components/layout/Footer";
@@ -12,6 +13,8 @@ import { AuthModal } from "@/components/ui/AuthModal";
 export function AppLayout({ children }: { children: React.ReactNode }) {
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isAuthOpen, setIsAuthOpen] = useState(false);
+    const pathname = usePathname();
+    const isAdmin = pathname?.startsWith('/admin');
 
     useEffect(() => {
         const handleOpenAuth = () => setIsAuthOpen(true);
@@ -22,14 +25,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return (
         <AuthProvider>
             <div className="relative min-h-screen bg-white text-black antialiased">
-                <TopNavbar />
+                {!isAdmin && <TopNavbar />}
                 <main>{children}</main>
-                <Footer />
-                <BottomNavbar
-                    onCartClick={() => setIsCartOpen(true)}
-                    onProfileClick={() => setIsAuthOpen(true)}
-                />
-                <WelcomeOffer />
+                {!isAdmin && <Footer />}
+                {!isAdmin && (
+                    <BottomNavbar
+                        onCartClick={() => setIsCartOpen(true)}
+                        onProfileClick={() => setIsAuthOpen(true)}
+                    />
+                )}
+                {!isAdmin && <WelcomeOffer />}
                 <CartDrawer
                     isOpen={isCartOpen}
                     onClose={() => setIsCartOpen(false)}

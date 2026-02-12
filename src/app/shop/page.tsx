@@ -1,19 +1,40 @@
 "use client";
 
-import { ALL_PRODUCTS } from "@/lib/mock-data";
-import { ProductCard } from "@/components/ui/ProductCard";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { ProductCard, type Product } from "@/components/ui/ProductCard";
 import { Search, Filter, SlidersHorizontal } from "lucide-react";
 
 export default function ShopPage() {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("All");
 
-    const categories = ["All", ...new Set(ALL_PRODUCTS.map(p => p.category))];
+    useEffect(() => {
+        async function fetchProducts() {
+            try {
+                const { data, error } = await supabase
+                    .from("products")
+                    .select("*, categories(name)")
+                    .order("created_at", { ascending: false });
 
-    const filteredProducts = ALL_PRODUCTS.filter(p => {
+                if (error) throw error;
+                setProducts(data || []);
+            } catch (err) {
+                console.error("Error fetching products:", err);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchProducts();
+    }, []);
+
+    const categories = ["All", ...new Set(products.map(p => p.categories?.name || p.category || "General"))];
+
+    const filteredProducts = products.filter(p => {
         const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = selectedCategory === "All" || p.category === selectedCategory;
+        const matchesCategory = selectedCategory === "All" || (p.categories?.name || p.category || "General") === selectedCategory;
         return matchesSearch && matchesCategory;
     });
 
@@ -66,9 +87,19 @@ export default function ShopPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4 lg:grid-cols-6">
-                    {filteredProducts.map((product) => (
-                        <ProductCard key={product.id} product={product} />
-                    ))}
+                    {loading ? (
+                        [...Array(6)].map((_, i) => (
+                            <div key={i} className="animate-pulse space-y-4">
+                                <div className="aspect-[4/5] bg-zinc-100 rounded-3xl"></div>
+                                <div className="h-4 bg-zinc-100 rounded-full w-3/4"></div>
+                                <div className="h-3 bg-zinc-100 rounded-full w-1/2"></div>
+                            </div>
+                        ))
+                    ) : (
+                        filteredProducts.map((product) => (
+                            <ProductCard key={product.id} product={product} />
+                        ))
+                    )}
                 </div>
 
                 {filteredProducts.length === 0 && (

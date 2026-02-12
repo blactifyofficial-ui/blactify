@@ -167,7 +167,7 @@ export default function CheckoutPage() {
 
                         if (saveResult.success) {
                             clearCart();
-                            router.push("/checkout/success");
+                            router.push(`/checkout/success?order_id=${response.razorpay_order_id}`);
                         } else {
                             console.error("Failed to save order:", saveResult.error);
                             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -274,14 +274,14 @@ export default function CheckoutPage() {
                                             <div className="absolute top-0 right-0 bg-zinc-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-bl-lg font-medium opacity-90 z-10">
                                                 {item.quantity}
                                             </div>
-                                            <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
+                                            <Image src={item.main_image || ""} alt={item.name} fill className="object-cover" />
                                         </div>
                                         <div className="flex-1 flex flex-col justify-center">
                                             <h4 className="text-sm font-medium text-zinc-900">{item.name}</h4>
                                             <p className="text-xs text-zinc-500">Size: {item.size || 'Standard'}</p>
                                         </div>
                                         <div className="flex flex-col justify-center items-end">
-                                            <span className="text-sm font-medium text-zinc-900">₹{(item.price * item.quantity).toFixed(2)}</span>
+                                            <span className="text-sm font-medium text-zinc-900">₹{((item.price_offer || item.price_base) * item.quantity).toFixed(2)}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -556,14 +556,14 @@ export default function CheckoutPage() {
                                 <div className="absolute top-0 right-0 bg-zinc-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-bl-lg font-medium opacity-90 z-10">
                                     {item.quantity}
                                 </div>
-                                <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
+                                <Image src={item.main_image || ""} alt={item.name} fill className="object-cover" />
                             </div>
                             <div className="flex-1 flex flex-col justify-center">
                                 <h4 className="text-sm font-medium text-zinc-900">{item.name}</h4>
                                 <p className="text-xs text-zinc-500">Size: {item.size || 'Standard'}</p>
                             </div>
                             <div className="flex flex-col justify-center items-end">
-                                <span className="text-sm font-medium text-zinc-900">₹{(item.price * item.quantity).toFixed(2)}</span>
+                                <span className="text-sm font-medium text-zinc-900">₹{((item.price_offer || item.price_base) * item.quantity).toFixed(2)}</span>
                             </div>
                         </div>
                     ))}
