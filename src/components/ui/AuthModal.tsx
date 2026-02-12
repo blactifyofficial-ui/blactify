@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X, Mail, Lock, User, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
@@ -29,9 +30,11 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
         try {
             if (mode === "signin") {
                 await signInWithEmailAndPassword(auth, email, password);
+                toast.success("Welcome back!");
             } else {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(userCredential.user, { displayName: name });
+                toast.success("Account created successfully!");
             }
             onClose();
         } catch (err: unknown) {
@@ -47,6 +50,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
         setLoading(true);
         try {
             await signInWithPopup(auth, googleProvider);
+            toast.success("Signed in with Google");
             onClose();
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : "Google sign-in failed";

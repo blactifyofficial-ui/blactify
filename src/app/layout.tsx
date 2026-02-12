@@ -19,8 +19,8 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Blactify | Premium Essentials",
-  description: "Modern e-commerce platform for high-aesthetic essentials.",
+  title: "Blactify | Meets Timeless Essentials",
+  description: "Modern e-commerce platform for high-aesthetic meets timeless essentials.",
 };
 
 export const viewport: Viewport = {

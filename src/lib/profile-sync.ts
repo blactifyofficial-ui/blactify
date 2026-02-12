@@ -30,3 +30,30 @@ export async function syncUserProfile(user: User) {
         console.error("🔴 Unexpected error in syncUserProfile:", err);
     }
 }
+
+export async function getWelcomeDiscountStatus(userId: string) {
+    try {
+        const { data, error } = await supabase
+            .from("profiles")
+            .select("welcome_discount_used")
+            .eq("id", userId)
+            .single();
+
+        if (error) return true; // Default to true (used) on error for safety
+        return data?.welcome_discount_used ?? false;
+    } catch (err) {
+        console.error("Error fetching welcome discount status:", err);
+        return true;
+    }
+}
+
+export async function markWelcomeDiscountUsed(userId: string) {
+    try {
+        await supabase
+            .from("profiles")
+            .update({ welcome_discount_used: true })
+            .eq("id", userId);
+    } catch (err) {
+        console.error("Error marking welcome discount as used:", err);
+    }
+}

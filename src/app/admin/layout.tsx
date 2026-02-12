@@ -13,7 +13,6 @@ import { AdminGuard } from "@/components/admin/AdminGuard";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 import { AdminBottomNavbar } from "@/components/admin/AdminBottomNavbar";
-import { Toaster } from "sonner";
 
 const NAV_ITEMS = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -35,18 +34,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     return (
         <AdminGuard>
-            <Toaster
-                position="top-center"
-                toastOptions={{
-                    classNames: {
-                        toast: "rounded-full border border-zinc-100 shadow-xl p-2 px-4 font-inter bg-white w-auto min-w-fit max-w-[250px] mx-auto",
-                        title: "font-bold text-sm",
-                        description: "text-xs font-medium opacity-80",
-                        // Default content styling
-                        content: "flex items-center gap-3",
-                    },
-                }}
-            />
             <div className="min-h-screen bg-zinc-50 flex flex-col md:flex-row pb-16 md:pb-0 font-inter">
                 {/* Sidebar - Desktop */}
                 <aside className="hidden md:flex w-64 bg-black text-white flex-col sticky top-0 h-screen">

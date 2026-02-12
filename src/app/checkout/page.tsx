@@ -10,17 +10,22 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/store/AuthContext";
 import { loadRazorpay } from "@/lib/razorpay";
 import { saveOrder } from "@/lib/order-sync";
+import { markWelcomeDiscountUsed } from "@/lib/profile-sync";
+import { Tag } from "lucide-react";
+import { toast } from "sonner";
 
 export default function CheckoutPage() {
-    const { items, getTotalPrice, clearCart } = useCartStore();
+    const { items, getSubtotal, getTotalPrice, clearCart, discountCode, applyDiscount, removeDiscount } = useCartStore();
     const router = useRouter();
     const { user } = useAuth();
     const [isMounted, setIsMounted] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [showOrderSummary, setShowOrderSummary] = useState(false);
+    const [discountInput, setDiscountInput] = useState("");
 
-    const subtotal = getTotalPrice();
-    const total = subtotal;
+    const subtotal = getSubtotal();
+    const total = getTotalPrice();
+    const discountAmount = subtotal - total;
 
     const [formData, setFormData] = useState({
         email: user?.email || "",
@@ -166,13 +171,17 @@ export default function CheckoutPage() {
                         });
 
                         if (saveResult.success) {
+                            if (discountCode === "WELCOME10" && user) {
+                                await markWelcomeDiscountUsed(user.uid);
+                            }
                             clearCart();
+                            removeDiscount();
                             router.push(`/checkout/success?order_id=${response.razorpay_order_id}`);
                         } else {
                             console.error("Failed to save order:", saveResult.error);
                             // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             const errorMessage = (saveResult.error as any)?.message || "Unknown error";
-                            alert(`Payment successful but failed to save order: ${errorMessage}`);
+                            toast.error(`Order failed: ${errorMessage}`);
                         }
                     } catch (error) {
                         console.error("Error processing successful payment:", error);
@@ -211,7 +220,7 @@ export default function CheckoutPage() {
         } catch (error) {
             console.error("Checkout Error:", error);
             setIsProcessing(false);
-            alert("Checkout failed. Please try again.");
+            toast.error("Checkout failed. Please try again.");
         }
     };
 
@@ -263,7 +272,7 @@ export default function CheckoutPage() {
                                 <span className="text-zinc-900">Show order summary</span>
                                 {showOrderSummary ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                             </span>
-                            <span className="text-zinc-900 font-bold">₹{total.toFixed(2)}</span>
+                            <span className="text-zinc-900 font-medium">₹{total.toFixed(2)}</span>
                         </button>
 
                         {showOrderSummary && (
@@ -286,12 +295,57 @@ export default function CheckoutPage() {
                                     </div>
                                 ))}
                                 <div className="space-y-3 pt-4 border-t border-zinc-200/50">
-                                    <div className="flex justify-between text-sm text-zinc-600">
+                                    <div className="flex gap-2">
+                                        <input
+                                            placeholder="Discount code"
+                                            value={discountInput}
+                                            onChange={(e) => setDiscountInput(e.target.value.toUpperCase())}
+                                            className="flex-1 h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (discountInput === "WELCOME10") {
+                                                    applyDiscount("WELCOME10");
+                                                    setDiscountInput("");
+                                                } else {
+                                                    toast.error("Invalid discount code");
+                                                }
+                                            }}
+                                            className="h-12 px-6 bg-black text-white text-sm font-medium rounded-md hover:bg-zinc-800 transition-colors"
+                                        >
+                                            Apply
+                                        </button>
+                                    </div>
+
+                                    {discountCode && (
+                                        <div className="flex items-center justify-between py-2 px-3 bg-zinc-100 rounded-lg text-sm">
+                                            <div className="flex items-center gap-2 text-zinc-900 font-medium uppercase tracking-wider text-[10px]">
+                                                <Tag size={12} className="text-zinc-500" />
+                                                {discountCode}
+                                            </div>
+                                            <button
+                                                onClick={removeDiscount}
+                                                className="text-[10px] text-zinc-400 hover:text-red-500 transition-colors uppercase font-bold tracking-tighter"
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    <div className="flex justify-between text-sm text-zinc-600 pt-2">
                                         <span>Subtotal</span>
                                         <span>₹{subtotal.toFixed(2)}</span>
                                     </div>
 
-                                    <div className="flex justify-between text-lg font-bold text-zinc-900 pt-2">
+                                    {discountCode && (
+                                        <div className="flex justify-between text-sm text-blue-600">
+                                            <span>Discount ({discountCode})</span>
+                                            <span>-₹{discountAmount.toFixed(2)}</span>
+                                        </div>
+                                    )}
+
+                                    <div className="flex justify-between text-lg font-medium text-zinc-900 pt-2 border-t border-zinc-200/50">
                                         <span>Total</span>
                                         <span>INR ₹{total.toFixed(2)}</span>
                                     </div>
@@ -574,12 +628,40 @@ export default function CheckoutPage() {
                         <div className="flex gap-2">
                             <input
                                 placeholder="Discount code"
+                                value={discountInput}
+                                onChange={(e) => setDiscountInput(e.target.value.toUpperCase())}
                                 className="flex-1 h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500"
                             />
-                            <button className="h-12 px-6 bg-zinc-200 text-zinc-500 text-sm font-medium rounded-md hover:bg-zinc-300 transition-colors cursor-not-allowed">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (discountInput === "WELCOME10") {
+                                        applyDiscount("WELCOME10");
+                                        setDiscountInput("");
+                                    } else {
+                                        toast.error("Invalid discount code");
+                                    }
+                                }}
+                                className="h-12 px-6 bg-black text-white text-sm font-medium rounded-md hover:bg-zinc-800 transition-colors"
+                            >
                                 Apply
                             </button>
                         </div>
+
+                        {discountCode && (
+                            <div className="flex items-center justify-between py-2 px-3 bg-zinc-100 rounded-lg text-sm">
+                                <div className="flex items-center gap-2 text-zinc-900 font-medium uppercase tracking-wider text-[10px]">
+                                    <Tag size={12} className="text-zinc-500" />
+                                    {discountCode}
+                                </div>
+                                <button
+                                    onClick={removeDiscount}
+                                    className="text-[10px] text-zinc-400 hover:text-red-500 transition-colors uppercase font-bold tracking-tighter"
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                        )}
                     </div>
 
                     <div className="h-px w-full bg-zinc-200 my-4" />
@@ -589,7 +671,12 @@ export default function CheckoutPage() {
                             <span>Subtotal</span>
                             <span className="font-medium text-zinc-900">₹{subtotal.toFixed(2)}</span>
                         </div>
-
+                        {discountCode && (
+                            <div className="flex justify-between text-blue-600">
+                                <span>Discount ({discountCode})</span>
+                                <span>-₹{discountAmount.toFixed(2)}</span>
+                            </div>
+                        )}
                     </div>
 
                     <div className="h-px w-full bg-zinc-200 my-4" />
@@ -598,7 +685,7 @@ export default function CheckoutPage() {
                         <span className="text-base font-medium text-zinc-900">Total</span>
                         <div className="flex items-baseline gap-2">
                             <span className="text-xs text-zinc-500">INR</span>
-                            <span className="text-2xl font-bold text-zinc-900">₹{total.toFixed(2)}</span>
+                            <span className="text-2xl font-medium text-zinc-900">₹{total.toFixed(2)}</span>
                         </div>
                     </div>
                 </div>

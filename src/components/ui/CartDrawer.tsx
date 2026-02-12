@@ -106,7 +106,7 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                                                         <Plus size={14} />
                                                     </button>
                                                 </div>
-                                                <span className="text-sm font-bold text-black">₹{((item.price_offer || item.price_base) * item.quantity).toFixed(2)}</span>
+                                                <span className="text-sm font-medium text-black">₹{((item.price_offer || item.price_base) * item.quantity).toFixed(2)}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -119,7 +119,7 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                         <div className="border-t border-zinc-100 px-6 py-6 font-sans bg-white">
                             <div className="mb-6 flex items-center justify-between">
                                 <span className="text-sm font-bold uppercase tracking-widest text-zinc-400">Total</span>
-                                <span className="text-xl font-bold text-black">₹{getTotalPrice().toFixed(2)}</span>
+                                <span className="text-xl font-medium text-black">₹{getTotalPrice().toFixed(2)}</span>
                             </div>
                             <button
                                 onClick={handleCheckout}

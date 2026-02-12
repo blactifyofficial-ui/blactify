@@ -35,7 +35,7 @@ export default function Home() {
   return (
     <main className="flex flex-col">
       <Hero
-        title="Essentials"
+        title="Meets Timeless Essentials"
         subtitle={heroProduct?.name?.toUpperCase() || "'REAL' OUT NOW"}
         images={products.slice(0, 3).map(p => p.main_image)}
         ctaText="Shop Now"

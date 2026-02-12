@@ -109,7 +109,7 @@ export default function OrdersPage() {
                                 <div className="bg-zinc-50 p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-100">
                                     <div className="space-y-1">
                                         <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Order ID</p>
-                                        <p className="text-sm font-bold flex items-center gap-2">
+                                        <p className="text-sm font-medium flex items-center gap-2">
                                             {order.id}
                                             <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase tracking-tighter ${order.status === 'captured' ? 'bg-green-100 text-green-600' : 'bg-zinc-200 text-zinc-600'
                                                 }`}>
@@ -131,7 +131,7 @@ export default function OrdersPage() {
                                         </div>
                                         <div className="space-y-1 text-right">
                                             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Total</p>
-                                            <p className="text-lg font-bold">₹{order.amount.toLocaleString()}</p>
+                                            <p className="text-lg font-medium">₹{order.amount.toLocaleString()}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -143,11 +143,11 @@ export default function OrdersPage() {
                                                     {(item.image || item.main_image) && <Image src={(item.image || item.main_image)!} alt={item.name} fill className="object-cover" />}
                                                 </div>
                                                 <div className="flex-grow">
-                                                    <h4 className="text-sm font-bold uppercase tracking-tight">{item.name}</h4>
+                                                    <h4 className="text-sm font-medium uppercase tracking-tight">{item.name}</h4>
                                                     <p className="text-xs text-zinc-500">Qty: {item.quantity}</p>
                                                     {item.size && <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Size: {item.size}</p>}
                                                 </div>
-                                                <p className="text-sm font-bold">₹{(item.price || item.price_offer || item.price_base || 0).toLocaleString()}</p>
+                                                <p className="text-sm font-medium">₹{(item.price || item.price_offer || item.price_base || 0).toLocaleString()}</p>
                                             </div>
                                         ))}
                                     </div>

@@ -80,7 +80,7 @@ export default function CheckoutSuccessPage() {
                 // Start Automation
                 setNotified(true);
 
-                // Trigger Server-side Notifications (Email & WhatsApp)
+                // Trigger Server-side Notification (Email)
                 await fetch("/api/notify", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -116,7 +116,7 @@ export default function CheckoutSuccessPage() {
             </div>
             <h1 className="text-2xl font-bold text-zinc-900 mb-2">Order Placed Successfully!</h1>
             <p className="text-zinc-500 mb-8 max-w-md">
-                Thank you for your purchase. We have received your order and automated notifications have been sent to the seller.
+                Thank you for your purchase. We have received your order and an automated notification has been sent to the seller.
             </p>
             <p className="text-zinc-400 text-xs mb-8">
                 Redirecting to home in {countdown}s...
@@ -135,13 +135,13 @@ export default function CheckoutSuccessPage() {
                 <p className="text-zinc-400 text-sm italic">Retrieving order details...</p>
             ) : order && (
                 <div className="text-left w-full max-w-md p-6 border border-zinc-100 rounded-xl bg-zinc-50/50">
-                    <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-400 mb-4">Summary</h3>
+                    <h3 className="text-sm font-medium uppercase tracking-widest text-zinc-400 mb-4">Summary</h3>
                     <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                             <span className="text-zinc-500">Order ID</span>
                             <span className="font-mono text-xs">#{order.id}</span>
                         </div>
-                        <div className="flex justify-between font-bold text-zinc-900 pt-2 border-t border-zinc-200 mt-2">
+                        <div className="flex justify-between font-medium text-zinc-900 pt-2 border-t border-zinc-200 mt-2">
                             <span>Amount Paid</span>
                             <span>₹{order.amount}</span>
                         </div>

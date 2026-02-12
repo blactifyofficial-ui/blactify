@@ -6,6 +6,7 @@ import { signOut } from "firebase/auth";
 import { User, Package, Settings, LogOut, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function ProfilePage() {
     const { user, loading } = useAuth();
@@ -73,7 +74,10 @@ export default function ProfilePage() {
                 ))}
 
                 <button
-                    onClick={() => signOut(auth)}
+                    onClick={async () => {
+                        await signOut(auth);
+                        toast.success("Signed out successfully");
+                    }}
                     className="flex w-full items-center gap-4 py-4 text-red-500 mt-8"
                 >
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50">

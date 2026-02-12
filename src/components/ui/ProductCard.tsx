@@ -24,6 +24,7 @@ export interface Product {
     tag?: string;
     size_variants?: string[];
     description?: string;
+    created_at?: string;
 }
 
 interface ProductCardProps {
@@ -76,7 +77,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                 <div className="flex items-center gap-2">
                     {hasDiscount ? (
                         <>
-                            <span className="text-sm font-bold text-black">
+                            <span className="text-sm font-medium text-black">
                                 ₹{displayPrice.toFixed(2)}
                             </span>
                             <span className="text-sm text-zinc-400 line-through">
@@ -84,7 +85,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                             </span>
                         </>
                     ) : (
-                        <span className="text-sm font-bold text-black">
+                        <span className="text-sm font-medium text-black">
                             ₹{displayPrice.toFixed(2)}
                         </span>
                     )}

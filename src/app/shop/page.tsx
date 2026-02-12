@@ -4,12 +4,15 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { ProductCard, type Product } from "@/components/ui/ProductCard";
 import { Search, Filter, SlidersHorizontal } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function ShopPage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("All");
+    const [sortBy, setSortBy] = useState("newest");
+    const [isSortOpen, setIsSortOpen] = useState(false);
 
     useEffect(() => {
         async function fetchProducts() {
@@ -32,11 +35,22 @@ export default function ShopPage() {
 
     const categories = ["All", ...new Set(products.map(p => p.categories?.name || p.category || "General"))];
 
-    const filteredProducts = products.filter(p => {
-        const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = selectedCategory === "All" || (p.categories?.name || p.category || "General") === selectedCategory;
-        return matchesSearch && matchesCategory;
-    });
+    const filteredProducts = products
+        .filter(p => {
+            const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesCategory = selectedCategory === "All" || (p.categories?.name || p.category || "General") === selectedCategory;
+            return matchesSearch && matchesCategory;
+        })
+        .sort((a, b) => {
+            if (sortBy === "price-low") {
+                return (a.price_offer || a.price_base) - (b.price_offer || b.price_base);
+            }
+            if (sortBy === "price-high") {
+                return (b.price_offer || b.price_base) - (a.price_offer || a.price_base);
+            }
+            // Default: newest
+            return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+        });
 
     return (
         <main className="min-h-screen bg-white pb-20 pt-8">
@@ -81,8 +95,46 @@ export default function ShopPage() {
                     <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                         Showing {filteredProducts.length} Results
                     </span>
-                    <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-black">
-                        Sort: Newest <Filter size={12} />
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsSortOpen(!isSortOpen)}
+                            className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-black active:scale-95 transition-all"
+                        >
+                            Sort: {sortBy === "newest" ? "Newest" : sortBy === "price-low" ? "Price Low-High" : "Price High-Low"}
+                            <Filter size={12} className={cn("transition-transform", isSortOpen && "rotate-180")} />
+                        </button>
+
+                        {isSortOpen && (
+                            <>
+                                <div
+                                    className="fixed inset-0 z-40"
+                                    onClick={() => setIsSortOpen(false)}
+                                />
+                                <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-zinc-100 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
+                                    {[
+                                        { id: "newest", label: "Newest" },
+                                        { id: "price-low", label: "Price: Low to High" },
+                                        { id: "price-high", label: "Price: High to Low" }
+                                    ].map((option) => (
+                                        <button
+                                            key={option.id}
+                                            onClick={() => {
+                                                setSortBy(option.id);
+                                                setIsSortOpen(false);
+                                            }}
+                                            className={cn(
+                                                "w-full text-left px-4 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors",
+                                                sortBy === option.id
+                                                    ? "bg-zinc-900 text-white"
+                                                    : "text-zinc-500 hover:bg-zinc-50 hover:text-black"
+                                            )}
+                                        >
+                                            {option.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
 

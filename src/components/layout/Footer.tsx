@@ -15,7 +15,7 @@ export function Footer() {
                     <div className="space-y-6">
                         <h2 className="font-empire text-2xl tracking-tighter">BLACTIFY</h2>
                         <p className="max-w-xs text-xs font-medium leading-relaxed text-zinc-400 uppercase tracking-widest">
-                            Premium essentials for the modern aesthetic. Curated for those who appreciate the subtle art of details.
+                            Premium meets timeless essentials for the modern aesthetic. Curated for those who appreciate the subtle art of details.
                         </p>
                         <p className="max-w-xs text-xs font-medium leading-relaxed text-zinc-400 uppercase tracking-widest">
 
