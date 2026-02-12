@@ -8,9 +8,9 @@ import confetti from "canvas-confetti";
 export default function CheckoutSuccessPage() {
 
     useEffect(() => {
-        const duration = 3 * 1000;
+        const duration = 1.5 * 1000;
         const animationEnd = Date.now() + duration;
-        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+        const defaults = { startVelocity: 20, spread: 360, ticks: 60, zIndex: 0 };
 
         const randomInRange = (min: number, max: number) => {
             return Math.random() * (max - min) + min;
@@ -23,7 +23,7 @@ export default function CheckoutSuccessPage() {
                 return clearInterval(interval);
             }
 
-            const particleCount = 50 * (timeLeft / duration);
+            const particleCount = 30 * (timeLeft / duration);
             // since particles fall down, start a bit higher than random
             confetti({
                 ...defaults, particleCount,
