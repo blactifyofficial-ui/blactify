@@ -7,32 +7,212 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/store/AuthContext";
+import { loadRazorpay } from "@/lib/razorpay";
+import { saveOrder } from "@/lib/order-sync";
 
 export default function CheckoutPage() {
     const { items, getTotalPrice, clearCart } = useCartStore();
     const router = useRouter();
+    const { user } = useAuth();
     const [isMounted, setIsMounted] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [showOrderSummary, setShowOrderSummary] = useState(false);
 
     const subtotal = getTotalPrice();
-    const shipping = 80; // Standard shipping as per reference
-    const total = subtotal + shipping;
+    const total = subtotal;
+
+    const [formData, setFormData] = useState({
+        email: user?.email || "",
+        firstName: "",
+        lastName: "",
+        address: "",
+        apartment: "",
+        district: "",
+        city: "",
+        state: "",
+        pincode: "",
+        phone: "",
+        secondaryPhone: ""
+    });
+
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsMounted(true);
-    }, []);
+        if (user?.email) {
+            setFormData(prev => ({ ...prev, email: user.email! }));
+        }
+    }, [user]);
 
-    const handlePlaceOrder = (e: React.FormEvent | React.MouseEvent) => {
-        if (e) e.preventDefault();
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+        // Clear error when user types
+        if (errors[name]) {
+            setErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors[name];
+                return newErrors;
+            });
+        }
+    };
+
+    const validateForm = () => {
+        const newErrors: Record<string, string> = {};
+
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!formData.email.trim()) {
+            newErrors.email = "Email is required";
+        } else if (!emailRegex.test(formData.email)) {
+            newErrors.email = "Invalid email address";
+        }
+
+        // Phone validation (Indian mobile: 10 digits, starts with 6-9)
+        const phoneRegex = /^[6-9]\d{9}$/;
+        if (!formData.phone.trim()) {
+            newErrors.phone = "Phone number is required";
+        } else if (!phoneRegex.test(formData.phone)) {
+            newErrors.phone = "Invalid phone number (10 digits starting with 6-9)";
+        }
+
+        // PIN Code validation (Indian PIN: 6 digits, starts with 1-9)
+        const pincodeRegex = /^[1-9][0-9]{5}$/;
+        if (!formData.pincode.trim()) {
+            newErrors.pincode = "PIN code is required";
+        } else if (!pincodeRegex.test(formData.pincode)) {
+            newErrors.pincode = "Invalid PIN code (6 digits)";
+        }
+
+        // Required fields
+        if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
+        if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
+        if (!formData.address.trim()) newErrors.address = "Address is required";
+        if (!formData.district.trim()) newErrors.district = "District is required";
+        if (!formData.city.trim()) newErrors.city = "City is required";
+        if (!formData.state) newErrors.state = "State is required";
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handlePayment = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!validateForm()) {
+            // Scroll to the first error
+            const firstErrorField = document.querySelector('.text-red-500');
+            if (firstErrorField) {
+                firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+        }
+
         setIsProcessing(true);
-        setTimeout(() => {
+
+        try {
+            // 1. Create order on server
+            const response = await fetch("/api/checkout", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    amount: total,
+                    currency: "INR",
+                    receipt: `receipt_${Date.now()}`,
+                }),
+            });
+
+            const order = await response.json();
+
+            if (!order.id) {
+                throw new Error("Order creation failed");
+            }
+
+            // 2. Load Razorpay script
+            const isLoaded = await loadRazorpay();
+            if (!isLoaded) {
+                throw new Error("Razorpay SDK failed to load");
+            }
+
+            // 3. Initialize Razorpay options
+            const options = {
+                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+                amount: order.amount,
+                currency: order.currency,
+                name: "Blactify",
+                description: "Purchase from Blactify",
+                order_id: order.id,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                handler: async function (response: any) {
+                    // Payment Success
+                    try {
+                        // Save order to Supabase
+                        const saveResult = await saveOrder({
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            user_id: user?.uid || "guest",
+                            amount: total,
+                            currency: "INR",
+                            items: items,
+                            status: "paid",
+                            shipping_address: formData,
+                            customer_details: {
+                                name: `${formData.firstName} ${formData.lastName}`.trim(),
+                                email: formData.email,
+                                phone: formData.phone,
+                                secondary_phone: formData.secondaryPhone
+                            }
+                        });
+
+                        if (saveResult.success) {
+                            clearCart();
+                            router.push("/checkout/success");
+                        } else {
+                            console.error("Failed to save order:", saveResult.error);
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            const errorMessage = (saveResult.error as any)?.message || "Unknown error";
+                            alert(`Payment successful but failed to save order: ${errorMessage}`);
+                        }
+                    } catch (error) {
+                        console.error("Error processing successful payment:", error);
+                    }
+                },
+                prefill: {
+                    name: `${formData.firstName} ${formData.lastName}`.trim(),
+                    email: formData.email,
+                    contact: formData.phone,
+                },
+                theme: {
+                    color: "#000000",
+                },
+                modal: {
+                    ondismiss: function () {
+                        setIsProcessing(false);
+                    },
+                },
+            };
+
+            const paymentObject = new window.Razorpay(options);
+            paymentObject.open();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            paymentObject.on("payment.failed", function (response: any) {
+                console.error("Payment Failed:", response.error);
+                // Attempt to close the modal programmatically
+                try {
+                    paymentObject.close();
+                } catch (e) {
+                    console.error("Failed to close modal:", e);
+                }
+                router.push("/checkout/failure");
+            });
+
+        } catch (error) {
+            console.error("Checkout Error:", error);
             setIsProcessing(false);
-            clearCart();
-            alert("Order placed successfully!");
-            router.push("/");
-        }, 2000);
+            alert("Checkout failed. Please try again.");
+        }
     };
 
     if (!isMounted) return null;
@@ -110,10 +290,7 @@ export default function CheckoutPage() {
                                         <span>Subtotal</span>
                                         <span>₹{subtotal.toFixed(2)}</span>
                                     </div>
-                                    <div className="flex justify-between text-sm text-zinc-600">
-                                        <span>Shipping</span>
-                                        <span>₹{shipping.toFixed(2)}</span>
-                                    </div>
+
                                     <div className="flex justify-between text-lg font-bold text-zinc-900 pt-2">
                                         <span>Total</span>
                                         <span>INR ₹{total.toFixed(2)}</span>
@@ -123,23 +300,37 @@ export default function CheckoutPage() {
                         )}
                     </div>
 
-                    <form onSubmit={handlePlaceOrder} className="space-y-8">
+                    <form onSubmit={handlePayment} className="space-y-8">
                         {/* Contact Section */}
                         <section className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-lg font-medium text-zinc-900">Contact</h2>
-                                <Link href="#" className="text-sm text-blue-600 hover:underline">Log in</Link>
+                                {!user && (
+                                    <button
+                                        type="button"
+                                        onClick={() => window.dispatchEvent(new Event('open-auth-modal'))}
+                                        className="text-sm text-blue-600 hover:underline"
+                                    >
+                                        Log in
+                                    </button>
+                                )}
                             </div>
                             <input
                                 type="email"
+                                name="email"
                                 placeholder="Email"
                                 required
-                                className="w-full h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500"
+                                value={formData.email}
+                                onChange={handleChange}
+                                readOnly={!!user?.email}
+                                className={cn(
+                                    "w-full h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500",
+                                    user?.email && "bg-zinc-50 text-zinc-500",
+                                    errors.email && "border-red-500 focus:ring-red-500"
+                                )}
                             />
-                            <div className="flex items-center gap-2">
-                                <input type="checkbox" id="news" className="rounded border-zinc-300 text-blue-600 focus:ring-blue-600" />
-                                <label htmlFor="news" className="text-sm text-zinc-600">Email me with news and offers</label>
-                            </div>
+                            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+
                         </section>
 
                         {/* Delivery Section */}
@@ -151,74 +342,149 @@ export default function CheckoutPage() {
                                 </select>
 
                                 <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1">
+                                        <input
+                                            name="firstName"
+                                            value={formData.firstName}
+                                            onChange={handleChange}
+                                            placeholder="First name"
+                                            className={cn(
+                                                "w-full h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500",
+                                                errors.firstName && "border-red-500 focus:ring-red-500"
+                                            )}
+                                        />
+                                        {errors.firstName && <p className="text-red-500 text-xs">{errors.firstName}</p>}
+                                    </div>
+                                    <div className="space-y-1">
+                                        <input
+                                            name="lastName"
+                                            value={formData.lastName}
+                                            onChange={handleChange}
+                                            placeholder="Last name"
+                                            className={cn(
+                                                "w-full h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500",
+                                                errors.lastName && "border-red-500 focus:ring-red-500"
+                                            )}
+                                        />
+                                        {errors.lastName && <p className="text-red-500 text-xs">{errors.lastName}</p>}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1">
                                     <input
-                                        placeholder="First name (optional)"
-                                        className="w-full h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500"
+                                        name="address"
+                                        value={formData.address}
+                                        onChange={handleChange}
+                                        placeholder="Address"
+                                        className={cn(
+                                            "w-full h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500",
+                                            errors.address && "border-red-500 focus:ring-red-500"
+                                        )}
                                     />
-                                    <input
-                                        placeholder="Last name"
-                                        className="w-full h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500"
-                                    />
+                                    {errors.address && <p className="text-red-500 text-xs">{errors.address}</p>}
                                 </div>
 
                                 <input
-                                    placeholder="Address"
-                                    className="w-full h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500"
-                                />
-
-                                <input
+                                    name="apartment"
+                                    value={formData.apartment}
+                                    onChange={handleChange}
                                     placeholder="Apartment, suite, etc. (optional)"
                                     className="w-full h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500"
                                 />
 
-                                <div className="grid grid-cols-3 gap-3">
-                                    <input
-                                        placeholder="City"
-                                        className="w-full h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500"
-                                    />
-                                    <select className="w-full h-12 px-4 rounded-md border border-zinc-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow text-zinc-900" defaultValue="">
-                                        <option value="" disabled>State</option>
-                                        <option value="MH">Maharashtra</option>
-                                        <option value="KA">Karnataka</option>
-                                        <option value="DL">Delhi</option>
-                                        <option value="KL">Kerala</option>
-                                        <option value="TN">Tamil Nadu</option>
-                                    </select>
-                                    <input
-                                        placeholder="PIN code"
-                                        className="w-full h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500"
-                                    />
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1">
+                                        <input
+                                            name="district"
+                                            value={formData.district}
+                                            onChange={handleChange}
+                                            placeholder="District"
+                                            className={cn(
+                                                "w-full h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500",
+                                                errors.district && "border-red-500 focus:ring-red-500"
+                                            )}
+                                        />
+                                        {errors.district && <p className="text-red-500 text-xs">{errors.district}</p>}
+                                    </div>
+                                    <div className="space-y-1">
+                                        <input
+                                            name="city"
+                                            value={formData.city}
+                                            onChange={handleChange}
+                                            placeholder="City"
+                                            className={cn(
+                                                "w-full h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500",
+                                                errors.city && "border-red-500 focus:ring-red-500"
+                                            )}
+                                        />
+                                        {errors.city && <p className="text-red-500 text-xs">{errors.city}</p>}
+                                    </div>
                                 </div>
 
-                                <div className="relative">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1">
+                                        <select
+                                            name="state"
+                                            value={formData.state}
+                                            onChange={handleChange}
+                                            className={cn(
+                                                "w-full h-12 px-4 rounded-md border border-zinc-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow text-zinc-900",
+                                                errors.state && "border-red-500 focus:ring-red-500"
+                                            )}
+                                        >
+                                            <option value="" disabled>State</option>
+                                            <option value="MH">Maharashtra</option>
+                                            <option value="KA">Karnataka</option>
+                                            <option value="DL">Delhi</option>
+                                            <option value="KL">Kerala</option>
+                                            <option value="TN">Tamil Nadu</option>
+                                        </select>
+                                        {errors.state && <p className="text-red-500 text-xs">{errors.state}</p>}
+                                    </div>
+                                    <div className="space-y-1">
+                                        <input
+                                            name="pincode"
+                                            value={formData.pincode}
+                                            onChange={handleChange}
+                                            placeholder="PIN code"
+                                            className={cn(
+                                                "w-full h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500",
+                                                errors.pincode && "border-red-500 focus:ring-red-500"
+                                            )}
+                                        />
+                                        {errors.pincode && <p className="text-red-500 text-xs">{errors.pincode}</p>}
+                                    </div>
+                                </div>
+
+                                <div className="relative space-y-1">
                                     <input
+                                        name="phone"
+                                        value={formData.phone}
+                                        onChange={handleChange}
                                         placeholder="Phone"
-                                        className="w-full h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500"
+                                        className={cn(
+                                            "w-full h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500",
+                                            errors.phone && "border-red-500 focus:ring-red-500"
+                                        )}
                                     />
-                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-lg">🇮🇳</div>
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-lg pb-1">🇮🇳</div>
+                                    {errors.phone && <p className="text-red-500 text-xs">{errors.phone}</p>}
                                 </div>
                                 <div className="relative">
                                     <input
+                                        name="secondaryPhone"
+                                        value={formData.secondaryPhone}
+                                        onChange={handleChange}
                                         placeholder="Secondary Phone (Optional)"
                                         className="w-full h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500"
                                     />
                                 </div>
 
-                                <div className="flex items-center gap-2 pt-1">
-                                    <input type="checkbox" id="save" className="rounded border-zinc-300 text-blue-600 focus:ring-blue-600" />
-                                    <label htmlFor="save" className="text-sm text-zinc-600">Save this information for next time</label>
-                                </div>
+
                             </div>
                         </section>
 
-                        {/* Shipping Method */}
-                        <section className="space-y-4">
-                            <h2 className="text-lg font-medium text-zinc-900">Shipping method</h2>
-                            <div className="p-4 rounded-md border border-zinc-300 bg-zinc-50/50 flex justify-between items-center cursor-default hover:border-blue-600 transition-colors">
-                                <span className="text-sm text-zinc-900 font-medium">Standard</span>
-                                <span className="text-sm text-zinc-900 font-medium">₹{shipping.toFixed(2)}</span>
-                            </div>
-                        </section>
+
 
                         {/* Payment */}
                         <section className="space-y-4">
@@ -323,10 +589,7 @@ export default function CheckoutPage() {
                             <span>Subtotal</span>
                             <span className="font-medium text-zinc-900">₹{subtotal.toFixed(2)}</span>
                         </div>
-                        <div className="flex justify-between">
-                            <span>Shipping</span>
-                            <span className="font-medium text-zinc-900">₹{shipping.toFixed(2)}</span>
-                        </div>
+
                     </div>
 
                     <div className="h-px w-full bg-zinc-200 my-4" />

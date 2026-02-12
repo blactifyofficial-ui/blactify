@@ -8,6 +8,8 @@ export async function saveOrder(orderData: {
     currency: string;
     items: unknown[];
     status: string;
+    shipping_address: unknown;
+    customer_details: unknown;
 }) {
     try {
         const { error } = await supabase
@@ -20,6 +22,8 @@ export async function saveOrder(orderData: {
                 currency: orderData.currency,
                 items: orderData.items as unknown, // Supabase needs json
                 status: orderData.status,
+                shipping_address: orderData.shipping_address as unknown,
+                customer_details: orderData.customer_details as unknown,
                 created_at: new Date().toISOString(),
             });
 

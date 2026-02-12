@@ -12,7 +12,7 @@ interface RawProduct {
 export const ALL_PRODUCTS: Product[] = (productsData as unknown as RawProduct[]).map((p) => ({
     id: String(p.id),
     name: p.title,
-    price: Math.round(parseFloat(String(p.price)) * 80),
+    price: Math.round(parseFloat(String(p.price))),
     imageUrl: p.images[0] || "/hero-placeholder.jpg",
     category: p.category,
     tag: p.title.toLowerCase().includes("nitro") ? "Nitro" : undefined
