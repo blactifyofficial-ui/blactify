@@ -13,7 +13,7 @@ async function sendWhatsApp(order: any) {
         .map((item: any) => `- ${item.name} (x${item.quantity})`)
         .join("\n");
 
-    const message = `Hello Blactify Seller!\n\nNew Order Placed: *#${order.id}*\n\n*Items:*\n${itemsList}\n\n*Total:* ₹${order.amount}\n\n*Customer Info:*\nName: ${order.customer_details.name}\nPhone: ${order.customer_details.phone}\n\n*Shipping Address:*\n${order.shipping_address.address}, ${order.shipping_address.city}, ${order.shipping_address.state} - ${order.shipping_address.pincode}\n\nPlease process this order. Thank you!`;
+    const message = `Hello Blactify Seller!\n\nNew Order Placed: *#${order.id}*\n\n*Items:*\n${itemsList}\n\n*Total:* ₹${order.amount}\n\n*Customer Info:*\nName: ${order.customer_details.name}\nPhone: ${order.customer_details.phone}${order.customer_details.secondary_phone ? `\nAlt Phone: ${order.customer_details.secondary_phone}` : ''}\n\n*Shipping Address:*\n${order.shipping_address.address}\n${order.shipping_address.apartment ? `${order.shipping_address.apartment}\n` : ''}${order.shipping_address.city}, ${order.shipping_address.district ? `${order.shipping_address.district}\n` : ''}${order.shipping_address.state} - ${order.shipping_address.pincode}\n\nPlease process this order. Thank you!`;
 
     const url = `https://graph.facebook.com/v21.0/${SELLER_CONFIG.whatsappPhoneNumberId}/messages`;
 
