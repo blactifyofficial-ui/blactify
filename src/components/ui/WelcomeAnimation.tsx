@@ -45,7 +45,7 @@ export default function WelcomeAnimation() {
     return (
         <div
             className={cn(
-                "fixed inset-0 z-[100] flex items-center justify-center bg-black transition-opacity duration-700 ease-in-out",
+                "fixed inset-0 z-[100] flex items-center justify-center bg-white transition-opacity duration-700 ease-in-out",
                 isFadingOut ? "opacity-0 pointer-events-none" : "opacity-100"
             )}
         >
@@ -65,14 +65,14 @@ export default function WelcomeAnimation() {
                         {/* Top Lid */}
                         <div
                             className={cn(
-                                "flex-1 bg-black transition-transform duration-1000 ease-in-out origin-top",
+                                "flex-1 bg-white transition-transform duration-1000 ease-in-out origin-top",
                                 isOpening ? "-translate-y-full" : "translate-y-0"
                             )}
                         />
                         {/* Bottom Lid */}
                         <div
                             className={cn(
-                                "flex-1 bg-black transition-transform duration-1000 ease-in-out origin-bottom",
+                                "flex-1 bg-white transition-transform duration-1000 ease-in-out origin-bottom",
                                 isOpening ? "translate-y-full" : "translate-y-0"
                             )}
                         />
@@ -82,7 +82,7 @@ export default function WelcomeAnimation() {
                 {/* Optional: A subtle glow or pulse after opening */}
                 <div
                     className={cn(
-                        "absolute inset-0 rounded-full bg-white/5 scale-0 transition-transform duration-500 delay-700",
+                        "absolute inset-0 rounded-full bg-black/5 scale-0 transition-transform duration-500 delay-700",
                         isOpening ? "scale-150 blur-2xl" : ""
                     )}
                 />
@@ -95,7 +95,7 @@ export default function WelcomeAnimation() {
                     isOpening ? "opacity-40 translate-y-0" : "opacity-0 translate-y-4"
                 )}
             >
-                <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white">
+                <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-black">
                     Meets Timeless Essentials
                 </p>
             </div>
