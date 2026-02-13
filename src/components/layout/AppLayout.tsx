@@ -7,6 +7,7 @@ import { TopNavbar } from "@/components/layout/TopNavbar";
 import { BottomNavbar } from "@/components/layout/BottomNavbar";
 import { Footer } from "@/components/layout/Footer";
 import WelcomeBanner from "@/components/ui/WelcomeBanner";
+import WelcomeAnimation from "@/components/ui/WelcomeAnimation";
 import { AuthProvider } from "@/store/AuthContext";
 import { CartDrawer } from "@/components/ui/CartDrawer";
 import { AuthModal } from "@/components/ui/AuthModal";
@@ -85,6 +86,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                     />
                 )}
                 {!isAdmin && <WelcomeBanner />}
+                {!isAdmin && <WelcomeAnimation />}
                 <CartDrawer
                     isOpen={isCartOpen}
                     onClose={() => setIsCartOpen(false)}
