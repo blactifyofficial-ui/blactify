@@ -10,6 +10,8 @@ import { loadRazorpay } from "@/lib/razorpay";
 import { useAuth } from "@/store/AuthContext";
 import { useState } from "react";
 import { saveOrder } from "@/lib/order-sync";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 declare global {
     interface Window {
@@ -28,14 +30,43 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
     const router = useRouter();
     const [isCheckingOut, setIsCheckingOut] = useState(false);
 
-    const handleCheckout = () => {
+    const handleCheckout = async () => {
         if (!user) {
             onAuthRequired();
             return;
         }
 
-        onClose();
-        router.push("/checkout");
+        setIsCheckingOut(true);
+        try {
+            // Check stock from Supabase for all items
+            const productIds = items.map(item => item.id);
+            const { data: currentProducts, error } = await supabase
+                .from("products")
+                .select("id, name, stock")
+                .in("id", productIds);
+
+            if (error) throw error;
+
+            // Validate each item
+            for (const item of items) {
+                const dbProduct = currentProducts?.find(p => p.id === item.id);
+                if (!dbProduct || dbProduct.stock < item.quantity) {
+                    toast.error(`${item.name} is currently out of stock or quantity exceeds available limit.`, {
+                        description: dbProduct ? `Available: ${dbProduct.stock}` : "No longer available"
+                    });
+                    setIsCheckingOut(false);
+                    return;
+                }
+            }
+
+            onClose();
+            router.push("/checkout");
+        } catch (err) {
+            console.error("Error checking stock in bag:", err);
+            toast.error("Failed to verify stock. Please try again.");
+        } finally {
+            setIsCheckingOut(false);
+        }
     };
 
     return (

@@ -13,17 +13,20 @@ import { saveOrder } from "@/lib/order-sync";
 import { markWelcomeDiscountUsed } from "@/lib/profile-sync";
 import { Tag } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 export default function CheckoutPage() {
-    const { items, getSubtotal, getTotalPrice, clearCart, discountCode, applyDiscount, removeDiscount } = useCartStore();
+    const { items, getSubtotal, getTotalPrice, getShippingCharge, clearCart, removeItem, discountCode, applyDiscount, removeDiscount } = useCartStore();
     const router = useRouter();
     const { user } = useAuth();
     const [isMounted, setIsMounted] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [showOrderSummary, setShowOrderSummary] = useState(false);
     const [discountInput, setDiscountInput] = useState("");
+    const [stockErrors, setStockErrors] = useState<Record<string, string>>({});
 
     const subtotal = getSubtotal();
+    const shipping = getShippingCharge();
     const total = getTotalPrice();
     const discountAmount = subtotal - total;
 
@@ -102,15 +105,56 @@ export default function CheckoutPage() {
         return Object.keys(newErrors).length === 0;
     };
 
+    const validateCartStock = async () => {
+        try {
+            const productIds = items.map(item => item.id);
+            const { data: currentProducts, error } = await supabase
+                .from("products")
+                .select("id, name, stock")
+                .in("id", productIds);
+
+            if (error) throw error;
+
+            const newStockErrors: Record<string, string> = {};
+            let hasErrors = false;
+
+            items.forEach(item => {
+                const currentProduct = currentProducts?.find((p: { id: string, name: string, stock: number }) => p.id === item.id);
+                if (!currentProduct) {
+                    newStockErrors[item.cartId] = "Product no longer available";
+                    hasErrors = true;
+                } else if (currentProduct.stock < item.quantity) {
+                    newStockErrors[item.cartId] = currentProduct.stock === 0
+                        ? "Out of stock"
+                        : `Only ${currentProduct.stock} left`;
+                    hasErrors = true;
+                }
+            });
+
+            setStockErrors(newStockErrors);
+            return !hasErrors;
+        } catch (error) {
+            console.error("Error validating stock:", error);
+            return true; // Proceed if error occurs, but log it
+        }
+    };
+
     const handlePayment = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // 1. Validate Form
         if (!validateForm()) {
-            // Scroll to the first error
             const firstErrorField = document.querySelector('.text-red-500');
             if (firstErrorField) {
                 firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
+            return;
+        }
+
+        // 2. Validate Stock again right before payment
+        const isStockValid = await validateCartStock();
+        if (!isStockValid) {
+            toast.error("Some items in your bag are no longer available in the requested quantity.");
             return;
         }
 
@@ -248,12 +292,12 @@ export default function CheckoutPage() {
                     {/* Header Logo */}
                     <div className="flex items-center justify-between">
                         <Link href="/" className="font-bold text-2xl tracking-tight text-zinc-900">Blactify</Link>
-                        <Link href="/cart" className="md:hidden text-blue-600 text-sm">Cart</Link>
+                        <Link href="/shop?openCart=true" className="md:hidden text-blue-600 text-sm">Cart</Link>
                     </div>
 
                     {/* Breadcrumbs */}
                     <nav className="flex items-center gap-2 text-xs text-zinc-500">
-                        <Link href="/cart" className="hover:text-zinc-800 transition-colors">Cart</Link>
+                        <Link href="/shop?openCart=true" className="hover:text-zinc-800 transition-colors">Cart</Link>
                         <span className="text-zinc-300">/</span>
                         <span className="font-medium text-zinc-900">Information</span>
                         <span className="text-zinc-300">/</span>
@@ -286,8 +330,23 @@ export default function CheckoutPage() {
                                             <Image src={item.main_image || ""} alt={item.name} fill className="object-cover" />
                                         </div>
                                         <div className="flex-1 flex flex-col justify-center">
-                                            <h4 className="text-sm font-medium text-zinc-900">{item.name}</h4>
-                                            {item.size && <p className="text-xs text-zinc-500">Size: {item.size.toUpperCase()}</p>}
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h4 className="text-sm font-medium text-zinc-900">{item.name}</h4>
+                                                    {item.size && <p className="text-xs text-zinc-500">Size: {item.size.toUpperCase()}</p>}
+                                                </div>
+                                                <button
+                                                    onClick={() => removeItem(item.cartId)}
+                                                    className="text-[10px] text-blue-600 hover:text-blue-800 transition-colors font-medium px-2 py-1 bg-zinc-100 rounded"
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                            {stockErrors[item.cartId] && (
+                                                <p className="text-[10px] text-red-500 font-bold mt-1 uppercase italic">
+                                                    {stockErrors[item.cartId]}
+                                                </p>
+                                            )}
                                         </div>
                                         <div className="flex flex-col justify-center items-end">
                                             <span className="text-sm font-medium text-zinc-900">₹{((item.price_offer || item.price_base) * item.quantity).toFixed(2)}</span>
@@ -344,6 +403,10 @@ export default function CheckoutPage() {
                                             <span>-₹{discountAmount.toFixed(2)}</span>
                                         </div>
                                     )}
+                                    <div className="flex justify-between text-sm text-zinc-600">
+                                        <span>Shipping</span>
+                                        <span>{shipping === 0 ? "Free" : `₹${shipping.toFixed(2)}`}</span>
+                                    </div>
 
                                     <div className="flex justify-between text-lg font-medium text-zinc-900 pt-2 border-t border-zinc-200/50">
                                         <span>Total</span>
@@ -572,21 +635,30 @@ export default function CheckoutPage() {
                         </section>
 
                         {/* Footer Actions */}
-                        <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-6 pt-4">
-                            <Link href="/cart" className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
-                                <ArrowLeft size={14} />
-                                Return to cart
-                            </Link>
-                            <button
-                                type="submit"
-                                disabled={isProcessing}
-                                className={cn(
-                                    "w-full md:w-auto px-8 py-4 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors shadow-sm",
-                                    isProcessing && "opacity-70 cursor-not-allowed"
-                                )}
-                            >
-                                {isProcessing ? "Processing..." : "Complete order"}
-                            </button>
+                        <div className="flex flex-col gap-4 pt-4">
+                            {Object.keys(stockErrors).length > 0 && (
+                                <div className="p-4 bg-red-50 border border-red-100 rounded-lg">
+                                    <p className="text-xs text-red-600 font-medium">
+                                        Please remove out-of-stock items or adjust quantities to continue with your order.
+                                    </p>
+                                </div>
+                            )}
+                            <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-6">
+                                <Link href="/shop?openCart=true" className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+                                    <ArrowLeft size={14} />
+                                    Return to cart
+                                </Link>
+                                <button
+                                    type="submit"
+                                    disabled={isProcessing || Object.keys(stockErrors).length > 0}
+                                    className={cn(
+                                        "w-full md:w-auto px-8 py-4 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors shadow-sm",
+                                        (isProcessing || Object.keys(stockErrors).length > 0) && "opacity-70 cursor-not-allowed"
+                                    )}
+                                >
+                                    {isProcessing ? "Processing..." : Object.keys(stockErrors).length > 0 ? "Remove items to proceed" : "Complete order"}
+                                </button>
+                            </div>
                         </div>
                     </form>
 
@@ -613,8 +685,23 @@ export default function CheckoutPage() {
                                 <Image src={item.main_image || ""} alt={item.name} fill className="object-cover" />
                             </div>
                             <div className="flex-1 flex flex-col justify-center">
-                                <h4 className="text-sm font-medium text-zinc-900">{item.name}</h4>
-                                {item.size && <p className="text-xs text-zinc-500">Size: {item.size.toUpperCase()}</p>}
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h4 className="text-sm font-medium text-zinc-900">{item.name}</h4>
+                                        {item.size && <p className="text-xs text-zinc-500">Size: {item.size.toUpperCase()}</p>}
+                                    </div>
+                                    <button
+                                        onClick={() => removeItem(item.cartId)}
+                                        className="text-[10px] text-blue-600 hover:text-blue-800 transition-colors font-medium"
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                                {stockErrors[item.cartId] && (
+                                    <p className="text-[10px] text-red-500 font-bold mt-1 uppercase italic">
+                                        {stockErrors[item.cartId]}
+                                    </p>
+                                )}
                             </div>
                             <div className="flex flex-col justify-center items-end">
                                 <span className="text-sm font-medium text-zinc-900">₹{((item.price_offer || item.price_base) * item.quantity).toFixed(2)}</span>
@@ -677,6 +764,10 @@ export default function CheckoutPage() {
                                 <span>-₹{discountAmount.toFixed(2)}</span>
                             </div>
                         )}
+                        <div className="flex justify-between">
+                            <span>Shipping</span>
+                            <span className="font-medium text-zinc-900">{shipping === 0 ? "Free" : `₹${shipping.toFixed(2)}`}</span>
+                        </div>
                     </div>
 
                     <div className="h-px w-full bg-zinc-200 my-4" />

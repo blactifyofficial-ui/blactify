@@ -41,6 +41,20 @@ export default function ProductDetailPage() {
     const [newRating, setNewRating] = useState(5);
     const [newComment, setNewComment] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [touchStart, setTouchStart] = useState<number | null>(null);
+    const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+    // Minimum swipe distance (in px)
+    const minSwipeDistance = 50;
+
+    const sizes = (product?.size_variants && product.size_variants.length > 0) ? product.size_variants : ["S", "M", "L", "XL"];
+    const isNoSize = sizes.length === 1 && (sizes[0].toUpperCase() === "NO SIZE" || sizes[0].toLowerCase() === "no size");
+
+    useEffect(() => {
+        if (isNoSize && !selectedSize) {
+            setSelectedSize(sizes[0]);
+        }
+    }, [isNoSize, sizes, selectedSize]);
 
     useEffect(() => {
         async function fetchProduct() {
@@ -119,7 +133,7 @@ export default function ProductDetailPage() {
         );
     }
 
-    const sizes = (product?.size_variants && product.size_variants.length > 0) ? product.size_variants : ["S", "M", "L", "XL"];
+
     const productImages = [
         product.main_image,
         product.image1,
@@ -144,7 +158,61 @@ export default function ProductDetailPage() {
 
                 <div className="lg:grid lg:grid-cols-2 lg:gap-12 lg:items-start lg:px-6">
                     {/* Images Gallery - Single Image Slider */}
-                    <div className="relative aspect-[4/5] w-full bg-zinc-50 overflow-hidden group lg:rounded-3xl">
+                    <div
+                        className="relative aspect-[4/5] w-full bg-zinc-50 overflow-hidden group lg:rounded-3xl cursor-grab active:cursor-grabbing"
+                        onTouchStart={(e) => {
+                            setTouchStart(e.targetTouches[0].clientX);
+                            setTouchEnd(null);
+                        }}
+                        onTouchMove={(e) => setTouchEnd(e.targetTouches[0].clientX)}
+                        onTouchEnd={() => {
+                            if (!touchStart || !touchEnd) return;
+                            const distance = touchStart - touchEnd;
+                            const isLeftSwipe = distance > minSwipeDistance;
+                            const isRightSwipe = distance < -minSwipeDistance;
+
+                            if (isLeftSwipe) {
+                                setCurrentImageIndex((prev) => (prev < productImages.length - 1 ? prev + 1 : 0));
+                            } else if (isRightSwipe) {
+                                setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : productImages.length - 1));
+                            }
+
+                            setTouchStart(null);
+                            setTouchEnd(null);
+                        }}
+                        onMouseDown={(e) => {
+                            setTouchStart(e.clientX);
+                            setTouchEnd(null);
+                        }}
+                        onMouseMove={(e) => {
+                            if (touchStart !== null) {
+                                setTouchEnd(e.clientX);
+                            }
+                        }}
+                        onMouseUp={() => {
+                            if (touchStart === null || touchEnd === null) {
+                                setTouchStart(null);
+                                setTouchEnd(null);
+                                return;
+                            }
+                            const distance = touchStart - touchEnd;
+                            const isLeftSwipe = distance > minSwipeDistance;
+                            const isRightSwipe = distance < -minSwipeDistance;
+
+                            if (isLeftSwipe) {
+                                setCurrentImageIndex((prev) => (prev < productImages.length - 1 ? prev + 1 : 0));
+                            } else if (isRightSwipe) {
+                                setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : productImages.length - 1));
+                            }
+
+                            setTouchStart(null);
+                            setTouchEnd(null);
+                        }}
+                        onMouseLeave={() => {
+                            setTouchStart(null);
+                            setTouchEnd(null);
+                        }}
+                    >
                         <div
                             className="flex h-full transition-transform duration-500 ease-out"
                             style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
@@ -200,25 +268,25 @@ export default function ProductDetailPage() {
                     {/* Product Details Section */}
                     <div className="px-6 pt-10 pb-20 lg:pt-0 lg:sticky lg:top-24">
                         <div className="flex flex-col gap-2 mb-8">
-                            <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                                 {product.categories?.name || product.category || "General"}
                             </span>
-                            <h1 className="font-empire text-4xl text-black leading-tight uppercase">{product.name}</h1>
+                            <h2 className="text-3xl font-medium text-black leading-tight uppercase">{product.name}</h2>
                             <div className="flex items-center gap-4 mt-1">
                                 <div className="flex items-center gap-3">
                                     {hasDiscount ? (
                                         <>
-                                            <span className="text-2xl font-medium text-black">₹{displayPrice.toLocaleString()}</span>
-                                            <span className="text-lg text-zinc-300 line-through">₹{product.price_base.toLocaleString()}</span>
+                                            <span className="text-xl font-medium text-black">₹{displayPrice.toLocaleString()}</span>
+                                            <span className="text-base text-zinc-300 line-through">₹{product.price_base.toLocaleString()}</span>
                                         </>
                                     ) : (
-                                        <span className="text-2xl font-medium text-black">₹{displayPrice.toLocaleString()}</span>
+                                        <span className="text-xl font-medium text-black">₹{displayPrice.toLocaleString()}</span>
                                     )}
                                 </div>
                                 <div className="h-4 w-[1px] bg-zinc-100" />
                                 <div className="flex items-center gap-1.5 text-black">
                                     <Star size={14} fill="currentColor" />
-                                    <span className="text-sm font-bold">4.8</span>
+                                    <span className="text-[13px] font-bold">4.8</span>
                                     <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest ml-1">({reviews.length})</span>
                                 </div>
                             </div>
@@ -229,42 +297,66 @@ export default function ProductDetailPage() {
                         </p>
 
                         {/* Size Selection */}
-                        <div className="mb-10">
-                            <div className="flex items-center justify-between mb-4">
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Select Size</span>
-                                <button className="text-[10px] font-bold uppercase tracking-widest text-black underline underline-offset-4">Size Guide</button>
+                        {!isNoSize && (
+                            <div className="mb-10">
+                                <div className="flex items-center justify-between mb-4">
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Select Size</span>
+                                    <button className="text-[10px] font-bold uppercase tracking-widest text-black underline underline-offset-4">Size Guide</button>
+                                </div>
+                                <div className="flex gap-4">
+                                    {sizes.map((size: string) => (
+                                        <button
+                                            key={size}
+                                            onClick={() => setSelectedSize(size)}
+                                            className={`h-16 w-16 rounded-2xl flex items-center justify-center text-xs font-bold transition-all duration-300
+                                                ${selectedSize === size
+                                                    ? "bg-black text-white shadow-xl scale-105"
+                                                    : "bg-white text-black border border-zinc-100 hover:border-zinc-300"
+                                                }`}
+                                        >
+                                            {size}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                            <div className="flex gap-4">
-                                {sizes.map((size: string) => (
-                                    <button
-                                        key={size}
-                                        onClick={() => setSelectedSize(size)}
-                                        className={`h-16 w-16 rounded-2xl flex items-center justify-center text-xs font-bold transition-all duration-300
-                                            ${selectedSize === size
-                                                ? "bg-black text-white shadow-xl scale-105"
-                                                : "bg-white text-black border border-zinc-100 hover:border-zinc-300"
-                                            }`}
-                                    >
-                                        {size}
-                                    </button>
-                                ))}
+                        )}
+
+                        {/* Stock Status */}
+                        {product.stock <= 0 && (
+                            <div className="mb-6">
+                                <div className="flex items-center gap-2 text-red-500 font-bold uppercase tracking-widest text-[10px] bg-red-50 p-3 rounded-xl border border-red-100">
+                                    <X size={14} />
+                                    Out of Stock
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         <div className="flex flex-col gap-3">
                             <button
-                                onClick={() => addItem(product, selectedSize || undefined)}
-                                className="w-full h-16 bg-black text-white rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-2xl shadow-black/10"
+                                onClick={async () => await addItem(product, selectedSize || undefined)}
+                                disabled={product.stock <= 0}
+                                className={cn(
+                                    "w-full h-16 rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all",
+                                    product.stock <= 0
+                                        ? "bg-zinc-100 text-zinc-400 cursor-not-allowed"
+                                        : "bg-black text-white shadow-2xl shadow-black/10"
+                                )}
                             >
                                 <ShoppingBag size={18} />
-                                Add to Bag
+                                {product.stock <= 0 ? "Unavailable" : "Add to Bag"}
                             </button>
                             <button
-                                onClick={() => {
-                                    addItem(product, selectedSize || undefined);
+                                onClick={async () => {
+                                    await addItem(product, selectedSize || undefined);
                                     router.push("/checkout");
                                 }}
-                                className="w-full h-16 bg-white text-black border border-zinc-200 rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all"
+                                disabled={product.stock <= 0}
+                                className={cn(
+                                    "w-full h-16 rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all",
+                                    product.stock <= 0
+                                        ? "hidden"
+                                        : "bg-white text-black border border-zinc-200"
+                                )}
                             >
                                 Buy Now
                                 <ArrowRight size={18} />
@@ -279,16 +371,16 @@ export default function ProductDetailPage() {
                                 </div>
                                 <div>
                                     <h4 className="text-[10px] font-bold uppercase tracking-widest text-black mb-1">Free Delivery</h4>
-                                    <p className="text-xs text-zinc-400 font-sans leading-relaxed">Complimentary shipping on all orders over ₹3,499.</p>
+                                    <p className="text-xs text-zinc-400 font-sans leading-relaxed">Complimentary shipping on all orders over ₹2,999.</p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-5">
                                 <div className="p-3.5 bg-zinc-50 rounded-2xl text-black">
-                                    <RotateCcw size={20} />
+                                    <X size={20} />
                                 </div>
                                 <div>
-                                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-black mb-1">Easy Returns</h4>
-                                    <p className="text-xs text-zinc-400 font-sans leading-relaxed">30-day effortless return policy for your peace of mind.</p>
+                                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-black mb-1">No Returns</h4>
+                                    <p className="text-xs text-zinc-400 font-sans leading-relaxed">This item is non-returnable due to its nature and quality standards.</p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-5">
@@ -307,7 +399,7 @@ export default function ProductDetailPage() {
                 {/* Review Section - Spans full width below grid */}
                 <section className="mt-16 pt-16 border-t border-zinc-50 px-6">
                     <div className="flex items-center justify-between mb-10">
-                        <h3 className="font-empire text-3xl text-black uppercase">Customer Reviews</h3>
+                        <h2 className="text-2xl font-medium text-black uppercase">Customer Reviews</h2>
                         <div className="flex items-center gap-1.5 text-black">
                             <Star size={18} fill="currentColor" />
                             <span className="text-2xl font-bold">4.8</span>
@@ -355,7 +447,7 @@ export default function ProductDetailPage() {
 
                     {/* Write Review Trigger */}
                     <div className="mt-12 p-10 bg-black rounded-[40px] text-center text-white">
-                        <h4 className="font-empire text-2xl mb-2 uppercase">Share Your Thoughts</h4>
+                        <h3 className="text-xl font-medium mb-2 uppercase">Share Your Thoughts</h3>
                         <p className="text-xs text-zinc-400 font-sans mb-8">Have you purchased this item? We value your feedback.</p>
                         <button
                             onClick={() => setIsReviewModalOpen(true)}
@@ -375,7 +467,7 @@ export default function ProductDetailPage() {
                         />
                         <div className="fixed inset-x-0 bottom-0 z-[110] mx-auto w-full max-w-md bg-white rounded-t-[40px] p-10 shadow-2xl animate-in slide-in-from-bottom duration-500">
                             <div className="flex items-center justify-between mb-8">
-                                <h3 className="font-empire text-3xl uppercase text-black">Write Review</h3>
+                                <h2 className="text-2xl font-medium uppercase text-black">Write Review</h2>
                                 <button onClick={() => setIsReviewModalOpen(false)} className="p-2 hover:bg-zinc-100 rounded-full transition-colors">
                                     <X size={20} />
                                 </button>

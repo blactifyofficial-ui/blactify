@@ -24,6 +24,7 @@ export interface Product {
     tag?: string;
     size_variants?: string[];
     description?: string;
+    stock: number;
     created_at?: string;
 }
 
@@ -55,22 +56,29 @@ export function ProductCard({ product, className }: ProductCardProps) {
                         {product.tag}
                     </div>
                 )}
-                <button
-                    onClick={(e) => {
-                        e.preventDefault();
-                        addItem(product);
-                    }}
-                    className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-white text-black shadow-lg opacity-0 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 active:scale-90"
-                >
-                    <Plus size={20} />
-                </button>
+                {product.stock <= 0 && (
+                    <div className="absolute right-3 top-3 bg-white/90 backdrop-blur-sm px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-black shadow-sm z-10 pointer-events-none rounded-sm border border-zinc-100">
+                        Out of Stock
+                    </div>
+                )}
+                {product.stock > 0 && (
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            addItem(product);
+                        }}
+                        className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-white text-black shadow-lg opacity-0 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 active:scale-90 z-20"
+                    >
+                        <Plus size={20} />
+                    </button>
+                )}
             </div>
             <div className="flex flex-col gap-1">
                 <Link href={`/product/${product.id}`}>
                     <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-300 mb-1 block">
                         {product.categories?.name || product.category || "General"}
                     </span>
-                    <h3 className="text-sm font-normal text-zinc-500 lowercase leading-tight">
+                    <h3 className="text-[13px] md:text-sm font-normal text-zinc-500 lowercase leading-tight">
                         {product.name}
                     </h3>
                 </Link>

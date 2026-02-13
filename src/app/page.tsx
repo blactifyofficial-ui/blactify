@@ -44,7 +44,7 @@ export default function Home() {
 
       <section className="px-6 py-12">
         <div className="mb-12 flex items-end justify-between">
-          <h2 className="text-3xl font-medium tracking-tight text-black">Best Sellers</h2>
+          <h2 className="text-2xl md:text-3xl font-medium tracking-tight text-black">Best Sellers</h2>
           <Link href="/shop" className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-300 hover:text-black transition-colors">
             View All
           </Link>

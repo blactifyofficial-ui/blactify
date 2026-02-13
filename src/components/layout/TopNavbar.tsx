@@ -46,12 +46,12 @@ export function TopNavbar() {
             <div className="max-w-7xl mx-auto flex items-center justify-center h-full">
                 <Link href="/" className="relative flex items-center justify-center group h-8 overflow-hidden">
                     {/* Ghost text to maintain width for centering since spans are absolute */}
-                    <span className="text-xl font-bold tracking-tighter invisible pointer-events-none whitespace-nowrap px-4">
+                    <span className="text-lg md:text-xl font-empire invisible pointer-events-none whitespace-nowrap px-4">
                         Blactify Essentials
                     </span>
                     <span
                         className={cn(
-                            "text-xl font-bold tracking-tighter transition-all duration-500 absolute inset-0 flex items-center justify-center whitespace-nowrap",
+                            "text-lg md:text-xl font-empire transition-all duration-500 absolute inset-0 flex items-center justify-center whitespace-nowrap",
                             showFullText ? "-translate-y-full opacity-0" : "translate-y-0 opacity-100"
                         )}
                     >
@@ -59,7 +59,7 @@ export function TopNavbar() {
                     </span>
                     <span
                         className={cn(
-                            "text-xl font-bold tracking-tighter transition-all duration-500 absolute inset-0 flex items-center justify-center whitespace-nowrap",
+                            "text-lg md:text-xl font-empire transition-all duration-500 absolute inset-0 flex items-center justify-center whitespace-nowrap",
                             showFullText ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
                         )}
                     >

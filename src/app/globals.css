@@ -1,3 +1,4 @@
+@import url('https://fonts.cdnfonts.com/css/druk-wide-bold');
 @import "tailwindcss";
 
 :root {
@@ -10,6 +11,34 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-outfit), var(--font-inter), ui-sans-serif, system-ui;
   --font-aesthetic: var(--font-space-grotesk), ui-serif, serif;
+  --font-heading: "Druk Wide Bold", sans-serif;
+}
+
+h1 {
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: clamp(2rem, 8vw, 4.5rem);
+  line-height: 1;
+}
+
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+}
+
+h3 {
+  font-size: clamp(1.125rem, 3vw, 1.5rem);
 }
 
 body {
@@ -22,10 +51,9 @@ body {
 
 @layer utilities {
   .font-empire {
-    font-family: var(--font-outfit);
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    text-transform: capitalize;
+    font-family: var(--font-heading);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
   }
 
   .text-aesthetic {
