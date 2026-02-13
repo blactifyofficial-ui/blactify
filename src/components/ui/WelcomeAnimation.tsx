@@ -12,7 +12,10 @@ export default function WelcomeAnimation() {
     useEffect(() => {
         // Check if we've already shown the animation in this session
         const hasShown = sessionStorage.getItem("welcome-animation-shown");
-        if (hasShown) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const force = urlParams.get("force") === "true";
+
+        if (hasShown && !force) {
             setIsVisible(false);
             return;
         }
@@ -60,7 +63,38 @@ export default function WelcomeAnimation() {
                         priority
                     />
 
-                    {/* Eye Lids (Masks) */}
+                    {/* Radiating Lines (Eyelashes) - Hand-drawn style */}
+                    <div className="absolute inset-0 pointer-events-none">
+                        {/* Top 3 lines */}
+                        {[-45, 0, 45].map((angle, i) => (
+                            <div
+                                key={`top-${i}`}
+                                className={cn(
+                                    "absolute top-1/2 left-1/2 w-[3px] bg-black rounded-full transition-all duration-700 ease-out",
+                                    isOpening ? "opacity-100 scale-y-100 h-8" : "opacity-0 scale-y-0 h-0"
+                                )}
+                                style={{
+                                    transform: `translateX(-50%) translateY(-50%) rotate(${angle}deg) translateY(-60px)`,
+                                    transformOrigin: 'bottom center'
+                                }}
+                            />
+                        ))}
+                        {/* Bottom 2 lines */}
+                        {[-30, 30].map((angle, i) => (
+                            <div
+                                key={`bottom-${i}`}
+                                className={cn(
+                                    "absolute top-1/2 left-1/2 w-[3px] bg-black rounded-full transition-all duration-700 ease-out",
+                                    isOpening ? "opacity-100 scale-y-100 h-8" : "opacity-0 scale-y-0 h-0"
+                                )}
+                                style={{
+                                    transform: `translateX(-50%) translateY(-50%) rotate(${angle}deg) translateY(60px)`,
+                                    transformOrigin: 'top center'
+                                }}
+                            />
+                        ))}
+                    </div>
+
                     <div className="absolute inset-0 flex flex-col pointer-events-none">
                         {/* Top Lid */}
                         <div
