@@ -46,18 +46,13 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
             ))}
             <div className="absolute inset-0 bg-black/20" />
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-white z-10">
-                <h1 className="font-empire mb-4">
+                <h1 className="font-empire mb-8">
                     {title}
                 </h1>
-                {subtitle && (
-                    <p className="mb-8 text-lg font-medium tracking-tight opacity-90">
-                        {subtitle}
-                    </p>
-                )}
                 {ctaText && ctaLink && (
                     <a
                         href={ctaLink}
-                        className="rounded-full bg-white px-8 py-3 text-sm font-bold uppercase tracking-widest text-black transition-transform active:scale-95"
+                        className="group relative inline-flex items-center justify-center overflow-hidden rounded-sm bg-white px-6 py-2.5 md:px-10 md:py-4 text-xs md:text-sm font-bold uppercase tracking-[0.2em] text-black transition-all hover:bg-black hover:text-white active:scale-95 shadow-[0_4px_20px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.2)]"
                     >
                         {ctaText}
                     </a>

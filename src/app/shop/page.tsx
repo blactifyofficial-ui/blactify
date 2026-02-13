@@ -78,7 +78,7 @@ export default function ShopPage() {
                                 <button
                                     key={cat}
                                     onClick={() => setSelectedCategory(cat)}
-                                    className={`px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex-shrink-0 shadow-sm
+                                    className={`px-6 py-3 rounded-xl text-sm font-medium transition-all flex-shrink-0 shadow-sm
                                         ${selectedCategory === cat
                                             ? "bg-black text-white"
                                             : "bg-white text-zinc-500 border border-zinc-100 hover:border-zinc-300"
@@ -92,13 +92,13 @@ export default function ShopPage() {
                 </header>
 
                 <div className="flex items-center justify-between mb-6">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                    <span className="text-xs font-medium text-zinc-400">
                         Showing {filteredProducts.length} Results
                     </span>
                     <div className="relative">
                         <button
                             onClick={() => setIsSortOpen(!isSortOpen)}
-                            className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-black active:scale-95 transition-all"
+                            className="flex items-center gap-1.5 text-xs font-medium text-black active:scale-95 transition-all"
                         >
                             Sort: {sortBy === "newest" ? "Newest" : sortBy === "price-low" ? "Price Low-High" : "Price High-Low"}
                             <Filter size={12} className={cn("transition-transform", isSortOpen && "rotate-180")} />
@@ -123,7 +123,7 @@ export default function ShopPage() {
                                                 setIsSortOpen(false);
                                             }}
                                             className={cn(
-                                                "w-full text-left px-4 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors",
+                                                "w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-colors",
                                                 sortBy === option.id
                                                     ? "bg-zinc-900 text-white"
                                                     : "text-zinc-500 hover:bg-zinc-50 hover:text-black"
