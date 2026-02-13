@@ -5,119 +5,82 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 export default function WelcomeAnimation() {
-    const [isVisible, setIsVisible] = useState(true);
+    const [isVisible, setIsVisible] = useState<boolean | null>(null);
     const [isOpening, setIsOpening] = useState(false);
+    const [isRevealing, setIsRevealing] = useState(false);
     const [isFadingOut, setIsFadingOut] = useState(false);
 
     useEffect(() => {
         // Check if we've already shown the animation in this session
         const hasShown = sessionStorage.getItem("welcome-animation-shown");
         const urlParams = new URLSearchParams(window.location.search);
-        const force = urlParams.get("force") === "true";
+        const forceWelcome = urlParams.get("force-welcome") === "true";
 
-        if (hasShown && !force) {
+        if (hasShown && !forceWelcome) {
             setIsVisible(false);
             return;
         }
 
+        // If not seen or forced, make it visible
+        setIsVisible(true);
+
         // Start the opening animation after a short delay
         const openingTimer = setTimeout(() => {
             setIsOpening(true);
-        }, 500);
+        }, 1500);
 
-        // Start fading out the entire overlay after the eye is "open"
+        // Start the iris reveal effect (thematic replacement for zoom)
+        const revealTimer = setTimeout(() => {
+            setIsRevealing(true);
+        }, 4500);
+
+        // Start fading out the entire overlay
         const fadeOutTimer = setTimeout(() => {
             setIsFadingOut(true);
-        }, 2500);
+        }, 5200);
 
         // Completely remove the component
         const removeTimer = setTimeout(() => {
             setIsVisible(false);
             sessionStorage.setItem("welcome-animation-shown", "true");
-        }, 3200);
+        }, 7000);
 
         return () => {
             clearTimeout(openingTimer);
+            clearTimeout(revealTimer);
             clearTimeout(fadeOutTimer);
             clearTimeout(removeTimer);
         };
     }, []);
 
-    if (!isVisible) return null;
+    if (isVisible === false || isVisible === null) return null;
 
     return (
         <div
             className={cn(
-                "fixed inset-0 z-[100] flex items-center justify-center bg-white transition-opacity duration-700 ease-in-out",
-                isFadingOut ? "opacity-0 pointer-events-none" : "opacity-100"
+                "fixed inset-0 z-[100] flex items-center justify-center",
+                isOpening ? "bg-white" : "bg-black",
+                isFadingOut ? "opacity-0 pointer-events-none" : "opacity-100",
+                isRevealing ? "blur-md" : "blur-0"
             )}
+            style={{
+                clipPath: isRevealing ? 'circle(0% at 50% 50%)' : 'circle(150% at 50% 50%)',
+                transition: 'clip-path 2500ms ease-in-out, opacity 1000ms ease-in-out, background-color 2500ms ease-in-out, backdrop-filter 2500ms ease-in-out, filter 2500ms ease-in-out'
+            }}
         >
-            <div className="relative w-48 h-48 md:w-64 md:h-64 flex items-center justify-center">
-                {/* The Eye Icon */}
-                <div className="relative w-full h-full">
-                    <Image
-                        src="/icon.png"
-                        alt="Blactify"
-                        fill
-                        className="object-contain"
-                        priority
-                    />
-
-                    {/* Radiating Lines (Eyelashes) - Hand-drawn style */}
-                    <div className="absolute inset-0 pointer-events-none">
-                        {/* Top 3 lines */}
-                        {[-45, 0, 45].map((angle, i) => (
-                            <div
-                                key={`top-${i}`}
-                                className={cn(
-                                    "absolute top-1/2 left-1/2 w-[3px] bg-black rounded-full transition-all duration-700 ease-out",
-                                    isOpening ? "opacity-100 scale-y-100 h-8" : "opacity-0 scale-y-0 h-0"
-                                )}
-                                style={{
-                                    transform: `translateX(-50%) translateY(-50%) rotate(${angle}deg) translateY(-60px)`,
-                                    transformOrigin: 'bottom center'
-                                }}
-                            />
-                        ))}
-                        {/* Bottom 2 lines */}
-                        {[-30, 30].map((angle, i) => (
-                            <div
-                                key={`bottom-${i}`}
-                                className={cn(
-                                    "absolute top-1/2 left-1/2 w-[3px] bg-black rounded-full transition-all duration-700 ease-out",
-                                    isOpening ? "opacity-100 scale-y-100 h-8" : "opacity-0 scale-y-0 h-0"
-                                )}
-                                style={{
-                                    transform: `translateX(-50%) translateY(-50%) rotate(${angle}deg) translateY(60px)`,
-                                    transformOrigin: 'top center'
-                                }}
-                            />
-                        ))}
-                    </div>
-
-                    <div className="absolute inset-0 flex flex-col pointer-events-none">
-                        {/* Top Lid */}
-                        <div
-                            className={cn(
-                                "flex-1 bg-white transition-transform duration-1000 ease-in-out origin-top",
-                                isOpening ? "-translate-y-full" : "translate-y-0"
-                            )}
-                        />
-                        {/* Bottom Lid */}
-                        <div
-                            className={cn(
-                                "flex-1 bg-white transition-transform duration-1000 ease-in-out origin-bottom",
-                                isOpening ? "translate-y-full" : "translate-y-0"
-                            )}
-                        />
-                    </div>
-                </div>
-
-                {/* Optional: A subtle glow or pulse after opening */}
-                <div
+            <div className={cn(
+                "relative w-64 h-64 md:w-80 md:h-80 flex items-center justify-center transition-all duration-[2500ms] ease-in-out",
+                isRevealing ? "scale-150" : "scale-100"
+            )}>
+                <Image
+                    src="/welcome-eye.png"
+                    alt="Welcome"
+                    width={320}
+                    height={320}
+                    priority
                     className={cn(
-                        "absolute inset-0 rounded-full bg-black/5 scale-0 transition-transform duration-500 delay-700",
-                        isOpening ? "scale-150 blur-2xl" : ""
+                        "w-full h-full object-contain transition-opacity duration-[2000ms] ease-in-out mix-blend-multiply",
+                        isOpening ? "opacity-100" : "opacity-0"
                     )}
                 />
             </div>
@@ -129,7 +92,10 @@ export default function WelcomeAnimation() {
                     isOpening ? "opacity-40 translate-y-0" : "opacity-0 translate-y-4"
                 )}
             >
-                <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-black">
+                <p className={cn(
+                    "text-[10px] font-bold uppercase tracking-[0.4em] transition-colors duration-700",
+                    isOpening ? "text-black" : "text-white/40"
+                )}>
                     Meets Timeless Essentials
                 </p>
             </div>
