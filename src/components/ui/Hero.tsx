@@ -65,10 +65,10 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
                     <div
                         className={cn(
                             "absolute inset-0 flex items-center justify-center transition-all duration-500 ease-in-out",
-                            showFullText ? "-translate-y-full opacity-0" : "translate-y-0 opacity-100"
+                            showFullText ? "-translate-y-full opacity-0" : "translate-y-0 opacity-40 shadow-2xl"
                         )}
                     >
-                        <div className="relative w-48 h-48 md:w-64 md:h-64">
+                        <div className="relative w-48 h-48 md:w-64 md:h-64 transition-transform duration-300 hover:scale-110 active:scale-95 cursor-pointer">
                             <Image
                                 src="/logo-v1.png"
                                 alt="Logo Icon"
@@ -83,8 +83,8 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
                         <Link
                             href={ctaLink}
                             className={cn(
-                                "absolute inset-0 flex items-center justify-center transition-all duration-500 ease-in-out text-[10px] md:text-sm font-bold uppercase tracking-[0.4em] hover:opacity-100",
-                                showFullText ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
+                                "absolute inset-0 flex items-center justify-center transition-all duration-500 ease-in-out text-[10px] md:text-sm font-bold uppercase tracking-[0.4em] transition-all duration-300 hover:scale-110 active:scale-95",
+                                showFullText ? "translate-y-0 opacity-40 hover:opacity-100" : "translate-y-full opacity-0"
                             )}
                         >
                             {ctaText || "Shop Now"}
