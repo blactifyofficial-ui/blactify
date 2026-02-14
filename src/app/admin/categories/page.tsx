@@ -18,6 +18,8 @@ export default function AdminCategoriesPage() {
     const [loading, setLoading] = useState(true);
     const [adding, setAdding] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState("");
+    const [newSizeFields, setNewSizeFields] = useState<string[]>([]);
+    const [currentField, setCurrentField] = useState("");
     const [error, setError] = useState("");
 
     useEffect(() => {
@@ -46,21 +48,34 @@ export default function AdminCategoriesPage() {
         }
 
         setAdding(true);
-        const id = newCategoryName.toLowerCase().replace(/\s+/g, "-");
+        const slug = newCategoryName.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
 
         try {
             const { error: insertError } = await supabase
                 .from("categories")
-                .insert([{ id, name: newCategoryName }]);
+                .insert([{
+                    name: newCategoryName,
+                    slug,
+                    size_config: newSizeFields
+                }]);
 
             if (insertError) throw insertError;
 
             toast.success("Category added successfully!");
             setNewCategoryName("");
+            setNewSizeFields([]);
             fetchCategories();
         } catch (err: any) {
             console.error("Error adding category:", err);
-            toast.error(err.message || "Failed to add category. Likely a duplicate name.");
+            let message = "Failed to add category.";
+            if (err.code === '23505') {
+                message = "A category with this name already exists.";
+            } else if (err.message?.includes('size_config')) {
+                message = "Database migration required. Please run the SQL provided in the walkthrough.";
+            } else {
+                message = err.message || message;
+            }
+            toast.error(message);
         } finally {
             setAdding(false);
         }
@@ -126,6 +141,61 @@ export default function AdminCategoriesPage() {
                             </div>
                         )}
                     </label>
+
+                    {/* Size Fields Section */}
+                    <div className="space-y-4 pt-4 border-t border-zinc-50">
+                        <div>
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-3 block italic">Measurement Fields (Optional)</span>
+                            <div className="flex gap-2 mb-4">
+                                <input
+                                    type="text"
+                                    placeholder="e.g. Waist, Rise, Thighs"
+                                    value={currentField}
+                                    onChange={(e) => setCurrentField(e.target.value)}
+                                    className="flex-1 px-4 py-3 bg-zinc-50/50 border border-zinc-100 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-medium"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            if (currentField.trim() && !newSizeFields.includes(currentField.trim())) {
+                                                setNewSizeFields([...newSizeFields, currentField.trim()]);
+                                                setCurrentField("");
+                                            }
+                                        }
+                                    }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (currentField.trim() && !newSizeFields.includes(currentField.trim())) {
+                                            setNewSizeFields([...newSizeFields, currentField.trim()]);
+                                            setCurrentField("");
+                                        }
+                                    }}
+                                    className="px-6 bg-zinc-100 text-zinc-500 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-200 transition-all font-aesthetic"
+                                >
+                                    Add
+                                </button>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2">
+                                {newSizeFields.map((field, idx) => (
+                                    <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-black text-white rounded-full text-[10px] font-bold uppercase tracking-widest animate-in zoom-in-50 duration-300">
+                                        {field}
+                                        <button
+                                            type="button"
+                                            onClick={() => setNewSizeFields(newSizeFields.filter((_, i) => i !== idx))}
+                                            className="hover:text-red-400 transition-colors"
+                                        >
+                                            <X size={12} />
+                                        </button>
+                                    </div>
+                                ))}
+                                {newSizeFields.length === 0 && (
+                                    <p className="text-[10px] text-zinc-400 font-medium italic">No custom measurement fields defined.</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 </form>
             </div>
 

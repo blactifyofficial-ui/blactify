@@ -78,22 +78,22 @@ export function ProductCard({ product, className }: ProductCardProps) {
                     <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-300 mb-1 block">
                         {product.categories?.name || product.category || "General"}
                     </span>
-                    <h3 className="text-[13px] md:text-sm font-normal text-zinc-500 lowercase leading-tight">
+                    <h3 className="text-[12px] md:text-[13px] font-normal text-zinc-500 lowercase leading-tight">
                         {product.name}
                     </h3>
                 </Link>
                 <div className="flex items-center gap-2">
                     {hasDiscount ? (
                         <>
-                            <span className="text-sm font-medium text-black">
+                            <span className="text-[12px] md:text-[13px] font-medium text-black">
                                 ₹{displayPrice.toFixed(2)}
                             </span>
-                            <span className="text-sm text-zinc-400 line-through">
+                            <span className="text-[12px] md:text-[13px] text-zinc-400 line-through">
                                 ₹{product.price_base.toFixed(2)}
                             </span>
                         </>
                     ) : (
-                        <span className="text-sm font-medium text-black">
+                        <span className="text-[12px] md:text-[13px] font-medium text-black">
                             ₹{displayPrice.toFixed(2)}
                         </span>
                     )}

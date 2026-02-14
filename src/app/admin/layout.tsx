@@ -7,7 +7,8 @@ import {
     Box,
     LayoutDashboard,
     LogOut,
-    ShoppingBag
+    ShoppingBag,
+    Tag
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { auth } from "@/lib/firebase";
@@ -18,6 +19,7 @@ const NAV_ITEMS = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
     { name: "Products", href: "/admin/products", icon: Box },
+    { name: "Categories", href: "/admin/categories", icon: Tag },
     { name: "Sales Report", href: "/admin/reports", icon: BarChart3 },
 ];
 

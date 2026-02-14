@@ -49,6 +49,13 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
     const [newImageUrl, setNewImageUrl] = useState("");
     const [newSize, setNewSize] = useState("");
 
+    // Quick add category state
+    const [showQuickAdd, setShowQuickAdd] = useState(false);
+    const [newCatName, setNewCatName] = useState("");
+    const [newCatSizeFields, setNewCatSizeFields] = useState<string[]>([]);
+    const [currentCatField, setCurrentCatField] = useState("");
+    const [addingCat, setAddingCat] = useState(false);
+
     // Validation state
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -68,6 +75,47 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
         const { data } = await supabase.from("categories").select("*").order("name");
         setCategories(data || []);
     }
+
+    const handleQuickAddCategory = async () => {
+        if (!newCatName.trim()) return;
+        setAddingCat(true);
+
+        const slug = newCatName.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+
+        try {
+            const { data, error: insertError } = await supabase
+                .from("categories")
+                .insert([{
+                    name: newCatName.trim(),
+                    slug,
+                    size_config: newCatSizeFields
+                }])
+                .select()
+                .single();
+
+            if (insertError) throw insertError;
+
+            toast.success("Category added!");
+            await fetchCategories();
+            setFormData(prev => ({ ...prev, category_id: data.id }));
+            setNewCatName("");
+            setNewCatSizeFields([]);
+            setShowQuickAdd(false);
+        } catch (err: any) {
+            console.error("Error adding category:", err);
+            let message = "Failed to add category.";
+            if (err.code === '23505') {
+                message = "A category with this name already exists.";
+            } else if (err.message?.includes('size_config')) {
+                message = "Database migration required. Please run the SQL provided in the walkthrough.";
+            } else {
+                message = err.message || message;
+            }
+            toast.error(message);
+        } finally {
+            setAddingCat(false);
+        }
+    };
 
     async function fetchProduct() {
         try {
@@ -501,26 +549,106 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                         </label>
 
                         <label className="block">
-                            <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block italic">Category</span>
-                            <div className="relative">
-                                <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={16} />
-                                <select
-                                    required
-                                    value={formData.category_id}
-                                    onChange={(e) => {
-                                        setFormData({ ...formData, category_id: e.target.value });
-                                        if (errors.category_id) setErrors(prev => ({ ...prev, category_id: "" }));
-                                    }}
-                                    className={`w-full pl-12 pr-10 py-4 bg-zinc-50/50 border ${errors.category_id ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all cursor-pointer font-medium appearance-none`}
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 block italic">Category</span>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowQuickAdd(!showQuickAdd)}
+                                    className="text-[10px] font-bold uppercase tracking-widest text-black/40 hover:text-black transition-colors"
                                 >
-                                    <option value="">Select Category</option>
-                                    {categories.map((cat) => (
-                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                    ))}
-                                </select>
-                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-300 pointer-events-none" size={16} />
-                                {errors.category_id && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.category_id}</p>}
+                                    {showQuickAdd ? "Cancel" : "Add New"}
+                                </button>
                             </div>
+                            {showQuickAdd ? (
+                                <div className="space-y-4 p-4 bg-zinc-50 border border-zinc-100 rounded-2xl animate-in slide-in-from-top-2 duration-300">
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Category Name..."
+                                            value={newCatName}
+                                            onChange={(e) => setNewCatName(e.target.value)}
+                                            className="flex-1 px-4 py-3 bg-white border border-zinc-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-medium"
+                                        />
+                                        <button
+                                            type="button"
+                                            disabled={addingCat || !newCatName.trim()}
+                                            onClick={handleQuickAddCategory}
+                                            className="px-4 bg-black text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50 transition-all flex items-center justify-center min-w-[80px]"
+                                        >
+                                            {addingCat ? <Loader2 className="animate-spin" size={14} /> : "Save"}
+                                        </button>
+                                    </div>
+
+                                    {/* Quick Add Size Fields */}
+                                    <div className="space-y-3 pt-3 border-t border-zinc-200/50">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 block italic">Measurement Labels (Optional)</span>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. Waist, Rise"
+                                                value={currentCatField}
+                                                onChange={(e) => setCurrentCatField(e.target.value)}
+                                                className="flex-1 px-4 py-2 bg-white border border-zinc-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-black/5 transition-all"
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        e.preventDefault();
+                                                        if (currentCatField.trim() && !newCatSizeFields.includes(currentCatField.trim())) {
+                                                            setNewCatSizeFields([...newCatSizeFields, currentCatField.trim()]);
+                                                            setCurrentCatField("");
+                                                        }
+                                                    }
+                                                }}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (currentCatField.trim() && !newCatSizeFields.includes(currentCatField.trim())) {
+                                                        setNewCatSizeFields([...newCatSizeFields, currentCatField.trim()]);
+                                                        setCurrentCatField("");
+                                                    }
+                                                }}
+                                                className="px-3 bg-zinc-200 text-zinc-600 rounded-lg text-[10px] font-bold uppercase hover:bg-zinc-300 transition-all"
+                                            >
+                                                Add
+                                            </button>
+                                        </div>
+                                        <div className="flex flex-wrap gap-1">
+                                            {newCatSizeFields.map((field, idx) => (
+                                                <div key={idx} className="flex items-center gap-1.5 px-2 py-1 bg-zinc-200 text-zinc-700 rounded-md text-[9px] font-bold uppercase tracking-wider group">
+                                                    {field}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setNewCatSizeFields(newCatSizeFields.filter((_, i) => i !== idx))}
+                                                        className="text-zinc-400 hover:text-red-500 transition-colors"
+                                                    >
+                                                        <X size={10} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="relative">
+                                    <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={16} />
+                                    <select
+                                        required
+                                        value={formData.category_id}
+                                        onChange={(e) => {
+                                            setFormData({ ...formData, category_id: e.target.value });
+                                            if (errors.category_id) setErrors(prev => ({ ...prev, category_id: "" }));
+                                        }}
+                                        className={`w-full pl-12 pr-10 py-4 bg-zinc-50/50 border ${errors.category_id ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all cursor-pointer font-medium appearance-none`}
+                                    >
+                                        <option value="">Select Category</option>
+                                        {categories.map((cat) => (
+                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-300 pointer-events-none" size={16} />
+                                    {errors.category_id && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.category_id}</p>}
+                                </div>
+                            )}
                         </label>
 
                         <label className="block">

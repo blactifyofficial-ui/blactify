@@ -3,8 +3,10 @@
 
 -- 1. Categories Table
 CREATE TABLE categories (
-    id TEXT PRIMARY KEY, -- Slugified name (e.g., 'accessories')
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
+    slug TEXT NOT NULL,
+    size_config JSONB DEFAULT '[]', -- Array of labels: ["Waist", "Rise", etc.]
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

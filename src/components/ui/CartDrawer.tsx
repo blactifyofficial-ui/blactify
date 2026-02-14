@@ -137,7 +137,7 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                                                         <Plus size={14} />
                                                     </button>
                                                 </div>
-                                                <span className="text-sm font-medium text-black">₹{((item.price_offer || item.price_base) * item.quantity).toFixed(2)}</span>
+                                                <span className="text-[13px] font-medium text-black">₹{((item.price_offer || item.price_base) * item.quantity).toFixed(2)}</span>
                                             </div>
                                         </div>
                                     </div>
