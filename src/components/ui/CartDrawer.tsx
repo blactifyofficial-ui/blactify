@@ -80,12 +80,12 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
             />
             <div
                 className={cn(
-                    "fixed inset-y-0 right-0 z-[80] w-full max-w-md bg-white shadow-xl transition-transform duration-300 ease-in-out",
+                    "fixed inset-y-0 right-0 z-[80] w-full max-w-md bg-white/70 backdrop-blur-md border-l border-zinc-200/50 shadow-xl transition-transform duration-300 ease-in-out",
                     isOpen ? "translate-x-0" : "translate-x-full"
                 )}
             >
                 <div className="flex h-full flex-col">
-                    <div className="flex items-center justify-between border-b px-6 py-4">
+                    <div className="flex items-center justify-between border-b border-zinc-200/50 px-6 py-4">
                         <h2 className="font-empire text-xl text-black">Bag</h2>
                         <button onClick={onClose} className="p-2 hover:bg-zinc-100 rounded-full">
                             <X size={20} />
@@ -147,7 +147,7 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                     </div>
 
                     {items.length > 0 && (
-                        <div className="border-t border-zinc-100 px-6 py-6 font-sans bg-white">
+                        <div className="border-t border-zinc-200/50 px-6 py-6 font-sans bg-white/50">
                             <div className="mb-6 flex items-center justify-between">
                                 <span className="text-sm font-bold uppercase tracking-widest text-zinc-400">Total</span>
                                 <span className="text-xl font-medium text-black">₹{getTotalPrice().toFixed(2)}</span>

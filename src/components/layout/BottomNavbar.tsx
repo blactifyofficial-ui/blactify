@@ -28,7 +28,7 @@ export function BottomNavbar({
     const cartItemCount = getTotalItems();
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 h-16 border-t border-zinc-100 bg-white px-6 pb-safe">
+        <nav className="fixed bottom-0 left-0 right-0 z-50 h-16 border-t border-zinc-200/50 bg-white/40 backdrop-blur-md px-6 pb-safe">
             <div className="mx-auto flex h-full max-w-md items-center justify-between">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href;

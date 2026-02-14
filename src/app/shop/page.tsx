@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { ProductCard, type Product } from "@/components/ui/ProductCard";
-import { Search, Filter, SlidersHorizontal } from "lucide-react";
+import { Search, Filter, SlidersHorizontal, Menu, X as CloseIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function ShopPage() {
@@ -13,6 +13,7 @@ export default function ShopPage() {
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [sortBy, setSortBy] = useState("newest");
     const [isSortOpen, setIsSortOpen] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     useEffect(() => {
         async function fetchProducts() {
@@ -69,32 +70,21 @@ export default function ShopPage() {
                                 className="w-full bg-zinc-50 border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-sans focus:ring-2 focus:ring-black outline-none transition-all"
                             />
                         </div>
-
-                        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                            <div className="p-3 bg-zinc-900 text-white rounded-xl shadow-lg flex-shrink-0">
-                                <SlidersHorizontal size={18} />
-                            </div>
-                            {categories.map((cat) => (
-                                <button
-                                    key={cat}
-                                    onClick={() => setSelectedCategory(cat)}
-                                    className={`px-6 py-3 rounded-xl text-sm font-medium transition-all flex-shrink-0 shadow-sm
-                                        ${selectedCategory === cat
-                                            ? "bg-black text-white"
-                                            : "bg-white text-zinc-500 border border-zinc-100 hover:border-zinc-300"
-                                        }`}
-                                >
-                                    {cat}
-                                </button>
-                            ))}
-                        </div>
                     </div>
                 </header>
 
-                <div className="flex items-center justify-between mb-6">
-                    <span className="text-xs font-medium text-zinc-400">
-                        Showing {filteredProducts.length} Results
-                    </span>
+                <div className="flex items-center justify-between mb-6 pb-4 border-b border-zinc-50">
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => setIsMenuOpen(true)}
+                            className="p-1 text-black hover:bg-zinc-100 rounded-lg transition-colors active:scale-95"
+                        >
+                            <Menu size={20} />
+                        </button>
+                        <span className="text-xs font-medium text-zinc-500 uppercase tracking-widest">
+                            {filteredProducts.length} Results
+                        </span>
+                    </div>
                     <div className="relative">
                         <button
                             onClick={() => setIsSortOpen(!isSortOpen)}
@@ -165,6 +155,56 @@ export default function ShopPage() {
                         </button>
                     </div>
                 )}
+            </div>
+
+            {/* Category Hamburger Menu Drawer */}
+            <div
+                className={cn(
+                    "fixed inset-0 z-[100] bg-black/40 transition-opacity duration-300",
+                    isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+                )}
+                onClick={() => setIsMenuOpen(false)}
+            />
+            <div
+                className={cn(
+                    "fixed inset-y-0 left-0 z-[110] w-full max-w-[280px] bg-white/70 backdrop-blur-md border-r border-zinc-200/50 shadow-2xl transition-transform duration-300 ease-out",
+                    isMenuOpen ? "translate-x-0" : "-translate-x-full"
+                )}
+            >
+                <div className="flex flex-col h-full">
+                    <div className="flex items-center justify-between px-6 py-6 border-b border-zinc-200/50">
+                        <h3 className="font-empire text-xl text-black">Categories</h3>
+                        <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-black/5 rounded-full transition-colors">
+                            <CloseIcon size={20} />
+                        </button>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto py-6 px-4">
+                        <div className="space-y-1">
+                            {categories.map((cat) => (
+                                <button
+                                    key={cat}
+                                    onClick={() => {
+                                        setSelectedCategory(cat);
+                                        setIsMenuOpen(false);
+                                    }}
+                                    className={cn(
+                                        "w-full text-left px-5 py-4 rounded-2xl text-sm font-medium transition-all",
+                                        selectedCategory === cat
+                                            ? "bg-black/5 text-black transform scale-[1.02]"
+                                            : "text-zinc-500 hover:bg-black/5 hover:text-black"
+                                    )}
+                                >
+                                    {cat}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="p-6 border-t border-zinc-200/50 bg-black/5">
+                        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-[0.2em]">Select category to filter</p>
+                    </div>
+                </div>
             </div>
         </main>
     );

@@ -37,7 +37,7 @@ export function TopNavbar() {
     return (
         <header
             className={cn(
-                "fixed top-0 left-0 right-0 z-[60] transition-all duration-500 ease-in-out px-6 md:px-12 bg-white/70 backdrop-blur-md text-black border-b border-zinc-200/50 h-14",
+                "fixed top-0 left-0 right-0 z-[60] transition-all duration-500 ease-in-out px-6 md:px-12 bg-white/40 backdrop-blur-md text-black border-b border-zinc-200/50 h-14",
                 isVisible
                     ? "translate-y-0 opacity-100"
                     : "-translate-y-full opacity-0 pointer-events-none"

@@ -45,7 +45,7 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
                 </div>
             ))}
             <div className="absolute inset-0 bg-black/20" />
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-white z-10">
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-white/40 z-10">
                 <h1 className="font-empire mb-8">
                     {title}
                 </h1>

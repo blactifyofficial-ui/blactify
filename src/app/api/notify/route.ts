@@ -24,7 +24,7 @@ export async function POST(req: Request) {
             subject: `New Order Received: #${order.id}`,
             html: `
                 <div style="font-family: sans-serif; max-width: 600px; margin: auto;">
-                    <h1 style="color: #000;">New Order Placed</h1>
+                    <h1 style="color: #333639;">New Order Placed</h1>
                     <p>Order ID: <strong>#${order.id}</strong></p>
                     <hr />
                     <h3>Items:</h3>

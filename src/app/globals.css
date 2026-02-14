@@ -3,12 +3,13 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #000000;
+  --foreground: #333639;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-black: #333639;
   --font-sans: var(--font-outfit), var(--font-inter), ui-sans-serif, system-ui;
   --font-aesthetic: var(--font-space-grotesk), ui-serif, serif;
   --font-heading: "Druk Wide Bold", sans-serif;
@@ -18,7 +19,7 @@ h1 {
   font-family: var(--font-heading);
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  font-size: clamp(2rem, 8vw, 4.5rem);
+  font-size: clamp(1.75rem, 7vw, 4rem);
   line-height: 1;
 }
 
