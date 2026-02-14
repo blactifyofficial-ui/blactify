@@ -60,15 +60,15 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
                     {title}
                 </h1>
 
-                <div className="relative h-24 w-64 flex items-center justify-center overflow-hidden">
+                <div className="relative h-72 w-96 flex items-center justify-center overflow-hidden">
                     {/* Eye Icon Slide */}
                     <div
                         className={cn(
                             "absolute inset-0 flex items-center justify-center transition-all duration-500 ease-in-out",
-                            showFullText ? "-translate-y-full opacity-0" : "translate-y-0 opacity-40"
+                            showFullText ? "-translate-y-full opacity-0" : "translate-y-0 opacity-100"
                         )}
                     >
-                        <div className="relative w-20 h-20 md:w-28 md:h-28">
+                        <div className="relative w-48 h-48 md:w-64 md:h-64">
                             <Image
                                 src="/logo-v1.png"
                                 alt="Logo Icon"
