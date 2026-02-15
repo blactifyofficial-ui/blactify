@@ -33,7 +33,7 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
             if (!isHovered) {
                 setShowFullText((prev) => !prev);
             }
-        }, 3000);
+        }, 5000);
 
         return () => clearInterval(interval);
     }, [isHovered]);
@@ -71,7 +71,7 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
                     {/* Eye Icon Slide */}
                     <div
                         className={cn(
-                            "absolute inset-0 flex items-center justify-center transition-all duration-500 ease-in-out",
+                            "absolute inset-0 flex items-center justify-center transition-all duration-1000 ease-in-out",
                             showFullText ? "-translate-y-full opacity-0" : "translate-y-0 opacity-40"
                         )}
                     >
@@ -93,7 +93,7 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
                         <Link
                             href={ctaLink}
                             className={cn(
-                                "absolute inset-0 flex items-center justify-center transition-all duration-500 ease-in-out text-[10px] md:text-sm font-bold uppercase tracking-[0.4em] transition-all duration-300 hover:scale-110 active:scale-95",
+                                "absolute inset-0 flex items-center justify-center transition-all duration-1000 ease-in-out text-[10px] md:text-sm font-bold uppercase tracking-[0.4em] transition-all duration-300 hover:scale-110 active:scale-95",
                                 showFullText ? "translate-y-0 opacity-40 hover:opacity-100" : "translate-y-full opacity-0"
                             )}
                         >
