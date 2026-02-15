@@ -169,7 +169,7 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                     </div>
 
                     {items.length > 0 && (
-                        <div className="border-t border-zinc-200/50 px-6 py-6 font-sans bg-white/50">
+                        <div className="border-t border-zinc-200/50 px-6 py-6 font-sans bg-white/40 backdrop-blur-lg">
                             <div className="mb-6 flex items-center justify-between">
                                 <span className="text-sm font-bold uppercase tracking-widest text-zinc-400">Total</span>
                                 <span className="text-xl font-medium text-black">₹{getTotalPrice().toFixed(2)}</span>
