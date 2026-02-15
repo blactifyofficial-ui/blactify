@@ -14,20 +14,29 @@ export async function saveOrder(orderData: {
     // Helper to decrement stock using secure RPC
     const decrementStockSecure = async (items: any[]) => {
         try {
+            console.log("📦 Starting atomic stock decrement for:", items.map(i => ({ id: i.id, qty: i.quantity })));
             for (const item of items) {
                 const { data: success, error: stockError } = await supabase.rpc('decrement_stock_secure', {
-                    product_id: item.id,
-                    quantity_to_remove: item.quantity
+                    p_product_id: String(item.id),
+                    p_quantity: item.quantity
                 });
 
+                console.log(`🔍 RPC Result for ${item.id}:`, { success, stockError });
+
                 if (stockError || !success) {
-                    console.error(`Failed to decrement stock for product ${item.id}:`, stockError || "Insufficient stock");
-                    throw new Error(stockError?.message || `Insufficient stock for ${item.name}`);
+                    const errorMsg = stockError?.message || `Insufficient stock for ${item.name || item.id}`;
+                    console.error(`❌ Failed to decrement stock for product ${item.id}:`, {
+                        error: stockError,
+                        success,
+                        item
+                    });
+                    throw new Error(errorMsg);
                 }
             }
+            console.log("✅ Stock decrement successful for all items");
         } catch (err) {
-            console.error("Error in atomic stock decrement:", err);
-            throw err; // Re-throw to handle in main try-catch
+            console.error("🔴 Error in atomic stock decrement:", err);
+            throw err;
         }
     };
 
@@ -64,6 +73,20 @@ export async function saveOrder(orderData: {
         return { success: true };
     } catch (err: any) {
         console.error("🔴 Unexpected error in saveOrder:", err);
-        return { success: false, error: err.message || "An unexpected error occurred during checkout" };
+
+        let userMessage = "An unexpected error occurred during checkout. Please try again.";
+        const techMessage = err.message || "";
+
+        if (techMessage.includes("decrement_stock_secure") && techMessage.includes("schema cache")) {
+            userMessage = "Checkout system maintenance. Please try again in a few minutes.";
+        } else if (techMessage.includes("Insufficient stock") || techMessage.includes("stock")) {
+            userMessage = techMessage; // Already user-friendly or contains product name
+        } else if (techMessage.includes("not found")) {
+            userMessage = "One or more items in your cart are no longer available.";
+        } else if (techMessage.includes("Razorpay")) {
+            userMessage = "Payment verification failed. Please check your bank and contact us if the amount was deducted.";
+        }
+
+        return { success: false, error: { message: userMessage, technical: techMessage } };
     }
 }

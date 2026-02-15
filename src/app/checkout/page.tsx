@@ -223,9 +223,12 @@ export default function CheckoutPage() {
                             router.push(`/checkout/success?order_id=${response.razorpay_order_id}`);
                         } else {
                             console.error("Failed to save order:", saveResult.error);
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            const errorMessage = (saveResult.error as any)?.message || "Unknown error";
-                            toast.error(`Order failed: ${errorMessage}`);
+                            const errorObj = saveResult.error as any;
+                            const errorMessage = errorObj?.message || "Something went wrong while saving your order.";
+                            toast.error(errorMessage, {
+                                duration: 6000,
+                                description: errorObj?.technical ? "Technical detail: " + errorObj.technical : undefined
+                            });
                         }
                     } catch (error) {
                         console.error("Error processing successful payment:", error);
