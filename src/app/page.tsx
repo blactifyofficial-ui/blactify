@@ -35,7 +35,7 @@ export default function Home() {
   return (
     <main className="flex flex-col">
       <Hero
-        title="Meets Timeless Essentials"
+        title="Meet Timeless Essentials"
         images={products.slice(0, 3).map(p => p.product_images?.[0]?.url || p.main_image || "/placeholder-product.jpg")}
         ctaText="Shop Now"
         ctaLink="/shop"
