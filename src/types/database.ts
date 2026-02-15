@@ -1,8 +1,17 @@
+export interface MeasurementType {
+    id: string;
+    name: string;
+    created_at?: string;
+}
+
 export interface Category {
     id: string;
     name: string;
     slug: string;
-    size_config: string[];
+    size_config?: string[]; // Deprecated, keep for type compatibility during migration if needed
+    category_measurements?: {
+        measurement_type: MeasurementType;
+    }[];
     created_at?: string;
 }
 

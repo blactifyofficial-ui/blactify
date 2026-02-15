@@ -10,7 +10,8 @@ import {
     X,
     Check,
     AlertCircle,
-    Loader2
+    Loader2,
+    Pencil
 } from "lucide-react";
 
 export default function AdminCategoriesPage() {
@@ -21,6 +22,7 @@ export default function AdminCategoriesPage() {
     const [newSizeFields, setNewSizeFields] = useState<string[]>([]);
     const [currentField, setCurrentField] = useState("");
     const [error, setError] = useState("");
+    const [editingId, setEditingId] = useState<string | null>(null);
 
     useEffect(() => {
         fetchCategories();
@@ -28,22 +30,62 @@ export default function AdminCategoriesPage() {
 
     async function fetchCategories() {
         setLoading(true);
-        const { data } = await supabase.from("categories").select("*").order("name");
-        setCategories(data || []);
+        const { data, error } = await supabase
+            .from("categories")
+            .select(`
+                *,
+                category_measurements (
+                    measurement_types (
+                        name
+                    )
+                )
+            `)
+            .order("name");
+
+        if (error) {
+            console.error("Error fetching categories:", error);
+            toast.error("Failed to load categories");
+        }
+
+        // Transform for UI if needed, or just use as is. 
+        // We'll flatten the structure for easier display if the UI expects checking 'size_config'
+        // But since we are modifying the valid code, let's map it to include a 'size_config' property for compatibility with existing UI rendering
+        const formattedData = (data || []).map((cat: any) => ({
+            ...cat,
+            size_config: cat.category_measurements?.map((cm: any) => cm.measurement_types?.name).filter(Boolean) || cat.size_config || []
+        }));
+
+        setCategories(formattedData);
         setLoading(false);
     }
 
     const validateName = (name: string) => {
-        const regex = /^[A-Za-z\s]{3,30}$/;
+        // Allows letters, numbers, spaces, and common punctuation: ' & - ,
+        const regex = /^[A-Za-z0-9\s'&,-]{3,50}$/;
         return regex.test(name);
     };
 
-    const handleAddCategory = async (e: React.FormEvent) => {
+    const resetForm = () => {
+        setNewCategoryName("");
+        setNewSizeFields([]);
+        setEditingId(null);
+        setError("");
+        setCurrentField("");
+    };
+
+    const handleEdit = (category: any) => {
+        setEditingId(category.id);
+        setNewCategoryName(category.name);
+        setNewSizeFields(category.size_config || []);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
 
         if (!validateName(newCategoryName)) {
-            setError("Name must be 3-30 characters (letters and spaces only)");
+            setError("Name must be 3-50 characters (alphanumeric and ' & - , only)");
             return;
         }
 
@@ -51,27 +93,74 @@ export default function AdminCategoriesPage() {
         const slug = newCategoryName.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
 
         try {
-            const { error: insertError } = await supabase
-                .from("categories")
-                .insert([{
-                    name: newCategoryName,
-                    slug,
-                    size_config: newSizeFields
-                }]);
+            let categoryId = editingId;
 
-            if (insertError) throw insertError;
+            if (editingId) {
+                // Update existing
+                const { error: updateError } = await supabase
+                    .from("categories")
+                    .update({ name: newCategoryName, slug })
+                    .eq("id", editingId);
+                if (updateError) throw updateError;
+            } else {
+                // Create new
+                const { data: categoryData, error: insertError } = await supabase
+                    .from("categories")
+                    .insert([{ name: newCategoryName, slug }])
+                    .select()
+                    .single();
+                if (insertError) throw insertError;
+                categoryId = categoryData.id;
+            }
 
-            toast.success("Category added successfully!");
-            setNewCategoryName("");
-            setNewSizeFields([]);
+            // Sync Measurement Fields
+            if (categoryId) {
+                // 1. Delete existing links if editing
+                if (editingId) {
+                    await supabase.from("category_measurements").delete().eq("category_id", categoryId);
+                }
+
+                // 2. Handle new fields
+                if (newSizeFields.length > 0) {
+                    const { data: measurementTypes, error: measError } = await supabase
+                        .from("measurement_types")
+                        .upsert(
+                            newSizeFields.map(name => ({ name })),
+                            { onConflict: 'name' }
+                        )
+                        .select();
+
+                    if (measError) throw measError;
+
+                    const { data: allTypes } = await supabase.from("measurement_types").select("id, name").in("name", newSizeFields);
+                    const finalTypeMap = new Map(allTypes?.map(m => [m.name, m.id]));
+
+                    const links = newSizeFields.map(name => {
+                        const typeId = finalTypeMap.get(name);
+                        if (!typeId) return null;
+                        return {
+                            category_id: categoryId,
+                            measurement_type_id: typeId
+                        };
+                    }).filter(Boolean);
+
+                    if (links.length > 0) {
+                        const { error: linkError } = await supabase
+                            .from("category_measurements")
+                            .insert(links);
+                        if (linkError) throw linkError;
+                    }
+                }
+            }
+
+            toast.success(editingId ? "Category updated successfully!" : "Category added successfully!");
+            resetForm();
             fetchCategories();
         } catch (err: any) {
-            console.error("Error adding category:", err);
-            let message = "Failed to add category.";
+            console.error("Error saving category:", err);
+            let message = "Failed to save category.";
             if (err.code === '23505') {
                 message = "A category with this name already exists.";
-            } else if (err.message?.includes('size_config')) {
-                message = "Database migration required. Please run the SQL provided in the walkthrough.";
             } else {
                 message = err.message || message;
             }
@@ -107,10 +196,10 @@ export default function AdminCategoriesPage() {
             </div>
 
             {/* Add Category Form */}
-            <div className="bg-white p-8 rounded-[2.5rem] border border-zinc-100 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <form onSubmit={handleAddCategory} noValidate className="space-y-4">
+            <div className={`bg-white p-8 rounded-[2.5rem] border ${editingId ? 'border-black' : 'border-zinc-100'} shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500`}>
+                <form onSubmit={handleSubmit} noValidate className="space-y-4">
                     <label className="block">
-                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-3 block">New Category Name</span>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-3 block">{editingId ? 'Edit Category Name' : 'New Category Name'}</span>
                         <div className="flex gap-4">
                             <div className="relative flex-1">
                                 <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={18} />
@@ -125,13 +214,22 @@ export default function AdminCategoriesPage() {
                                     className={`w-full pl-12 pr-6 py-4 bg-zinc-50/50 border ${error ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-medium`}
                                 />
                             </div>
+                            {editingId && (
+                                <button
+                                    type="button"
+                                    onClick={resetForm}
+                                    className="px-6 bg-zinc-100 text-zinc-500 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-zinc-200 transition-all font-aesthetic"
+                                >
+                                    Cancel
+                                </button>
+                            )}
                             <button
                                 type="submit"
                                 disabled={adding || !newCategoryName}
                                 className="px-8 bg-black text-white rounded-2xl font-bold uppercase tracking-widest text-xs flex items-center gap-2 hover:bg-zinc-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-black/10"
                             >
-                                {adding ? <Loader2 className="animate-spin" size={16} /> : <Plus size={18} />}
-                                Add
+                                {adding ? <Loader2 className="animate-spin" size={16} /> : (editingId ? <Check size={18} /> : <Plus size={18} />)}
+                                {editingId ? 'Update' : 'Add'}
                             </button>
                         </div>
                         {error && (
@@ -222,12 +320,20 @@ export default function AdminCategoriesPage() {
                                         <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest italic">{cat.id}</p>
                                     </div>
                                 </div>
-                                <button
-                                    onClick={() => handleDelete(cat.id)}
-                                    className="w-10 h-10 flex items-center justify-center rounded-full text-zinc-300 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
-                                >
-                                    <Trash2 size={18} />
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => handleEdit(cat)}
+                                        className="w-10 h-10 flex items-center justify-center rounded-full text-zinc-300 hover:text-black hover:bg-zinc-100 transition-all opacity-0 group-hover:opacity-100"
+                                    >
+                                        <Pencil size={18} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(cat.id)}
+                                        className="w-10 h-10 flex items-center justify-center rounded-full text-zinc-300 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+                                </div>
                             </div>
                         ))
                     ) : (

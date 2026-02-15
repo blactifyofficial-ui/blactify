@@ -53,6 +53,10 @@ export default function AdminProductsPage() {
                     ),
                     product_variants (
                         stock
+                    ),
+                    product_images (
+                        url,
+                        position
                     )
                 `, { count: 'exact' });
 
@@ -66,11 +70,18 @@ export default function AdminProductsPage() {
 
             if (error) throw error;
 
-            // Calculate total stock from variants
-            const processedData = data?.map(product => ({
-                ...product,
-                stock: product.product_variants?.reduce((sum: number, v: any) => sum + (v.stock || 0), 0) || 0
-            })) || [];
+            // Calculate total stock from variants & get main image
+            const processedData = data?.map(product => {
+                // Find main image (position 0) or fallback to any image
+                const images = product.product_images || [];
+                const mainImg = images.find((img: any) => img.position === 0) || images[0];
+
+                return {
+                    ...product,
+                    stock: product.product_variants?.reduce((sum: number, v: any) => sum + (v.stock || 0), 0) || 0,
+                    main_image: mainImg?.url || null // Override for display
+                };
+            }) || [];
 
             setProducts(processedData);
             setTotalCount(count || 0);
