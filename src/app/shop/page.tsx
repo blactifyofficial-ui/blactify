@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { ProductCard, type Product } from "@/components/ui/ProductCard";
 import { Search, Filter, SlidersHorizontal, Menu, X as CloseIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ScrollToTop } from "@/components/ui/ScrollToTop";
 
 export default function ShopPage() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -206,6 +207,7 @@ export default function ShopPage() {
                     </div>
                 </div>
             </div>
+            <ScrollToTop />
         </main>
     );
 }
