@@ -5,14 +5,62 @@ import { useAuth } from "@/store/AuthContext";
 import { auth } from "@/lib/firebase";
 import { updateProfile } from "firebase/auth";
 import { syncUserProfile } from "@/lib/profile-sync";
-import { ChevronLeft, User, Mail, Check, AlertCircle, Save } from "lucide-react";
+import { ChevronLeft, User, Mail, Check, AlertCircle, Save, X, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function SettingsPage() {
     const { user, loading: authLoading } = useAuth();
     const [name, setName] = useState(user?.displayName || "");
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+    const router = useRouter();
+
+    // Delete Account State
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [confirmText, setConfirmText] = useState("");
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleDeleteAccount = async () => {
+        if (confirmText !== "bye bactify" || !user) return;
+
+        setIsDeleting(true);
+        try {
+            // 1. Delete from Supabase & Cloudinary via API
+            const response = await fetch('/api/user/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.uid })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Failed to delete account data');
+            }
+
+            // 2. Delete from Firebase Auth
+            if (auth.currentUser) {
+                await auth.currentUser.delete();
+            }
+
+            toast.success("Account deleted successfully");
+            router.push('/');
+        } catch (err: unknown) {
+            console.error("Error deleting account:", err);
+            const error = err as { code?: string; message?: string };
+            if (error.code === 'auth/requires-recent-login') {
+                toast.error("Please sign out and sign back in to delete your account for security.");
+            } else {
+                toast.error(error.message || "Failed to delete account. Please try again.");
+            }
+            setIsDeleteModalOpen(false);
+        } finally {
+            setIsDeleting(false);
+            setConfirmText("");
+        }
+    };
 
     const handleUpdateProfile = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -129,11 +177,10 @@ export default function SettingsPage() {
                     <section className="pt-12 border-t border-zinc-100">
                         <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-8">Account Actions</h2>
                         <div className="space-y-4">
-                            <button className="w-full text-left p-6 rounded-3xl border border-zinc-100 hover:border-black transition-colors group">
-                                <h3 className="text-sm font-bold uppercase tracking-widest mb-1">Download Personal Data</h3>
-                                <p className="text-xs text-zinc-400">Get a copy of your account information.</p>
-                            </button>
-                            <button className="w-full text-left p-6 rounded-3xl border border-red-50 hover:bg-red-50 transition-colors group">
+
+                            <button
+                                onClick={() => setIsDeleteModalOpen(true)}
+                                className="w-full text-left p-6 rounded-3xl border border-red-50 hover:bg-red-50 transition-colors group">
                                 <h3 className="text-sm font-bold uppercase tracking-widest mb-1 text-red-600">Delete Account</h3>
                                 <p className="text-xs text-red-400">Permanently remove your account and all data.</p>
                             </button>
@@ -141,6 +188,56 @@ export default function SettingsPage() {
                     </section>
                 </div>
             </div>
+
+            {/* Delete Account Modal */}
+            {isDeleteModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6">
+                    <div className="w-full max-w-md bg-white rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-300">
+                        <div className="flex justify-between items-center mb-6">
+                            <div className="h-12 w-12 rounded-2xl bg-red-50 flex items-center justify-center text-red-600">
+                                <Trash2 size={24} />
+                            </div>
+                            <button
+                                onClick={() => setIsDeleteModalOpen(false)}
+                                className="h-10 w-10 rounded-full hover:bg-zinc-100 flex items-center justify-center transition-colors"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <h3 className="font-empire text-3xl mb-4">Wait, don&apos;t go!</h3>
+                        <p className="text-zinc-500 text-sm mb-8 leading-relaxed">
+                            Deleting your account is permanent. This will remove your profile, order history, and saved data. To confirm, please type <span className="font-bold text-black select-none">&quot;bye bactify&quot;</span> below.
+                        </p>
+
+                        <div className="space-y-6">
+                            <input
+                                type="text"
+                                placeholder="Type 'bye bactify' to confirm"
+                                value={confirmText}
+                                onChange={(e) => setConfirmText(e.target.value.toLowerCase())}
+                                className="w-full border-b border-zinc-200 py-4 text-sm focus:border-red-600 outline-none transition-colors bg-transparent placeholder:text-zinc-300"
+                            />
+
+                            <div className="flex flex-col gap-3">
+                                <button
+                                    onClick={handleDeleteAccount}
+                                    disabled={confirmText !== "bye bactify" || isDeleting}
+                                    className="w-full bg-red-600 text-white rounded-full py-5 text-xs font-bold uppercase tracking-widest disabled:opacity-20 disabled:grayscale transition-all active:scale-[0.98]"
+                                >
+                                    {isDeleting ? "Deleting..." : "Permanently Delete Account"}
+                                </button>
+                                <button
+                                    onClick={() => setIsDeleteModalOpen(false)}
+                                    className="w-full bg-transparent text-zinc-400 py-4 text-xs font-bold uppercase tracking-widest hover:text-black transition-colors"
+                                >
+                                    I&apos;ve changed my mind
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </main>
     );
 }
