@@ -15,7 +15,7 @@ export default function Home() {
       try {
         const { data, error } = await supabase
           .from("products")
-          .select("*")
+          .select("*, product_images(*), product_variants(*)")
           .limit(8)
           .order("created_at", { ascending: false });
 
@@ -36,7 +36,7 @@ export default function Home() {
     <main className="flex flex-col">
       <Hero
         title="Meets Timeless Essentials"
-        images={products.slice(0, 3).map(p => p.main_image)}
+        images={products.slice(0, 3).map(p => p.product_images?.[0]?.url || p.main_image || "/placeholder-product.jpg")}
         ctaText="Shop Now"
         ctaLink="/shop"
       />
