@@ -33,7 +33,7 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
             if (!isHovered) {
                 setShowFullText((prev) => !prev);
             }
-        }, 8000);
+        }, 3000);
 
         return () => clearInterval(interval);
     }, [isHovered]);
@@ -59,7 +59,7 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
             ))}
             <div className="absolute inset-0 bg-black/20" />
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-[#333639] z-10">
-                <h1 className="font-empire text-base md:text-5xl lg:text-6xl mb-0 md:mb-8 opacity-80 uppercase leading-none tracking-tight">
+                <h1 className="font-empire text-[10px] md:text-5xl lg:text-6xl mb-0 md:mb-8 opacity-80 uppercase leading-none tracking-tight">
                     {title}
                 </h1>
 
@@ -74,8 +74,8 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
                     {/* Eye Icon Slide */}
                     <div
                         className={cn(
-                            "absolute inset-0 flex items-center justify-center transition-all duration-1000 ease-in-out hover:opacity-100 active:opacity-100 transition-opacity duration-300",
-                            showFullText ? "-translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-40"
+                            "absolute inset-0 flex items-center justify-center transition-all duration-700 ease-in-out",
+                            showFullText ? "-translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-40 hover:opacity-100 active:opacity-100"
                         )}
                     >
                         <Link
@@ -96,7 +96,7 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
                         <Link
                             href={ctaLink}
                             className={cn(
-                                "absolute inset-0 flex items-center justify-center transition-all duration-1000 ease-in-out text-[10px] md:text-sm font-bold uppercase tracking-[0.4em] transition-all duration-300 hover:scale-110 active:scale-95",
+                                "absolute inset-0 flex items-center justify-center text-[10px] md:text-sm font-bold uppercase tracking-[0.4em] transition-all duration-700 ease-in-out",
                                 showFullText ? "translate-y-0 opacity-40 hover:opacity-100 active:opacity-100" : "translate-y-full opacity-0 pointer-events-none"
                             )}
                             onClick={(e) => {
