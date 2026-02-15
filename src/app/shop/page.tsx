@@ -27,7 +27,7 @@ export default function ShopPage() {
                 if (error) throw error;
                 setProducts(data || []);
             } catch (err) {
-                console.error("Error fetching products:", err);
+
             } finally {
                 setLoading(false);
             }

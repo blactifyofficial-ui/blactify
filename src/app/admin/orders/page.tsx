@@ -29,7 +29,7 @@ export default function AdminOrdersPage() {
                 if (error) throw error;
                 setOrders(data || []);
             } catch (err) {
-                console.error("Error fetching orders:", err);
+
             } finally {
                 setLoading(false);
             }

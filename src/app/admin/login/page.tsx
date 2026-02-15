@@ -24,7 +24,7 @@ export default function AdminLoginPage() {
             await signInWithPopup(auth, googleProvider);
             // AuthContext will handle the redirect if is_admin is true
         } catch (err) {
-            console.error("Login Error:", err);
+
             setError("Failed to sign in. Please try again.");
         }
     };

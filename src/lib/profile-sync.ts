@@ -17,17 +17,9 @@ export async function syncUserProfile(user: User) {
                 onConflict: 'id'
             });
 
-        if (error) {
-            console.group("🔴 Supabase Sync Error Detail");
-            console.error("Message:", error.message);
-            console.error("Details:", error.details);
-            console.error("Code:", error.code);
-            console.error("Hint:", error.hint);
-            console.error("Full Object:", JSON.stringify(error, null, 2));
-            console.groupEnd();
-        }
+
     } catch (err) {
-        console.error("🔴 Unexpected error in syncUserProfile:", err);
+
     }
 }
 
@@ -42,7 +34,7 @@ export async function getWelcomeDiscountStatus(userId: string) {
         if (error) return true; // Default to true (used) on error for safety
         return data?.welcome_discount_used ?? false;
     } catch (err) {
-        console.error("Error fetching welcome discount status:", err);
+
         return true;
     }
 }
@@ -54,6 +46,6 @@ export async function markWelcomeDiscountUsed(userId: string) {
             .update({ welcome_discount_used: true })
             .eq("id", userId);
     } catch (err) {
-        console.error("Error marking welcome discount as used:", err);
+
     }
 }

@@ -86,7 +86,7 @@ export default function AdminProductsPage() {
             setProducts(processedData);
             setTotalCount(count || 0);
         } catch (err) {
-            console.error("Error fetching products:", err);
+
             toast.error("Failed to load products");
         } finally {
             setLoading(false);
@@ -114,7 +114,7 @@ export default function AdminProductsPage() {
             setDeleteModalOpen(false);
             setProductToDelete(null);
         } catch (err) {
-            console.error("Error deleting product:", err);
+
             toast.error("Failed to delete product");
         } finally {
             setIsDeleting(false);

@@ -84,7 +84,7 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
             onClose();
             router.push("/checkout");
         } catch (err) {
-            console.error("Error checking stock in bag:", err);
+
             toast.error("Failed to verify stock. Please try again.");
         } finally {
             setIsCheckingOut(false);

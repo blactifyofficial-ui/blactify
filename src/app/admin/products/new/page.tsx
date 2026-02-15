@@ -168,7 +168,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
             setNewCatSizeFields([]);
             setShowQuickAdd(false);
         } catch (err: any) {
-            console.error("Error adding category:", err);
+
             let message = "Failed to add category.";
             if (err.code === '23505') {
                 message = "A category with this name already exists.";
@@ -242,7 +242,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                 variants: loadedVariants
             });
         } catch (err) {
-            console.error("Error fetching product:", err);
+
             toast.error("Failed to fetch product data");
         } finally {
             setLoading(false);
@@ -283,7 +283,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                 throw new Error(data.error || "Upload failed");
             }
         } catch (err) {
-            console.error("Upload error:", err);
+
             toast.error("Failed to upload image. Please try again.");
         } finally {
             setUploading(null);
@@ -428,12 +428,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
             router.push("/admin/products");
             router.refresh();
         } catch (err: any) {
-            console.error("Error saving product:", {
-                message: err.message,
-                details: err.details,
-                hint: err.hint,
-                error: err
-            });
+
             toast.error(err.message || "Failed to save product. Please try again.");
         } finally {
             setSaving(false);
@@ -465,7 +460,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
             if (errors.id) setErrors(prev => ({ ...prev, id: "" }));
             toast.success(`Suggested ID: ${newId}`);
         } catch (err) {
-            console.error("Error generating ID:", err);
+
             toast.error("Failed to generate ID");
         }
     };

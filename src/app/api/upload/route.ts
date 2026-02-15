@@ -25,7 +25,7 @@ export async function POST(req: Request) {
             public_id: result.public_id,
         });
     } catch (error: any) {
-        console.error('Cloudinary upload error:', error);
+
         return NextResponse.json({ error: error.message || 'Upload failed' }, { status: 500 });
     }
 }

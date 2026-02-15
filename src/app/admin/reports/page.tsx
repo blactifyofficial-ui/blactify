@@ -27,7 +27,7 @@ export default function AdminReportsPage() {
                 if (error) throw error;
                 setOrders(data || []);
             } catch (err) {
-                console.error("Error fetching for reports:", err);
+
             } finally {
                 setLoading(false);
             }

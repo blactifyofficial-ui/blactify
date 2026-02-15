@@ -43,7 +43,7 @@ export default function AdminCategoriesPage() {
             .order("name");
 
         if (error) {
-            console.error("Error fetching categories:", error);
+
             toast.error("Failed to load categories");
         }
 
@@ -157,7 +157,7 @@ export default function AdminCategoriesPage() {
             resetForm();
             fetchCategories();
         } catch (err: any) {
-            console.error("Error saving category:", err);
+
             let message = "Failed to save category.";
             if (err.code === '23505') {
                 message = "A category with this name already exists.";
@@ -183,7 +183,7 @@ export default function AdminCategoriesPage() {
             toast.success("Category deleted successfully!");
             setCategories(categories.filter(c => c.id !== id));
         } catch (err) {
-            console.error("Error deleting category:", err);
+
             toast.error("Failed to delete category.");
         }
     };

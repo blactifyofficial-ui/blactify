@@ -42,7 +42,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                 if (error) throw error;
                 setOrder(data);
             } catch (err) {
-                console.error("Error fetching order:", err);
+
             } finally {
                 setLoading(false);
             }
@@ -63,7 +63,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
             toast.success(`Order status updated to ${newStatus}`);
             setOrder({ ...order, status: newStatus });
         } catch (err) {
-            console.error("Error updating status:", err);
+
             toast.error("Failed to update status");
         } finally {
             setUpdating(false);

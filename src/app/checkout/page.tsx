@@ -193,7 +193,7 @@ export default function CheckoutPage() {
             setStockErrors(newStockErrors);
             return !hasErrors;
         } catch (error) {
-            console.error("Error validating stock:", error);
+
             return true; // Proceed if error occurs, but log it
         }
     };
@@ -287,7 +287,7 @@ export default function CheckoutPage() {
                             removeDiscount();
                             router.push(`/checkout/success?order_id=${response.razorpay_order_id}`);
                         } else {
-                            console.error("Failed to save order:", saveResult.error);
+
                             const errorObj = saveResult.error as any;
                             const errorMessage = errorObj?.message || "Something went wrong while saving your order.";
                             toast.error(errorMessage, {
@@ -296,7 +296,7 @@ export default function CheckoutPage() {
                             });
                         }
                     } catch (error) {
-                        console.error("Error processing successful payment:", error);
+
                     }
                 },
                 prefill: {
@@ -319,18 +319,18 @@ export default function CheckoutPage() {
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             paymentObject.on("payment.failed", function (response: any) {
-                console.error("Payment Failed:", response.error);
+
                 // Attempt to close the modal programmatically
                 try {
                     paymentObject.close();
                 } catch (e) {
-                    console.error("Failed to close modal:", e);
+
                 }
                 router.push("/checkout/failure");
             });
 
         } catch (error) {
-            console.error("Checkout Error:", error);
+
             setIsProcessing(false);
             toast.error("Checkout failed. Please try again.");
         }

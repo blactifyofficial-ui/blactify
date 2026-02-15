@@ -14,7 +14,7 @@ export async function saveOrder(orderData: {
     // Helper to decrement stock using secure RPC
     const decrementStockSecure = async (items: any[]) => {
         try {
-            console.log("📦 Starting atomic stock decrement for:", items.map(i => ({ id: i.id, qty: i.quantity })));
+
             for (const item of items) {
                 let size = (item as any).size;
 
@@ -27,7 +27,7 @@ export async function saveOrder(orderData: {
 
                     if (variants && variants.length === 1) {
                         size = variants[0].size;
-                        console.log(`ℹ️ Auto-resolved size for product ${item.id} to "${size}"`);
+
                     } else {
                         size = "no size";
                     }
@@ -39,21 +39,17 @@ export async function saveOrder(orderData: {
                     p_quantity: item.quantity
                 });
 
-                console.log(`🔍 RPC Result for ${item.id} (${size}):`, { success, stockError });
+
 
                 if (stockError || !success) {
                     const errorMsg = stockError?.message || `Insufficient stock for ${item.name || item.id} (${size})`;
-                    console.error(`❌ Failed to decrement stock for product ${item.id} (${size}):`, {
-                        error: stockError,
-                        success,
-                        item
-                    });
+
                     throw new Error(errorMsg);
                 }
             }
-            console.log("✅ Stock decrement successful for all items");
+
         } catch (err) {
-            console.error("🔴 Error in atomic stock decrement:", err);
+
             throw err;
         }
     };
@@ -81,16 +77,13 @@ export async function saveOrder(orderData: {
             ]);
 
         if (error) {
-            console.group("🔴 Supabase Order Save Error Detail");
-            console.error("Message:", error.message);
-            console.error("Details:", error.details);
-            console.groupEnd();
+
             return { success: false, error };
         }
 
         return { success: true };
     } catch (err: any) {
-        console.error("🔴 Unexpected error in saveOrder:", err);
+
 
         let userMessage = "An unexpected error occurred during checkout. Please try again.";
         const techMessage = err.message || "";

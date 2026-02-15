@@ -22,7 +22,7 @@ export default function Home() {
         if (error) throw error;
         setProducts(data || []);
       } catch (err) {
-        console.error("Error fetching best sellers:", err);
+
       } finally {
         setLoading(false);
       }

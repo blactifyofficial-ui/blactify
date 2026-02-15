@@ -8,15 +8,14 @@ export async function POST(req: Request) {
     try {
         const { order } = await req.json();
         const orderId = order.id || "N/A";
-        console.log("🔔 Notification Request Received for Order:", orderId);
+
 
         if (!SELLER_CONFIG.resendApiKey) {
-            console.warn("⚠️ Resend API Key is missing. Skipping email notifications.");
+
             return NextResponse.json({ success: false, error: "Resend API key missing" });
         }
 
-        console.log("🔑 API Key Check (First 7 chars):", SELLER_CONFIG.resendApiKey.substring(0, 7) + "...");
-        console.log("📧 From Email:", SELLER_CONFIG.fromEmail);
+
 
         const resend = new Resend(SELLER_CONFIG.resendApiKey);
 
@@ -141,7 +140,7 @@ export async function POST(req: Request) {
         const results = [];
 
         // 1. Send Email to Seller
-        console.log("📨 Sending Notification Email to Seller:", SELLER_CONFIG.email);
+
         try {
             const sellerResult = await resend.emails.send({
                 from: SELLER_CONFIG.fromEmail,
@@ -149,10 +148,15 @@ export async function POST(req: Request) {
                 subject: `New Order Received: #${orderId}`,
                 html: getEmailHtml(true),
             });
-            console.log("✅ Seller Notification Result:", JSON.stringify(sellerResult, null, 2));
-            results.push({ type: 'seller', ...sellerResult });
+
+            if (sellerResult.error) {
+                console.error("Seller Email Error:", sellerResult.error);
+                results.push({ type: 'seller', error: sellerResult.error });
+            } else {
+                results.push({ type: 'seller', ...sellerResult });
+            }
         } catch (sellerError) {
-            console.error("❌ Failed to send seller notification:", sellerError);
+            console.error("Seller Email Exception:", sellerError);
             const errorObj = sellerError as any;
             results.push({
                 type: 'seller',
@@ -162,19 +166,26 @@ export async function POST(req: Request) {
         }
 
         // 2. Send Email to Customer
-        console.log("📨 Sending Order Confirmation to Customer:", order.customer_details.email);
+        // Add a small delay to avoid rate limits (2 req/sec in Resend free tier)
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
         try {
             const customerResult = await resend.emails.send({
                 from: SELLER_CONFIG.fromEmail,
                 to: [order.customer_details.email],
-                subject: `Order Confirmed: #${orderId}`,
+                subject: `Thank You for Your Order: #${orderId}`,
                 html: getEmailHtml(false),
             });
-            console.log("✅ Customer Confirmation Result:", JSON.stringify(customerResult, null, 2));
-            results.push({ type: 'customer', ...customerResult });
+
+            if (customerResult.error) {
+                console.error("Customer Email Error:", customerResult.error);
+                results.push({ type: 'customer', error: customerResult.error });
+            } else {
+                results.push({ type: 'customer', ...customerResult });
+            }
         } catch (customerError) {
             // This is expected to fail if domain is not verified and customer is not the account owner
-            console.warn("⚠️ Failed to send customer confirmation (likely Resend domain restriction):", customerError);
+            console.error("Customer Email Exception:", customerError);
             const errorObj = customerError as any;
             results.push({
                 type: 'customer',
@@ -188,7 +199,7 @@ export async function POST(req: Request) {
             results
         });
     } catch (error) {
-        console.error("🔴 Fatal Error in Notify Route:", error);
+
         return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 }

@@ -28,7 +28,7 @@ export async function POST(req: Request) {
             .single();
 
         if (getError && getError.code !== 'PGRST116') { // PGRST116 is "no rows found"
-            console.error("Error fetching profile:", getError);
+
         }
 
         // 2. Cleanup Cloudinary if applicable
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
                     await cloudinary.uploader.destroy(fullPublicId);
                 }
             } catch (clError) {
-                console.error("Error deleting from Cloudinary:", clError);
+
                 // Continue even if Cloudinary fails
             }
         }
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
             .eq("id", userId);
 
         if (deleteError) {
-            console.error("Error deleting profile from Supabase:", deleteError);
+
             if (deleteError.code === '23503') { // Foreign key violation
                 return NextResponse.json({
                     error: 'Cannot delete account because you have existing orders. Please contact support to anonymize your data.'
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ success: true });
     } catch (error: unknown) {
-        console.error('Account deletion error:', error);
+
         const message = error instanceof Error ? error.message : 'Deletion failed';
         return NextResponse.json({ error: message }, { status: 500 });
     }

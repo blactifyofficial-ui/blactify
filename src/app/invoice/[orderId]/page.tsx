@@ -63,7 +63,7 @@ export default function InvoicePage() {
                 if (error) throw error;
                 setOrder(data);
             } catch (err) {
-                console.error("Error fetching order:", err);
+
             } finally {
                 setLoading(false);
             }

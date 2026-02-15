@@ -40,7 +40,7 @@ export default function AdminDashboardPage() {
                     popularProducts: [] // Placeholder for now
                 });
             } catch (err) {
-                console.error("Error fetching stats:", err);
+
             } finally {
                 setLoading(false);
             }

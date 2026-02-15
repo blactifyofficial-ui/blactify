@@ -55,7 +55,7 @@ export default function SettingsPage() {
             toast.success("Account deleted successfully");
             router.push('/');
         } catch (err: unknown) {
-            console.error("Error deleting account:", err);
+
             const error = err as { code?: string; message?: string };
             if (error.code === 'auth/requires-recent-login') {
                 toast.error("Please sign out and sign back in to delete your account for security.");
@@ -87,7 +87,7 @@ export default function SettingsPage() {
 
             setStatus({ type: 'success', message: 'Profile updated successfully!' });
         } catch (err) {
-            console.error("Error updating profile:", err);
+
             setStatus({ type: 'error', message: 'Failed to update profile. Please try again.' });
         } finally {
             setLoading(false);

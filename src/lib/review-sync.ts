@@ -15,12 +15,12 @@ export async function fetchReviews(productId: string) {
             .order("created_at", { ascending: false });
 
         if (error) {
-            console.error("Error fetching reviews:", JSON.stringify(error, null, 2));
+
             return [];
         }
         return data || [];
     } catch (err) {
-        console.error("Unexpected error in fetchReviews:", err);
+
         return [];
     }
 }
@@ -43,12 +43,12 @@ export async function postReview(reviewData: {
             });
 
         if (error) {
-            console.error("Error posting review:", JSON.stringify(error, null, 2));
+
             return { success: false, error };
         }
         return { success: true };
     } catch (err) {
-        console.error("Unexpected error in postReview:", err);
+
         return { success: false, error: err };
     }
 }
