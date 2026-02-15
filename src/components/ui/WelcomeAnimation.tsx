@@ -78,6 +78,7 @@ export default function WelcomeAnimation() {
                     width={320}
                     height={320}
                     priority
+                    sizes="(max-width: 768px) 256px, 320px"
                     className={cn(
                         "w-full h-full object-contain transition-opacity duration-[2000ms] ease-in-out mix-blend-multiply",
                         isOpening ? "opacity-100" : "opacity-0"

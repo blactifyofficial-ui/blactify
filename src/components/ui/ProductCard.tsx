@@ -27,11 +27,12 @@ export function ProductCard({ product, className }: ProductCardProps) {
     return (
         <div className={cn("group flex flex-col gap-3", className)}>
             <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-100">
-                <Link href={`/product/${product.id}`} className="block h-full w-full">
+                <Link href={`/product/${product.id}`} className="relative block h-full w-full">
                     <Image
                         src={product.product_images?.[0]?.url || product.main_image || ""}
                         alt={product.name}
                         fill
+                        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 16vw"
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                 </Link>

@@ -129,6 +129,7 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                                                 src={item.product_images?.[0]?.url || item.main_image || "/placeholder-product.jpg"}
                                                 alt={item.name}
                                                 fill
+                                                sizes="80px"
                                                 className="object-cover"
                                             />
                                         </div>

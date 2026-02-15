@@ -15,6 +15,7 @@ CREATE TABLE profiles (
     email TEXT,
     full_name TEXT,
     avatar_url TEXT,
+    is_admin BOOLEAN DEFAULT FALSE,
     welcome_discount_used BOOLEAN DEFAULT FALSE,
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

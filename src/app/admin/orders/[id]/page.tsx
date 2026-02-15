@@ -3,6 +3,7 @@
 import { useEffect, useState, use } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { toast } from "sonner";
 import {
     ChevronLeft,
@@ -154,9 +155,15 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                             {order.items?.map((item: any, index: number) => (
                                 <div key={index} className="px-6 py-5 flex items-center justify-between">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-16 h-16 bg-zinc-50 rounded-2xl overflow-hidden flex-shrink-0">
+                                        <div className="w-16 h-16 bg-zinc-50 rounded-2xl overflow-hidden flex-shrink-0 relative">
                                             {(item.main_image || item.imageUrl) ? (
-                                                <img src={item.main_image || item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                                                <Image
+                                                    src={item.main_image || item.imageUrl}
+                                                    alt={item.name}
+                                                    fill
+                                                    sizes="64px"
+                                                    className="object-cover"
+                                                />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center text-zinc-300">
                                                     <Box size={24} />

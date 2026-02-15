@@ -84,6 +84,7 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
                         src={img}
                         alt={title}
                         fill
+                        sizes="100vw"
                         className="object-cover"
                         priority={index === 0}
                     />
@@ -91,7 +92,7 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
             ))}
             <div className="absolute inset-0 bg-black/20" />
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-[#333639] z-10">
-                <h1 className="font-empire text-[10px] md:text-5xl lg:text-6xl mb-0 md:mb-8 opacity-80 uppercase leading-none tracking-tight">
+                <h1 className="font-empire text-3xl md:text-5xl lg:text-7xl mb-4 md:mb-8 opacity-90 uppercase leading-none tracking-tighter drop-shadow-2xl">
                     {title}
                 </h1>
 
@@ -114,6 +115,7 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
                                 src="/welcome-eye.png"
                                 alt="Logo Icon"
                                 fill
+                                sizes="(max-width: 768px) 96px, 128px"
                                 className="object-contain"
                             />
                         </div>

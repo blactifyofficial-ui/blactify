@@ -140,7 +140,6 @@ export async function POST(req: Request) {
         const results = [];
 
         // 1. Send Email to Seller
-
         try {
             const sellerResult = await resend.emails.send({
                 from: SELLER_CONFIG.fromEmail,
@@ -150,45 +149,14 @@ export async function POST(req: Request) {
             });
 
             if (sellerResult.error) {
-                console.error("Seller Email Error:", sellerResult.error);
                 results.push({ type: 'seller', error: sellerResult.error });
             } else {
                 results.push({ type: 'seller', ...sellerResult });
             }
         } catch (sellerError) {
-            console.error("Seller Email Exception:", sellerError);
             const errorObj = sellerError as any;
             results.push({
                 type: 'seller',
-                error: errorObj.message || "Unknown error",
-                details: errorObj.response?.data || errorObj
-            });
-        }
-
-        // 2. Send Email to Customer
-        // Add a small delay to avoid rate limits (2 req/sec in Resend free tier)
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        try {
-            const customerResult = await resend.emails.send({
-                from: SELLER_CONFIG.fromEmail,
-                to: [order.customer_details.email],
-                subject: `Thank You for Your Order: #${orderId}`,
-                html: getEmailHtml(false),
-            });
-
-            if (customerResult.error) {
-                console.error("Customer Email Error:", customerResult.error);
-                results.push({ type: 'customer', error: customerResult.error });
-            } else {
-                results.push({ type: 'customer', ...customerResult });
-            }
-        } catch (customerError) {
-            // This is expected to fail if domain is not verified and customer is not the account owner
-            console.error("Customer Email Exception:", customerError);
-            const errorObj = customerError as any;
-            results.push({
-                type: 'customer',
                 error: errorObj.message || "Unknown error",
                 details: errorObj.response?.data || errorObj
             });

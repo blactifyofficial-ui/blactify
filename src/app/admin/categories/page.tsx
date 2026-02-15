@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import Image from "next/image";
 import {
     Tag,
     Plus,
@@ -13,6 +14,7 @@ import {
     Loader2,
     Pencil
 } from "lucide-react";
+import { DeleteModal } from "@/components/ui/DeleteModal";
 
 export default function AdminCategoriesPage() {
     const [categories, setCategories] = useState<any[]>([]);
@@ -23,6 +25,10 @@ export default function AdminCategoriesPage() {
     const [currentField, setCurrentField] = useState("");
     const [error, setError] = useState("");
     const [editingId, setEditingId] = useState<string | null>(null);
+
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         fetchCategories();
@@ -170,26 +176,43 @@ export default function AdminCategoriesPage() {
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm("Are you sure? Products in this category might show errors if the category is deleted.")) return;
+    const handleDeleteClick = (id: string) => {
+        setCategoryToDelete(id);
+        setDeleteModalOpen(true);
+    };
 
+    const confirmDelete = async () => {
+        if (!categoryToDelete) return;
+
+        setIsDeleting(true);
         try {
             const { error: deleteError } = await supabase
                 .from("categories")
                 .delete()
-                .eq("id", id);
+                .eq("id", categoryToDelete);
 
             if (deleteError) throw deleteError;
             toast.success("Category deleted successfully!");
-            setCategories(categories.filter(c => c.id !== id));
+            setCategories(categories.filter(c => c.id !== categoryToDelete));
+            setDeleteModalOpen(false);
+            setCategoryToDelete(null);
         } catch (err) {
-
             toast.error("Failed to delete category.");
+        } finally {
+            setIsDeleting(false);
         }
     };
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 pb-20 font-inter">
+            <DeleteModal
+                isOpen={deleteModalOpen}
+                onClose={() => setDeleteModalOpen(false)}
+                onConfirm={confirmDelete}
+                title="Delete Category"
+                description="Are you sure you want to delete this category? This action cannot be undone and may affect products in this category."
+                loading={isDeleting}
+            />
             <div>
                 <h2 className="text-3xl font-bold tracking-tight">Categories</h2>
                 <p className="text-zinc-500 text-sm font-medium italic">Organize your products into logical groups.</p>
@@ -328,7 +351,7 @@ export default function AdminCategoriesPage() {
                                         <Pencil size={18} />
                                     </button>
                                     <button
-                                        onClick={() => handleDelete(cat.id)}
+                                        onClick={() => handleDeleteClick(cat.id)}
                                         className="w-10 h-10 flex items-center justify-center rounded-full text-zinc-300 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
                                     >
                                         <Trash2 size={18} />

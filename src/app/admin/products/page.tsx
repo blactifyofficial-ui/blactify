@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
+import Image from "next/image";
 import { toast } from "sonner";
 import {
     Search,
@@ -173,10 +174,12 @@ export default function AdminProductsPage() {
                                 <div key={product.id} className="group bg-white rounded-3xl border border-zinc-100 overflow-hidden shadow-sm hover:shadow-xl transition-all relative">
                                     <div className="aspect-square bg-zinc-50 relative overflow-hidden">
                                         {product.main_image ? (
-                                            <img
+                                            <Image
                                                 src={product.main_image}
                                                 alt={product.name}
-                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                fill
+                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                                                className="object-cover transition-transform duration-500 group-hover:scale-110"
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center text-zinc-200">

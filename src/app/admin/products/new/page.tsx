@@ -3,6 +3,7 @@
 import { useEffect, useState, use } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { toast } from "sonner";
 import {
     ChevronLeft,
@@ -885,7 +886,13 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                                 <Loader2 className="animate-spin text-zinc-400" size={24} />
                                             </div>
                                         ) : formData[img.key] ? (
-                                            <img src={formData[img.key]} alt={img.label} className="w-full h-full object-cover" />
+                                            <Image
+                                                src={formData[img.key]}
+                                                alt={img.label}
+                                                fill
+                                                sizes="128px"
+                                                className="object-cover"
+                                            />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center text-zinc-300 group-hover:text-black/40 transition-colors">
                                                 <div className="flex flex-col items-center gap-2">
