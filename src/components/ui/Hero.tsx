@@ -2,7 +2,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 interface HeroProps {
@@ -14,7 +13,6 @@ interface HeroProps {
 }
 
 export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
-    const router = useRouter();
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [showFullText, setShowFullText] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
@@ -39,25 +37,6 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
 
         return () => clearInterval(interval);
     }, [isHovered]);
-
-    const [isClicking, setIsClicking] = useState(false);
-
-    const handleEyeClick = (e: React.MouseEvent) => {
-        if (!showFullText) {
-            setIsClicking(true);
-            setTimeout(() => {
-                setShowFullText(true);
-                setIsClicking(false);
-
-                // Navigate after the "Shop Now" text has had a moment to fade in
-                if (ctaLink) {
-                    setTimeout(() => {
-                        router.push(ctaLink);
-                    }, 800);
-                }
-            }, 400);
-        }
-    };
 
     return (
         <section className="relative h-[80vh] w-full overflow-hidden bg-zinc-100">
@@ -89,25 +68,27 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
                     onClick={() => {
-                        if (!showFullText && !isClicking) handleEyeClick({ preventDefault: () => { } } as any);
+                        if (!showFullText) setShowFullText(true);
                     }}
                 >
                     {/* Eye Icon Slide */}
                     <div
                         className={cn(
                             "absolute inset-0 flex items-center justify-center transition-all duration-700 ease-in-out",
-                            showFullText ? "-translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-40 hover:opacity-100 active:opacity-100",
-                            isClicking && "scale-[2] opacity-0 duration-500"
+                            showFullText ? "-translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-40 hover:opacity-100 active:opacity-100"
                         )}
                     >
-                        <div className="relative w-24 h-24 md:w-32 md:h-32 transition-transform duration-300 hover:scale-110 active:scale-95 cursor-pointer">
+                        <Link
+                            href={ctaLink || "#"}
+                            className="relative w-24 h-24 md:w-32 md:h-32 transition-transform duration-300 hover:scale-110 active:scale-95 cursor-pointer"
+                        >
                             <Image
                                 src="/welcome-eye.png"
                                 alt="Logo Icon"
                                 fill
                                 className="object-contain"
                             />
-                        </div>
+                        </Link>
                     </div>
 
                     {/* Shop Now Slide */}
@@ -118,6 +99,12 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
                                 "absolute inset-0 flex items-center justify-center text-[10px] md:text-sm font-bold uppercase tracking-[0.4em] transition-all duration-700 ease-in-out",
                                 showFullText ? "translate-y-0 opacity-40 hover:opacity-100 active:opacity-100" : "translate-y-full opacity-0 pointer-events-none"
                             )}
+                            onClick={(e) => {
+                                // Only allow click if visible
+                                if (!showFullText) {
+                                    e.preventDefault();
+                                }
+                            }}
                         >
                             {ctaText || "Shop Now"}
                         </Link>
