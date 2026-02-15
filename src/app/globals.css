@@ -15,6 +15,12 @@
   --font-heading: "Druk Wide Bold", sans-serif;
 }
 
+@media (max-width: 768px) {
+  :root {
+    font-size: 85%;
+  }
+}
+
 h1 {
   font-family: var(--font-heading);
   text-transform: uppercase;
