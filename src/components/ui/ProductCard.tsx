@@ -5,6 +5,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/useCartStore";
 import { Plus } from "lucide-react";
+import { useAuth } from "@/store/AuthContext";
 
 import { Product } from "@/types/database";
 
@@ -17,6 +18,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product, className }: ProductCardProps) {
     const { addItem } = useCartStore();
+    const { user } = useAuth();
 
     // Use price_offer as the primary price if available
     const displayPrice = product.price_offer || product.price_base;
@@ -47,6 +49,10 @@ export function ProductCard({ product, className }: ProductCardProps) {
                     <button
                         onClick={(e) => {
                             e.preventDefault();
+                            if (!user) {
+                                window.dispatchEvent(new CustomEvent("open-auth-modal"));
+                                return;
+                            }
                             addItem(product);
                         }}
                         className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-white text-black shadow-lg opacity-0 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 active:scale-90 z-20"

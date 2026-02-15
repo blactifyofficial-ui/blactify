@@ -336,7 +336,17 @@ export default function ProductDetailPage() {
 
                         <div className="flex flex-col gap-3">
                             <button
-                                onClick={async () => await addItem(product, selectedSize || undefined)}
+                                onClick={async () => {
+                                    if (!user) {
+                                        window.dispatchEvent(new CustomEvent("open-auth-modal"));
+                                        return;
+                                    }
+                                    if (!isNoSize && !selectedSize) {
+                                        toast.error("Please select a size !");
+                                        return;
+                                    }
+                                    await addItem(product, selectedSize || undefined);
+                                }}
                                 disabled={currentStock <= 0}
                                 className={cn(
                                     "w-full h-16 rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all",
@@ -350,8 +360,25 @@ export default function ProductDetailPage() {
                             </button>
                             <button
                                 onClick={async () => {
-                                    await addItem(product, selectedSize || undefined);
-                                    router.push("/checkout");
+                                    if (!user) {
+                                        window.dispatchEvent(new CustomEvent("open-auth-modal"));
+                                        return;
+                                    }
+                                    if (!isNoSize && !selectedSize) {
+                                        toast.error("Please select a size first");
+                                        return;
+                                    }
+
+                                    // Direct Checkout Flow: Store in sessionStorage and redirect
+                                    const directItem = {
+                                        ...product,
+                                        quantity: 1,
+                                        size: selectedSize || undefined,
+                                        cartId: `direct-${product.id}-${selectedSize || 'no-size'}`
+                                    };
+
+                                    sessionStorage.setItem("direct-checkout-item", JSON.stringify(directItem));
+                                    router.push("/checkout?direct=true");
                                 }}
                                 disabled={currentStock <= 0}
                                 className={cn(

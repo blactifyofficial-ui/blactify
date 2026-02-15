@@ -23,6 +23,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const isAdmin = pathname?.startsWith('/admin');
+    const isCheckoutStatus = pathname === '/checkout/success' || pathname === '/checkout/failure';
 
     // Handle opening cart via query param
     useEffect(() => {

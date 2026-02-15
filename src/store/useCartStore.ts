@@ -12,7 +12,7 @@ interface CartItem extends Product {
 
 interface CartStore {
     items: CartItem[];
-    addItem: (product: Product, size?: string) => Promise<void>;
+    addItem: (product: Product, size?: string) => Promise<boolean>;
     removeItem: (cartId: string) => void;
     updateQuantity: (cartId: string, quantity: number) => void;
     clearCart: () => void;
@@ -42,21 +42,37 @@ export const useCartStore = create<CartStore>()(
                         .select("stock")
                         .eq("product_id", product.id)
                         .eq("size", size)
-                        .single();
+                        .maybeSingle(); // Use maybeSingle to avoid error if no variant exists yet
 
-                    currentStock = variantData?.stock ?? 0;
+                    if (variantData) {
+                        currentStock = variantData.stock;
+                    } else {
+                        // If variant doesn't exist in DB yet, check if size is in product's size_variants
+                        // and fallback to product's main stock (for legacy/transition)
+                        const { data: mainProduct } = await supabase
+                            .from("products")
+                            .select("size_variants")
+                            .eq("id", product.id)
+                            .single();
+
+                        const hasSize = mainProduct?.size_variants?.includes(size);
+                        // If size is in size_variants but NO variant exists in product_variants table,
+                        // it means normalization is incomplete for this product. 
+                        // Returning 0 is safe as it will show "out of stock" rather than crashing.
+                        currentStock = 0;
+                    }
                 } else {
-                    // Fetch total product stock (legacy or sum of variants)
+                    // Fetch total product stock (sum of variants)
                     const { data: latestProduct } = await supabase
                         .from("products")
-                        .select("stock, product_variants(stock)")
+                        .select("product_variants(stock)")
                         .eq("id", product.id)
                         .single();
 
                     if (latestProduct?.product_variants && latestProduct.product_variants.length > 0) {
                         currentStock = latestProduct.product_variants.reduce((acc: number, v: any) => acc + v.stock, 0);
                     } else {
-                        currentStock = latestProduct?.stock ?? product.stock ?? 0;
+                        currentStock = 0;
                     }
                 }
 
@@ -65,11 +81,11 @@ export const useCartStore = create<CartStore>()(
                 if (existingItem) {
                     if (existingItem.quantity >= 5) {
                         toast.error("Maximum limit of 5 items per product reached");
-                        return;
+                        return false;
                     }
                     if (existingItem.quantity >= currentStock) {
                         toast.error(`Only ${currentStock} items available in stock`);
-                        return;
+                        return false;
                     }
                     set({
                         items: items.map((item) =>
@@ -81,11 +97,12 @@ export const useCartStore = create<CartStore>()(
                 } else {
                     if (currentStock <= 0) {
                         toast.error("Item is out of stock");
-                        return;
+                        return false;
                     }
                     set({ items: [...items, { ...product, quantity: 1, size, cartId, stock: currentStock }] });
                 }
                 toast.success(`${product.name} added to bag`);
+                return true;
             },
             removeItem: (cartId) => {
                 const item = get().items.find((i) => (i.cartId || i.id) === cartId);

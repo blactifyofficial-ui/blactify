@@ -50,6 +50,9 @@ export default function AdminProductsPage() {
                     *,
                     categories!left (
                         name
+                    ),
+                    product_variants (
+                        stock
                     )
                 `, { count: 'exact' });
 
@@ -62,7 +65,14 @@ export default function AdminProductsPage() {
                 .range(from, to);
 
             if (error) throw error;
-            setProducts(data || []);
+
+            // Calculate total stock from variants
+            const processedData = data?.map(product => ({
+                ...product,
+                stock: product.product_variants?.reduce((sum: number, v: any) => sum + (v.stock || 0), 0) || 0
+            })) || [];
+
+            setProducts(processedData);
             setTotalCount(count || 0);
         } catch (err) {
             console.error("Error fetching products:", err);

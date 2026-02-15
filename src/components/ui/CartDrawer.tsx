@@ -44,7 +44,7 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
             // Fetch products and their variants
             const { data: currentProducts, error: pError } = await supabase
                 .from("products")
-                .select("id, name, stock, product_variants(size, stock)")
+                .select("id, name, product_variants(size, stock)")
                 .in("id", productIds);
 
             if (pError) throw pError;
@@ -64,11 +64,11 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                     const variant = dbProduct.product_variants?.find((v: any) => v.size === item.size);
                     availableStock = variant?.stock ?? 0;
                 } else {
-                    // Fallback to product stock if no variants or no size selected
+                    // Fallback to sum of variants if no size selected
                     if (dbProduct.product_variants && dbProduct.product_variants.length > 0) {
                         availableStock = dbProduct.product_variants.reduce((acc: number, v: any) => acc + v.stock, 0);
                     } else {
-                        availableStock = dbProduct.stock ?? 0;
+                        availableStock = 0;
                     }
                 }
 

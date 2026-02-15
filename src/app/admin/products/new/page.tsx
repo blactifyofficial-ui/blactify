@@ -133,7 +133,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                 price_base: data.price_base || "",
                 price_offer: data.price_offer || "",
                 category_id: data.category_id || "",
-                stock: data.stock ?? 0,
+                stock: 0, // Stock column is missing, set to 0 for now or fetch variants
                 main_image: data.main_image || data.image_url || "",
                 image1: data.image1 || "",
                 image2: data.image2 || "",
@@ -234,7 +234,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                 price_base: parseFloat(String(formData.price_base)) || 0,
                 price_offer: formData.price_offer ? parseFloat(String(formData.price_offer)) : null,
                 category_id: formData.category_id || null,
-                stock: formData.stock,
+                // stock: formData.stock, // Removed as column is missing from products table
                 main_image: formData.main_image || null,
                 image1: formData.image1 || null,
                 image2: formData.image2 || null,
@@ -667,18 +667,16 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                         </label>
 
                         <label className="block">
-                            <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block italic">Stock Quantity</span>
-                            <input
-                                type="number"
-                                required
-                                value={formData.stock}
-                                onChange={(e) => {
-                                    setFormData({ ...formData, stock: parseInt(e.target.value) });
-                                    if (errors.stock) setErrors(prev => ({ ...prev, stock: "" }));
-                                }}
-                                className={`w-full px-6 py-4 bg-zinc-50/50 border ${errors.stock ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-semibold`}
-                            />
-                            {errors.stock && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.stock}</p>}
+                            <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block italic">Stock Quantity (Legacy - Not saved to main table)</span>
+                            <div className="relative opacity-50">
+                                <input
+                                    type="number"
+                                    disabled
+                                    value={formData.stock}
+                                    className="w-full px-6 py-4 bg-zinc-50/50 border border-zinc-100 rounded-2xl text-sm focus:outline-none transition-all font-semibold"
+                                />
+                                <p className="text-[9px] text-zinc-400 mt-1 italic">Stock is now managed via variants. This field is for display only.</p>
+                            </div>
                         </label>
                     </div>
 

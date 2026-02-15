@@ -2,10 +2,10 @@
 
 import { useCartStore } from "@/store/useCartStore";
 import { cn } from "@/lib/utils";
-import { ChevronDown, ChevronUp, ShoppingBag, ArrowLeft, Smartphone } from "lucide-react";
+import { ChevronDown, ChevronUp, ShoppingBag, ArrowLeft, Smartphone, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/store/AuthContext";
 import { loadRazorpay } from "@/lib/razorpay";
@@ -14,6 +14,24 @@ import { markWelcomeDiscountUsed } from "@/lib/profile-sync";
 import { Tag } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+
+// Helper component for robust image fallbacks
+function SafeImage({ src, alt, ...props }: any) {
+    const [imgSrc, setImgSrc] = useState(src || "/hero-placeholder.jpg");
+
+    useEffect(() => {
+        setImgSrc(src || "/hero-placeholder.jpg");
+    }, [src]);
+
+    return (
+        <Image
+            {...props}
+            src={imgSrc}
+            alt={alt}
+            onError={() => setImgSrc("/hero-placeholder.jpg")}
+        />
+    );
+}
 
 export default function CheckoutPage() {
     const { items, getSubtotal, getTotalPrice, getShippingCharge, clearCart, removeItem, discountCode, applyDiscount, removeDiscount } = useCartStore();
@@ -25,10 +43,41 @@ export default function CheckoutPage() {
     const [discountInput, setDiscountInput] = useState("");
     const [stockErrors, setStockErrors] = useState<Record<string, string>>({});
 
-    const subtotal = getSubtotal();
-    const shipping = getShippingCharge();
-    const total = getTotalPrice();
-    const discountAmount = subtotal - total;
+    const searchParams = useSearchParams();
+    const isDirect = searchParams.get("direct") === "true";
+    const [directItem, setDirectItem] = useState<any>(null);
+
+    useEffect(() => {
+        if (isDirect) {
+            const item = sessionStorage.getItem("direct-checkout-item");
+            if (item) {
+                setDirectItem(JSON.parse(item));
+            }
+        }
+    }, [isDirect]);
+
+    const activeItems = isDirect ? (directItem ? [directItem] : []) : items;
+
+    // Derived values
+    const subtotal = isDirect
+        ? activeItems.reduce((acc: number, item: any) => acc + (item.price_offer || item.price_base) * item.quantity, 0)
+        : getSubtotal();
+
+    const shipping = isDirect
+        ? (subtotal === 0 ? 0 : (subtotal < 2999 ? 59 : 0))
+        : getShippingCharge();
+
+    const total = isDirect
+        ? (() => {
+            let t = subtotal;
+            if (discountCode === "WELCOME10") t = subtotal * 0.9;
+            return t + shipping;
+        })()
+        : getTotalPrice();
+
+    const discountAmount = isDirect
+        ? (discountCode === "WELCOME10" ? subtotal * 0.1 : 0)
+        : (subtotal - (total - shipping));
 
     const [formData, setFormData] = useState({
         email: user?.email || "",
@@ -107,10 +156,10 @@ export default function CheckoutPage() {
 
     const validateCartStock = async () => {
         try {
-            const productIds = items.map(item => item.id);
+            const productIds = activeItems.map(item => item.id);
             const { data: currentProducts, error } = await supabase
                 .from("products")
-                .select("id, name, stock")
+                .select("id, name, product_variants(size, stock)")
                 .in("id", productIds);
 
             if (error) throw error;
@@ -118,16 +167,26 @@ export default function CheckoutPage() {
             const newStockErrors: Record<string, string> = {};
             let hasErrors = false;
 
-            items.forEach(item => {
-                const currentProduct = currentProducts?.find((p: { id: string, name: string, stock: number }) => p.id === item.id);
+            activeItems.forEach(item => {
+                const currentProduct = currentProducts?.find((p: any) => p.id === item.id);
                 if (!currentProduct) {
                     newStockErrors[item.cartId] = "Product no longer available";
                     hasErrors = true;
-                } else if (currentProduct.stock < item.quantity) {
-                    newStockErrors[item.cartId] = currentProduct.stock === 0
-                        ? "Out of stock"
-                        : `Only ${currentProduct.stock} left`;
-                    hasErrors = true;
+                } else {
+                    let availableStock = 0;
+                    if (item.size) {
+                        const variant = currentProduct.product_variants?.find((v: any) => v.size === item.size);
+                        availableStock = variant?.stock ?? 0;
+                    } else {
+                        availableStock = currentProduct.product_variants?.reduce((acc: number, v: any) => acc + v.stock, 0) || 0;
+                    }
+
+                    if (availableStock < item.quantity) {
+                        newStockErrors[item.cartId] = availableStock === 0
+                            ? "Out of stock"
+                            : `Only ${availableStock} left`;
+                        hasErrors = true;
+                    }
                 }
             });
 
@@ -203,7 +262,7 @@ export default function CheckoutPage() {
                             user_id: user?.uid || "guest",
                             amount: total,
                             currency: "INR",
-                            items: items,
+                            items: activeItems,
                             status: "paid",
                             shipping_address: formData,
                             customer_details: {
@@ -218,7 +277,13 @@ export default function CheckoutPage() {
                             if (discountCode === "WELCOME10" && user) {
                                 await markWelcomeDiscountUsed(user.uid);
                             }
-                            clearCart();
+
+                            if (isDirect) {
+                                sessionStorage.removeItem("direct-checkout-item");
+                            } else {
+                                clearCart();
+                            }
+
                             removeDiscount();
                             router.push(`/checkout/success?order_id=${response.razorpay_order_id}`);
                         } else {
@@ -273,13 +338,34 @@ export default function CheckoutPage() {
 
     if (!isMounted) return null;
 
-    if (items.length === 0) {
+    if (!user) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-white">
+                <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mb-6">
+                    <ShieldCheck className="text-zinc-400" size={24} />
+                </div>
+                <h1 className="text-xl font-medium mb-4 text-zinc-900 uppercase">Authentication Required</h1>
+                <p className="text-zinc-500 mb-8 max-w-xs text-sm">Please log in to proceed with your order.</p>
+                <button
+                    onClick={() => window.dispatchEvent(new CustomEvent('open-auth-modal'))}
+                    className="bg-black text-white px-10 py-4 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-800 transition-all active:scale-95"
+                >
+                    Log In / Sign Up
+                </button>
+                <Link href="/shop" className="mt-6 text-zinc-400 text-[10px] font-bold uppercase tracking-widest hover:text-black transition-colors">
+                    Back to Shop
+                </Link>
+            </div>
+        );
+    }
+
+    if (activeItems.length === 0) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-white">
                 <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mb-6">
                     <ShoppingBag className="text-zinc-400" size={24} />
                 </div>
-                <h1 className="text-xl font-medium mb-4 text-zinc-900">Your cart is empty</h1>
+                <h1 className="text-xl font-medium mb-4 text-zinc-900 uppercase">Your {isDirect ? 'Direct Checkout' : 'Bag'} is empty</h1>
                 <Link href="/shop" className="text-blue-600 hover:text-blue-700 font-medium text-sm">
                     Return to Shop
                 </Link>
@@ -295,12 +381,12 @@ export default function CheckoutPage() {
                     {/* Header Logo */}
                     <div className="flex items-center justify-between">
                         <Link href="/" className="font-bold text-2xl tracking-tight text-zinc-900">Blactify</Link>
-                        <Link href="/shop?openCart=true" className="md:hidden text-blue-600 text-sm">Cart</Link>
+                        <Link href="/shop?openCart=true" className="md:hidden text-blue-600 text-sm">Bag</Link>
                     </div>
 
                     {/* Breadcrumbs */}
                     <nav className="flex items-center gap-2 text-xs text-zinc-500">
-                        <Link href="/shop?openCart=true" className="hover:text-zinc-800 transition-colors">Cart</Link>
+                        <Link href="/shop?openCart=true" className="hover:text-zinc-800 transition-colors">Bag</Link>
                         <span className="text-zinc-300">/</span>
                         <span className="font-medium text-zinc-900">Information</span>
                         <span className="text-zinc-300">/</span>
@@ -324,13 +410,13 @@ export default function CheckoutPage() {
 
                         {showOrderSummary && (
                             <div className="pt-6 space-y-4 animate-in slide-in-from-top-2 duration-200">
-                                {items.map((item) => (
+                                {activeItems.map((item) => (
                                     <div key={item.cartId || item.id} className="flex gap-4">
                                         <div className="relative w-16 h-16 border border-zinc-200 rounded-lg bg-white overflow-hidden flex-shrink-0">
                                             <div className="absolute top-0 right-0 bg-zinc-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-bl-lg font-medium opacity-90 z-10">
                                                 {item.quantity}
                                             </div>
-                                            <Image src={item.main_image || ""} alt={item.name} fill className="object-cover" />
+                                            <SafeImage src={item.product_images?.[0]?.url || item.main_image} alt={item.name} fill className="object-cover" />
                                         </div>
                                         <div className="flex-1 flex flex-col justify-center">
                                             <div className="flex justify-between items-start">
@@ -338,12 +424,14 @@ export default function CheckoutPage() {
                                                     <h4 className="text-sm font-medium text-zinc-900">{item.name}</h4>
                                                     {item.size && <p className="text-xs text-zinc-500">Size: {item.size.toUpperCase()}</p>}
                                                 </div>
-                                                <button
-                                                    onClick={() => removeItem(item.cartId)}
-                                                    className="text-[10px] text-blue-600 hover:text-blue-800 transition-colors font-medium px-2 py-1 bg-zinc-100 rounded"
-                                                >
-                                                    Remove
-                                                </button>
+                                                {!isDirect && (
+                                                    <button
+                                                        onClick={() => removeItem(item.cartId)}
+                                                        className="text-[10px] text-blue-600 hover:text-blue-800 transition-colors font-medium px-2 py-1 bg-zinc-100 rounded"
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                )}
                                             </div>
                                             {stockErrors[item.cartId] && (
                                                 <p className="text-[10px] text-red-500 font-bold mt-1 uppercase italic">
@@ -649,7 +737,7 @@ export default function CheckoutPage() {
                             <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-6">
                                 <Link href="/shop?openCart=true" className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
                                     <ArrowLeft size={14} />
-                                    Return to cart
+                                    Return to bag
                                 </Link>
                                 <button
                                     type="submit"
@@ -679,13 +767,13 @@ export default function CheckoutPage() {
             {/* Right Column - Summary Sidebar (Desktop) */}
             <div className="hidden md:block flex-1 bg-zinc-50 border-l border-zinc-200 pt-8 px-6 lg:px-12 order-1 md:order-2">
                 <div className="w-full max-w-[420px] lg:pl-10 space-y-6 sticky top-8">
-                    {items.map((item) => (
+                    {activeItems.map((item) => (
                         <div key={item.cartId || item.id} className="flex gap-4 items-center">
                             <div className="relative w-16 h-16 border border-zinc-200 rounded-lg bg-white overflow-hidden flex-shrink-0">
                                 <div className="absolute top-0 right-0 bg-zinc-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-bl-lg font-medium opacity-90 z-10">
                                     {item.quantity}
                                 </div>
-                                <Image src={item.main_image || ""} alt={item.name} fill className="object-cover" />
+                                <SafeImage src={item.product_images?.[0]?.url || item.main_image} alt={item.name} fill className="object-cover" />
                             </div>
                             <div className="flex-1 flex flex-col justify-center">
                                 <div className="flex justify-between items-start">
@@ -693,12 +781,14 @@ export default function CheckoutPage() {
                                         <h4 className="text-sm font-medium text-zinc-900">{item.name}</h4>
                                         {item.size && <p className="text-xs text-zinc-500">Size: {item.size.toUpperCase()}</p>}
                                     </div>
-                                    <button
-                                        onClick={() => removeItem(item.cartId)}
-                                        className="text-[10px] text-blue-600 hover:text-blue-800 transition-colors font-medium"
-                                    >
-                                        Remove
-                                    </button>
+                                    {!isDirect && (
+                                        <button
+                                            onClick={() => removeItem(item.cartId)}
+                                            className="text-[10px] text-blue-600 hover:text-blue-800 transition-colors font-medium"
+                                        >
+                                            Remove
+                                        </button>
+                                    )}
                                 </div>
                                 {stockErrors[item.cartId] && (
                                     <p className="text-[10px] text-red-500 font-bold mt-1 uppercase italic">

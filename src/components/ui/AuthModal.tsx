@@ -30,7 +30,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
         try {
             if (mode === "signin") {
                 await signInWithEmailAndPassword(auth, email, password);
-                toast.success("Welcome back!");
+                toast.success("Welcome to Blactify");
             } else {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(userCredential.user, { displayName: name });
@@ -50,7 +50,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
         setLoading(true);
         try {
             await signInWithPopup(auth, googleProvider);
-            toast.success("Signed in with Google");
+            toast.success("Welcome to Blactify");
             onClose();
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : "Google sign-in failed";

@@ -16,16 +16,18 @@ export async function saveOrder(orderData: {
         try {
             console.log("📦 Starting atomic stock decrement for:", items.map(i => ({ id: i.id, qty: i.quantity })));
             for (const item of items) {
+                const size = (item as any).size || "no size";
                 const { data: success, error: stockError } = await supabase.rpc('decrement_stock_secure', {
                     p_product_id: String(item.id),
+                    p_size: size,
                     p_quantity: item.quantity
                 });
 
-                console.log(`🔍 RPC Result for ${item.id}:`, { success, stockError });
+                console.log(`🔍 RPC Result for ${item.id} (${size}):`, { success, stockError });
 
                 if (stockError || !success) {
-                    const errorMsg = stockError?.message || `Insufficient stock for ${item.name || item.id}`;
-                    console.error(`❌ Failed to decrement stock for product ${item.id}:`, {
+                    const errorMsg = stockError?.message || `Insufficient stock for ${item.name || item.id} (${size})`;
+                    console.error(`❌ Failed to decrement stock for product ${item.id} (${size}):`, {
                         error: stockError,
                         success,
                         item
