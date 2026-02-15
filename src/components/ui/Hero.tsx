@@ -78,14 +78,17 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
                             showFullText ? "-translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-40"
                         )}
                     >
-                        <div className="relative w-24 h-24 md:w-32 md:h-32 transition-transform duration-300 hover:scale-110 active:scale-95">
+                        <Link
+                            href={ctaLink || "#"}
+                            className="relative w-24 h-24 md:w-32 md:h-32 transition-transform duration-300 hover:scale-110 active:scale-95 cursor-pointer"
+                        >
                             <Image
                                 src="/welcome-eye.png"
                                 alt="Logo Icon"
                                 fill
                                 className="object-contain"
                             />
-                        </div>
+                        </Link>
                     </div>
 
                     {/* Shop Now Slide */}
