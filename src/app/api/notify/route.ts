@@ -141,7 +141,7 @@ export async function POST(req: Request) {
         console.log("📨 Sending Notification Email to Seller:", SELLER_CONFIG.email);
         try {
             const sellerResult = await resend.emails.send({
-                from: "Blactify <onboarding@resend.dev>",
+                from: SELLER_CONFIG.fromEmail,
                 to: [SELLER_CONFIG.email],
                 subject: `New Order Received: #${orderId}`,
                 html: getEmailHtml(true),
@@ -157,7 +157,7 @@ export async function POST(req: Request) {
         console.log("📨 Sending Order Confirmation to Customer:", order.customer_details.email);
         try {
             const customerResult = await resend.emails.send({
-                from: "Blactify <onboarding@resend.dev>",
+                from: SELLER_CONFIG.fromEmail,
                 to: [order.customer_details.email],
                 subject: `Order Confirmed: #${orderId}`,
                 html: getEmailHtml(false),
