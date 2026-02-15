@@ -70,7 +70,7 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
                     >
                         <div className="relative w-48 h-48 md:w-64 md:h-64 transition-transform duration-300 hover:scale-110 active:scale-95 cursor-pointer">
                             <Image
-                                src="/logo-v1.png"
+                                src="/logo-eye-cropped.png"
                                 alt="Logo Icon"
                                 fill
                                 className="object-contain"
