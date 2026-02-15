@@ -59,7 +59,7 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
             ))}
             <div className="absolute inset-0 bg-black/20" />
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-[#333639] z-10">
-                <h1 className="font-empire text-xl md:text-5xl lg:text-6xl mb-0 md:mb-8 opacity-80 uppercase leading-none tracking-tight">
+                <h1 className="font-empire text-lg md:text-5xl lg:text-6xl mb-0 md:mb-8 opacity-80 uppercase leading-none tracking-tight">
                     {title}
                 </h1>
 
@@ -71,7 +71,7 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
                     {/* Eye Icon Slide */}
                     <div
                         className={cn(
-                            "absolute inset-0 flex items-center justify-center transition-all duration-1000 ease-in-out",
+                            "absolute inset-0 flex items-center justify-center transition-all duration-1000 ease-in-out hover:opacity-100 transition-opacity duration-300",
                             showFullText ? "-translate-y-full opacity-0" : "translate-y-0 opacity-40"
                         )}
                     >
