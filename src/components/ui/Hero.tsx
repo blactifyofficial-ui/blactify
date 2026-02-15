@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 interface HeroProps {
@@ -13,9 +14,11 @@ interface HeroProps {
 }
 
 export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
+    const router = useRouter();
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [showFullText, setShowFullText] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
+    const [isAnimating, setIsAnimating] = useState(false);
 
     useEffect(() => {
         if (images.length <= 1) return;
@@ -30,13 +33,30 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
     // Handle toggle for the CTA area (eye vs Shop Now)
     useEffect(() => {
         const interval = setInterval(() => {
-            if (!isHovered) {
+            if (!isHovered && !isAnimating) {
                 setShowFullText((prev) => !prev);
             }
         }, 3000);
 
         return () => clearInterval(interval);
-    }, [isHovered]);
+    }, [isHovered, isAnimating]);
+
+    const handleCTAClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (isAnimating) return;
+
+        setIsAnimating(true);
+        if (!showFullText) setShowFullText(true);
+
+        // Flash highlight and then navigate
+        setTimeout(() => {
+            if (ctaLink) {
+                router.push(ctaLink);
+            }
+            // Reset state (though we are navigating away)
+            setTimeout(() => setIsAnimating(false), 500);
+        }, 400);
+    };
 
     return (
         <section className="relative h-[80vh] w-full overflow-hidden bg-zinc-100">
@@ -67,47 +87,37 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
                     className="relative h-48 w-72 flex items-center justify-center overflow-hidden cursor-pointer"
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
-                    onClick={() => {
-                        if (!showFullText) setShowFullText(true);
-                    }}
+                    onClick={handleCTAClick}
                 >
                     {/* Eye Icon Slide */}
                     <div
                         className={cn(
                             "absolute inset-0 flex items-center justify-center transition-all duration-700 ease-in-out",
-                            showFullText ? "-translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-40 hover:opacity-100 active:opacity-100"
+                            showFullText ? "-translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-40 hover:opacity-100 active:opacity-100",
+                            isAnimating && !showFullText && "opacity-100 scale-110"
                         )}
                     >
-                        <Link
-                            href={ctaLink || "#"}
-                            className="relative w-24 h-24 md:w-32 md:h-32 transition-transform duration-300 hover:scale-110 active:scale-95 cursor-pointer"
-                        >
+                        <div className="relative w-24 h-24 md:w-32 md:h-32 transition-transform duration-300">
                             <Image
                                 src="/welcome-eye.png"
                                 alt="Logo Icon"
                                 fill
                                 className="object-contain"
                             />
-                        </Link>
+                        </div>
                     </div>
 
                     {/* Shop Now Slide */}
                     {ctaLink && (
-                        <Link
-                            href={ctaLink}
+                        <div
                             className={cn(
                                 "absolute inset-0 flex items-center justify-center text-[10px] md:text-sm font-bold uppercase tracking-[0.4em] transition-all duration-700 ease-in-out",
-                                showFullText ? "translate-y-0 opacity-40 hover:opacity-100 active:opacity-100" : "translate-y-full opacity-0 pointer-events-none"
+                                showFullText ? "translate-y-0 opacity-40 hover:opacity-100 active:opacity-100" : "translate-y-full opacity-0 pointer-events-none",
+                                isAnimating && showFullText && "opacity-100 scale-110"
                             )}
-                            onClick={(e) => {
-                                // Only allow click if visible
-                                if (!showFullText) {
-                                    e.preventDefault();
-                                }
-                            }}
                         >
                             {ctaText || "Shop Now"}
-                        </Link>
+                        </div>
                     )}
                 </div>
             </div>
