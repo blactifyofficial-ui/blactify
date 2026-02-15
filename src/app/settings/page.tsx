@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { useAuth } from "@/store/AuthContext";
 import { auth } from "@/lib/firebase";
-import { updateProfile } from "firebase/auth";
+import { updateProfile, signOut } from "firebase/auth";
 import { syncUserProfile } from "@/lib/profile-sync";
 import { ChevronLeft, User, Mail, Check, AlertCircle, Save, X, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useCartStore } from "@/store/useCartStore";
 
 export default function SettingsPage() {
     const { user, loading: authLoading } = useAuth();
@@ -40,9 +41,15 @@ export default function SettingsPage() {
                 throw new Error(result.error || 'Failed to delete account data');
             }
 
-            // 2. Delete from Firebase Auth
+            // 2. Clear stores and local storage
+            useCartStore.getState().clearCart();
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // 3. Delete from Firebase Auth & Sign Out
             if (auth.currentUser) {
                 await auth.currentUser.delete();
+                await signOut(auth);
             }
 
             toast.success("Account deleted successfully");
