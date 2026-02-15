@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/store/AuthContext";
 import { supabase } from "@/lib/supabase";
-import { Package, ChevronLeft, Calendar, CreditCard, ExternalLink } from "lucide-react";
+import { Package, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import OrderCard from "./OrderCard";
 
 interface OrderItem {
     name: string;
@@ -105,65 +106,7 @@ export default function OrdersPage() {
                 ) : (
                     <div className="space-y-6">
                         {orders.map((order) => (
-                            <div key={order.id} className="group overflow-hidden rounded-3xl border border-zinc-100 bg-white transition-all hover:shadow-xl hover:shadow-zinc-100">
-                                <div className="bg-zinc-50 p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-100">
-                                    <div className="space-y-1">
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Order ID</p>
-                                        <p className="text-sm font-medium flex items-center gap-2">
-                                            {order.id}
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase tracking-tighter ${order.status === 'captured' ? 'bg-green-100 text-green-600' : 'bg-zinc-200 text-zinc-600'
-                                                }`}>
-                                                {order.status || 'Processing'}
-                                            </span>
-                                        </p>
-                                    </div>
-                                    <div className="flex flex-wrap gap-6">
-                                        <div className="space-y-1">
-                                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Date</p>
-                                            <div className="flex items-center gap-2 text-sm font-medium">
-                                                <Calendar size={14} className="text-zinc-400" />
-                                                {new Date(order.created_at).toLocaleDateString('en-US', {
-                                                    month: 'short',
-                                                    day: 'numeric',
-                                                    year: 'numeric'
-                                                })}
-                                            </div>
-                                        </div>
-                                        <div className="space-y-1 text-right">
-                                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Total</p>
-                                            <p className="text-lg font-medium">₹{order.amount.toLocaleString()}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="p-6">
-                                    <div className="space-y-4">
-                                        {Array.isArray(order.items) && order.items.map((item, idx) => (
-                                            <div key={idx} className="flex items-center gap-4">
-                                                <div className="relative h-16 w-16 overflow-hidden rounded-xl bg-zinc-50 border border-zinc-100 flex-shrink-0">
-                                                    {(item.image || item.main_image) && <Image src={(item.image || item.main_image)!} alt={item.name} fill className="object-cover" />}
-                                                </div>
-                                                <div className="flex-grow">
-                                                    <h4 className="text-sm font-medium uppercase tracking-tight">{item.name}</h4>
-                                                    <p className="text-xs text-zinc-500">Qty: {item.quantity}</p>
-                                                    {item.size && <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Size: {item.size}</p>}
-                                                </div>
-                                                <p className="text-sm font-medium">₹{(item.price || item.price_offer || item.price_base || 0).toLocaleString()}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    {order.payment_id && (
-                                        <div className="mt-8 flex items-center justify-between border-t border-zinc-50 pt-6">
-                                            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
-                                                <CreditCard size={14} />
-                                                Payment ID: {order.payment_id}
-                                            </div>
-                                            <button className="text-[10px] font-bold uppercase tracking-widest text-black hover:underline flex items-center gap-1">
-                                                Receipt <ExternalLink size={12} />
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                            <OrderCard key={order.id} order={order} />
                         ))}
                     </div>
                 )}

@@ -18,6 +18,27 @@ export async function POST(req: Request) {
         const resend = new Resend(SELLER_CONFIG.resendApiKey);
         console.log("📨 Sending Email to:", SELLER_CONFIG.email);
 
+        // Calculate details for email
+        const subtotal = order.items.reduce((acc: number, item: any) => {
+            const price = item.price_offer || item.price_base || 0;
+            return acc + price * item.quantity;
+        }, 0);
+
+        // Shipping logic (mirroring checkout)
+        // If subtotal >= 2999, shipping is 0, else 59.
+        // However, we can also infer it from total - subtotal if we assume no other fees.
+        // But for consistency with invoice, let's use the same logic if possible, 
+        // OR better yet, since we have the final `amount`, we can rely on that.
+        // The most accurate way to find "discount" without storing it is:
+        const calculatedShipping = subtotal < 2999 ? 59 : 0;
+        const expectedTotal = subtotal + calculatedShipping;
+        const discount = expectedTotal - Number(order.amount);
+
+        // Determine shipping display (if discount exists, real shipping paid might be 0, but we show the broken down cost)
+        // Actually, if a discount is applied, it applies to the total. 
+        // Let's stick to the Invoice logic:
+        const shippingDisplay = calculatedShipping;
+
         const result = await resend.emails.send({
             from: "Blactify <onboarding@resend.dev>",
             to: [SELLER_CONFIG.email],
@@ -70,8 +91,22 @@ export async function POST(req: Request) {
                             <div style="border-top: 1px dotted #eeeeee; padding-top: 15px; margin-top: 10px;">
                                 <table style="width: 100%;">
                                     <tr>
-                                        <td style="font-size: 18px; font-weight: 800; color: #111111; text-transform: uppercase; letter-spacing: 0.05em;">Total Amount</td>
-                                        <td style="text-align: right; font-size: 22px; font-weight: 900; color: #000000;">₹${Number(order.amount).toLocaleString('en-IN')}</td>
+                                        <td style="font-size: 13px; font-weight: 600; color: #888888; text-transform: uppercase;">Subtotal</td>
+                                        <td style="text-align: right; font-size: 14px; font-weight: 600; color: #333333;">₹${subtotal.toLocaleString('en-IN')}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-size: 13px; font-weight: 600; color: #888888; text-transform: uppercase;">Shipping</td>
+                                        <td style="text-align: right; font-size: 14px; font-weight: 600; color: #333333;">${shippingDisplay === 0 ? "Free" : `₹${shippingDisplay.toLocaleString('en-IN')}`}</td>
+                                    </tr>
+                                    ${discount > 1 ? `
+                                    <tr>
+                                        <td style="font-size: 13px; font-weight: 600; color: #10b981; text-transform: uppercase;">Welcome Offer</td>
+                                        <td style="text-align: right; font-size: 14px; font-weight: 600; color: #10b981;">-₹${Math.round(discount).toLocaleString('en-IN')}</td>
+                                    </tr>
+                                    ` : ""}
+                                    <tr>
+                                        <td style="padding-top: 10px; font-size: 16px; font-weight: 800; color: #111111; text-transform: uppercase;">Total Amount</td>
+                                        <td style="padding-top: 10px; text-align: right; font-size: 20px; font-weight: 900; color: #000000;">₹${Number(order.amount).toLocaleString('en-IN')}</td>
                                     </tr>
                                 </table>
                             </div>

@@ -16,7 +16,23 @@ export async function saveOrder(orderData: {
         try {
             console.log("📦 Starting atomic stock decrement for:", items.map(i => ({ id: i.id, qty: i.quantity })));
             for (const item of items) {
-                const size = (item as any).size || "no size";
+                let size = (item as any).size;
+
+                // Auto-resolve size if missing (handles "One Size" default variants)
+                if (!size || size === "no size") {
+                    const { data: variants } = await supabase
+                        .from('product_variants')
+                        .select('size')
+                        .eq('product_id', item.id);
+
+                    if (variants && variants.length === 1) {
+                        size = variants[0].size;
+                        console.log(`ℹ️ Auto-resolved size for product ${item.id} to "${size}"`);
+                    } else {
+                        size = "no size";
+                    }
+                }
+
                 const { data: success, error: stockError } = await supabase.rpc('decrement_stock_secure', {
                     p_product_id: String(item.id),
                     p_size: size,
