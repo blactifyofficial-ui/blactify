@@ -60,7 +60,7 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
                     {title}
                 </h1>
 
-                <div className="relative h-72 w-96 flex items-center justify-center overflow-hidden">
+                <div className="relative h-48 w-72 flex items-center justify-center overflow-hidden">
                     {/* Eye Icon Slide */}
                     <div
                         className={cn(
@@ -68,7 +68,7 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
                             showFullText ? "-translate-y-full opacity-0" : "translate-y-0 opacity-40 shadow-2xl"
                         )}
                     >
-                        <div className="relative w-48 h-48 md:w-64 md:h-64 transition-transform duration-300 hover:scale-110 active:scale-95 cursor-pointer">
+                        <div className="relative w-24 h-24 md:w-32 md:h-32 transition-transform duration-300 hover:scale-110 active:scale-95 cursor-pointer">
                             <Image
                                 src="/welcome-eye.png"
                                 alt="Logo Icon"
