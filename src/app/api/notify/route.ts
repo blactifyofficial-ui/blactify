@@ -15,6 +15,9 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, error: "Resend API key missing" });
         }
 
+        console.log("🔑 API Key Check (First 7 chars):", SELLER_CONFIG.resendApiKey.substring(0, 7) + "...");
+        console.log("📧 From Email:", SELLER_CONFIG.fromEmail);
+
         const resend = new Resend(SELLER_CONFIG.resendApiKey);
 
         // Calculate details for email
@@ -150,7 +153,12 @@ export async function POST(req: Request) {
             results.push({ type: 'seller', ...sellerResult });
         } catch (sellerError) {
             console.error("❌ Failed to send seller notification:", sellerError);
-            results.push({ type: 'seller', error: (sellerError as Error).message });
+            const errorObj = sellerError as any;
+            results.push({
+                type: 'seller',
+                error: errorObj.message || "Unknown error",
+                details: errorObj.response?.data || errorObj
+            });
         }
 
         // 2. Send Email to Customer
@@ -167,7 +175,12 @@ export async function POST(req: Request) {
         } catch (customerError) {
             // This is expected to fail if domain is not verified and customer is not the account owner
             console.warn("⚠️ Failed to send customer confirmation (likely Resend domain restriction):", customerError);
-            results.push({ type: 'customer', error: (customerError as Error).message });
+            const errorObj = customerError as any;
+            results.push({
+                type: 'customer',
+                error: errorObj.message || "Unknown error",
+                details: errorObj.response?.data || errorObj
+            });
         }
 
         return NextResponse.json({

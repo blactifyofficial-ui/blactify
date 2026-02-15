@@ -94,11 +94,20 @@ export default function CheckoutSuccessPage() {
                 setNotified(true);
 
                 // Trigger Server-side Notification (Email)
-                await fetch("/api/notify", {
+                console.log("🔔 Triggering notification for order:", orderId);
+                const response = await fetch("/api/notify", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ order: data }),
                 });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log("✅ Notification Success:", result);
+                } else {
+                    const errorData = await response.json();
+                    console.error("❌ Notification Failed:", errorData);
+                }
 
             } catch (err) {
                 console.error("Error in fetchOrderAndNotify:", err);
