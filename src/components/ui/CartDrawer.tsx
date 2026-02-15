@@ -40,19 +40,41 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
         try {
             // Check stock from Supabase for all items
             const productIds = items.map(item => item.id);
-            const { data: currentProducts, error } = await supabase
+
+            // Fetch products and their variants
+            const { data: currentProducts, error: pError } = await supabase
                 .from("products")
-                .select("id, name, stock")
+                .select("id, name, stock, product_variants(size, stock)")
                 .in("id", productIds);
 
-            if (error) throw error;
+            if (pError) throw pError;
 
             // Validate each item
             for (const item of items) {
                 const dbProduct = currentProducts?.find(p => p.id === item.id);
-                if (!dbProduct || dbProduct.stock < item.quantity) {
-                    toast.error(`${item.name} is currently out of stock or quantity exceeds available limit.`, {
-                        description: dbProduct ? `Available: ${dbProduct.stock}` : "No longer available"
+
+                if (!dbProduct) {
+                    toast.error(`${item.name} is no longer available.`);
+                    setIsCheckingOut(false);
+                    return;
+                }
+
+                let availableStock = 0;
+                if (item.size) {
+                    const variant = dbProduct.product_variants?.find((v: any) => v.size === item.size);
+                    availableStock = variant?.stock ?? 0;
+                } else {
+                    // Fallback to product stock if no variants or no size selected
+                    if (dbProduct.product_variants && dbProduct.product_variants.length > 0) {
+                        availableStock = dbProduct.product_variants.reduce((acc: number, v: any) => acc + v.stock, 0);
+                    } else {
+                        availableStock = dbProduct.stock ?? 0;
+                    }
+                }
+
+                if (availableStock < item.quantity) {
+                    toast.error(`${item.name}${item.size ? ` (Size: ${item.size})` : ""} is currently out of stock or quantity exceeds available limit.`, {
+                        description: `Available: ${availableStock}`
                     });
                     setIsCheckingOut(false);
                     return;
@@ -104,7 +126,7 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                                     <div key={item.cartId || item.id} className="flex gap-4">
                                         <div className="relative h-24 w-20 overflow-hidden bg-zinc-100">
                                             <Image
-                                                src={item.main_image}
+                                                src={item.product_images?.[0]?.url || item.main_image || "/placeholder-product.jpg"}
                                                 alt={item.name}
                                                 fill
                                                 className="object-cover"
@@ -137,7 +159,7 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                                                         <Plus size={14} />
                                                     </button>
                                                 </div>
-                                                <span className="text-[13px] font-medium text-black">₹{((item.price_offer || item.price_base) * item.quantity).toFixed(2)}</span>
+                                                <span className="text-[13px] font-medium text-black">₹{((item.price_offer || item.price_base) * item.quantity).toLocaleString()}</span>
                                             </div>
                                         </div>
                                     </div>

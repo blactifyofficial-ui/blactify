@@ -6,27 +6,9 @@ import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/useCartStore";
 import { Plus } from "lucide-react";
 
-export interface Product {
-    id: string;
-    name: string;
-    handle: string;
-    price_base: number;
-    price_offer?: number;
-    main_image: string;
-    image1?: string;
-    image2?: string;
-    image3?: string;
-    category_id?: string;
-    categories?: {
-        name: string;
-    };
-    category?: string; // Fallback
-    tag?: string;
-    size_variants?: string[];
-    description?: string;
-    stock: number;
-    created_at?: string;
-}
+import { Product } from "@/types/database";
+
+export type { Product }; // Re-export for compatibility
 
 interface ProductCardProps {
     product: Product;
@@ -45,7 +27,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
             <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-100">
                 <Link href={`/product/${product.id}`} className="block h-full w-full">
                     <Image
-                        src={product.main_image || ""}
+                        src={product.product_images?.[0]?.url || product.main_image || ""}
                         alt={product.name}
                         fill
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -56,12 +38,12 @@ export function ProductCard({ product, className }: ProductCardProps) {
                         {product.tag}
                     </div>
                 )}
-                {product.stock <= 0 && (
+                {(product.product_variants?.every(v => v.stock <= 0) ?? (product.stock ?? 0) <= 0) && (
                     <div className="absolute right-3 top-3 bg-white/90 backdrop-blur-sm px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-black shadow-sm z-10 pointer-events-none rounded-sm border border-zinc-100">
                         Out of Stock
                     </div>
                 )}
-                {product.stock > 0 && (
+                {(product.product_variants?.some(v => v.stock > 0) ?? (product.stock ?? 0) > 0) && (
                     <button
                         onClick={(e) => {
                             e.preventDefault();

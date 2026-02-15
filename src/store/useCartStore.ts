@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Product } from "@/components/ui/ProductCard";
+import { Product } from "@/types/database";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 
@@ -33,15 +33,34 @@ export const useCartStore = create<CartStore>()(
                 const items = get().items;
                 const cartId = size ? `${product.id}-${size}` : product.id;
 
-                // Fetch real-time stock before adding
-                const { data: latestProduct } = await supabase
-                    .from("products")
-                    .select("stock")
-                    .eq("id", product.id)
-                    .single();
+                let currentStock = 0;
 
-                const currentStock = latestProduct?.stock ?? product.stock;
-                const existingItem = items.find((item) => (item.cartId || item.id) === cartId);
+                if (size) {
+                    // Fetch variant-specific stock
+                    const { data: variantData } = await supabase
+                        .from("product_variants")
+                        .select("stock")
+                        .eq("product_id", product.id)
+                        .eq("size", size)
+                        .single();
+
+                    currentStock = variantData?.stock ?? 0;
+                } else {
+                    // Fetch total product stock (legacy or sum of variants)
+                    const { data: latestProduct } = await supabase
+                        .from("products")
+                        .select("stock, product_variants(stock)")
+                        .eq("id", product.id)
+                        .single();
+
+                    if (latestProduct?.product_variants && latestProduct.product_variants.length > 0) {
+                        currentStock = latestProduct.product_variants.reduce((acc: number, v: any) => acc + v.stock, 0);
+                    } else {
+                        currentStock = latestProduct?.stock ?? product.stock ?? 0;
+                    }
+                }
+
+                const existingItem = items.find((item) => item.cartId === cartId);
 
                 if (existingItem) {
                     if (existingItem.quantity >= 5) {
@@ -54,7 +73,7 @@ export const useCartStore = create<CartStore>()(
                     }
                     set({
                         items: items.map((item) =>
-                            (item.cartId || item.id) === cartId
+                            item.cartId === cartId
                                 ? { ...item, quantity: item.quantity + 1, stock: currentStock }
                                 : item
                         ),
@@ -79,8 +98,8 @@ export const useCartStore = create<CartStore>()(
                 const item = get().items.find((i) => (i.cartId || i.id) === cartId);
                 if (!item) return;
 
-                if (quantity > item.stock) {
-                    toast.error(`Only ${item.stock} items available in stock`);
+                if (quantity > (item.stock ?? 0)) {
+                    toast.error(`Only ${item.stock ?? 0} items available in stock`);
                     return;
                 }
                 if (quantity > 5) {

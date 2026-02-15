@@ -20,7 +20,7 @@ export default function ShopPage() {
             try {
                 const { data, error } = await supabase
                     .from("products")
-                    .select("*, categories(name)")
+                    .select("*, categories(name), product_images(*), product_variants(*)")
                     .order("created_at", { ascending: false });
 
                 if (error) throw error;

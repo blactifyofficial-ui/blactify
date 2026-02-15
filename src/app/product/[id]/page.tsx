@@ -47,7 +47,11 @@ export default function ProductDetailPage() {
     // Minimum swipe distance (in px)
     const minSwipeDistance = 50;
 
-    const sizes = (product?.size_variants && product.size_variants.length > 0) ? product.size_variants : ["S", "M", "L", "XL"];
+    const productVariants = product?.product_variants || [];
+    const sizes = productVariants.length > 0
+        ? productVariants.map(v => v.size)
+        : (product?.size_variants && product.size_variants.length > 0 ? product.size_variants : ["S", "M", "L", "XL"]);
+
     const isNoSize = sizes.length === 1 && (sizes[0].toUpperCase() === "NO SIZE" || sizes[0].toLowerCase() === "no size");
 
     useEffect(() => {
@@ -62,7 +66,7 @@ export default function ProductDetailPage() {
                 // Try fetching by ID first, then by handle
                 const { data, error } = await supabase
                     .from("products")
-                    .select("*, categories(name)")
+                    .select("*, categories(name), product_images(*), product_variants(*)")
                     .or(`id.eq.${id},handle.eq.${id}`)
                     .single();
 
@@ -133,16 +137,15 @@ export default function ProductDetailPage() {
         );
     }
 
-
-    const productImages = [
-        product.main_image,
-        product.image1,
-        product.image2,
-        product.image3
-    ].filter(Boolean) as string[];
+    const productImages = product.product_images?.length
+        ? product.product_images.sort((a, b) => a.position - b.position).map(img => img.url)
+        : [product.main_image, product.image1, product.image2, product.image3].filter(Boolean) as string[];
 
     const displayPrice = product.price_offer || product.price_base;
     const hasDiscount = product.price_offer && product.price_offer < product.price_base;
+    const currentStock = productVariants.length > 0
+        ? productVariants.reduce((acc: number, v) => acc + v.stock, 0)
+        : (product.stock ?? 0);
 
     return (
         <main className="min-h-screen bg-white text-black pb-24 font-inter">
@@ -322,7 +325,7 @@ export default function ProductDetailPage() {
                         )}
 
                         {/* Stock Status */}
-                        {product.stock <= 0 && (
+                        {currentStock <= 0 && (
                             <div className="mb-6">
                                 <div className="flex items-center gap-2 text-red-500 font-bold uppercase tracking-widest text-[10px] bg-red-50 p-3 rounded-xl border border-red-100">
                                     <X size={14} />
@@ -334,26 +337,26 @@ export default function ProductDetailPage() {
                         <div className="flex flex-col gap-3">
                             <button
                                 onClick={async () => await addItem(product, selectedSize || undefined)}
-                                disabled={product.stock <= 0}
+                                disabled={currentStock <= 0}
                                 className={cn(
                                     "w-full h-16 rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all",
-                                    product.stock <= 0
+                                    currentStock <= 0
                                         ? "bg-zinc-100 text-zinc-400 cursor-not-allowed"
                                         : "bg-black text-white shadow-2xl shadow-black/10"
                                 )}
                             >
                                 <ShoppingBag size={18} />
-                                {product.stock <= 0 ? "Unavailable" : "Add to Bag"}
+                                {currentStock <= 0 ? "Unavailable" : "Add to Bag"}
                             </button>
                             <button
                                 onClick={async () => {
                                     await addItem(product, selectedSize || undefined);
                                     router.push("/checkout");
                                 }}
-                                disabled={product.stock <= 0}
+                                disabled={currentStock <= 0}
                                 className={cn(
                                     "w-full h-16 rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all",
-                                    product.stock <= 0
+                                    currentStock <= 0
                                         ? "hidden"
                                         : "bg-white text-black border border-zinc-200"
                                 )}
