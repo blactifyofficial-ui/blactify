@@ -42,20 +42,32 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
     }, [isHovered, isAnimating]);
 
     const handleCTAClick = (e: React.MouseEvent) => {
-        e.preventDefault();
+        if (e && e.preventDefault) e.preventDefault();
         if (isAnimating) return;
 
         setIsAnimating(true);
-        if (!showFullText) setShowFullText(true);
 
-        // Flash highlight and then navigate
-        setTimeout(() => {
-            if (ctaLink) {
-                router.push(ctaLink);
-            }
-            // Reset state (though we are navigating away)
-            setTimeout(() => setIsAnimating(false), 500);
-        }, 400);
+        if (!showFullText) {
+            // It's the eye icon. Highlight it first, then transition.
+            setTimeout(() => {
+                setShowFullText(true);
+                // After transitioning to "Shop Now", wait a bit then navigate
+                setTimeout(() => {
+                    if (ctaLink) {
+                        router.push(ctaLink);
+                    }
+                    setIsAnimating(false);
+                }, 800);
+            }, 400); // Eye highlights for 400ms
+        } else {
+            // It's already "Shop Now". Highlight and then navigate.
+            setTimeout(() => {
+                if (ctaLink) {
+                    router.push(ctaLink);
+                }
+                setIsAnimating(false);
+            }, 400); // "Shop Now" highlights for 400ms
+        }
     };
 
     return (
