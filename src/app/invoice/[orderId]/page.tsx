@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import Image from "next/image";
 import Link from "next/link";
 import { Printer, ArrowLeft } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface OrderDetail {
     id: string;
@@ -107,7 +108,7 @@ export default function InvoicePage() {
     const total = order.amount;
 
     return (
-        <div className="min-h-screen bg-white text-black font-sans p-8 md:p-16 print:p-0">
+        <div className="min-h-screen bg-white text-black font-sans p-4 md:p-16 print:p-0">
             {/* Non-printing navigation */}
             <div className="mb-8 flex justify-between items-center print:hidden">
                 <Link href="/orders" className="flex items-center gap-2 text-zinc-500 hover:text-black text-sm uppercase tracking-wide font-medium">
@@ -122,7 +123,7 @@ export default function InvoicePage() {
             </div>
 
             {/* Invoice Container */}
-            <div className="max-w-3xl mx-auto border border-zinc-100 rounded-none bg-white p-8 md:p-12 print:border-none print:shadow-none print:p-0 print:max-w-none">
+            <div className="max-w-3xl mx-auto border border-zinc-100 rounded-none bg-white p-6 md:p-12 print:border-none print:shadow-none print:p-0 print:max-w-none">
 
                 {/* Header */}
                 <div className="flex justify-between items-start mb-16 border-b border-zinc-100 pb-8 break-inside-avoid">
@@ -159,7 +160,7 @@ export default function InvoicePage() {
                 </div>
 
                 {/* Addresses */}
-                <div className="grid grid-cols-2 gap-12 mb-16 break-inside-avoid">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mb-16 break-inside-avoid">
                     <div>
                         <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-4">Bill To</h3>
                         <p className="font-bold text-sm mb-1">{order.customer_details.name}</p>
@@ -176,15 +177,15 @@ export default function InvoicePage() {
                             <p className="text-zinc-500 text-xs">Alt: {order.customer_details.secondary_phone}</p>
                         )}
                     </div>
-                    <div className="text-right">
+                    <div className="md:text-right">
                         <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-4">Payment Details</h3>
-                        <div className="space-y-1 inline-flex flex-col items-end">
-                            <div className="flex justify-end gap-4 text-sm">
+                        <div className="space-y-1 inline-flex flex-col md:items-end w-full">
+                            <div className="flex justify-between md:justify-end gap-4 text-sm">
                                 <span className="text-zinc-500">Method</span>
                                 <span className="font-medium">Online Payment</span>
                             </div>
                             {order.payment_id && (
-                                <div className="flex justify-end gap-4 text-sm">
+                                <div className="flex justify-between md:justify-end gap-4 text-sm">
                                     <span className="text-zinc-500">Transaction ID</span>
                                     <span className="font-mono text-xs">{order.payment_id}</span>
                                 </div>
@@ -193,9 +194,10 @@ export default function InvoicePage() {
                     </div>
                 </div>
 
-                {/* Items Table */}
+                {/* Items Section */}
                 <div className="mb-12">
-                    <table className="w-full text-left border-collapse">
+                    {/* Desktop Table View */}
+                    <table className="w-full text-left border-collapse hidden md:table">
                         <thead>
                             <tr className="border-b-2 border-zinc-900">
                                 <th className="py-4 text-[10px] uppercase tracking-widest font-bold text-zinc-500 w-1/2">Item Description</th>
@@ -211,7 +213,6 @@ export default function InvoicePage() {
                                     <tr key={idx} className="group">
                                         <td className="py-6 pr-4">
                                             <div className="flex gap-4 items-start">
-                                                {/* Optional: Show small image on invoice */}
                                                 <div className="w-10 h-10 relative bg-zinc-50 hidden print:block border border-zinc-100 flex-shrink-0">
                                                     {(item.image || item.main_image || item.product_images?.[0]?.url) && (
                                                         <Image
@@ -235,54 +236,60 @@ export default function InvoicePage() {
                                 )
                             })}
                         </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colSpan={2} className="pt-8 text-right pr-8 border-t border-zinc-100">
-                                    <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-400">Subtotal</span>
-                                </td>
-                                <td colSpan={2} className="pt-8 text-right border-t border-zinc-100">
-                                    <span className="text-sm font-medium">₹{subtotal.toLocaleString()}</span>
-                                </td>
-                            </tr>
-                            {calculatedShipping > 0 ? (
-                                <tr>
-                                    <td colSpan={2} className="pt-2 text-right pr-8">
-                                        <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-400">Shipping</span>
-                                    </td>
-                                    <td colSpan={2} className="pt-2 text-right">
-                                        <span className="text-sm font-medium">₹{calculatedShipping.toLocaleString()}</span>
-                                    </td>
-                                </tr>
-                            ) : (
-                                <tr>
-                                    <td colSpan={2} className="pt-2 text-right pr-8">
-                                        <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-400">Shipping</span>
-                                    </td>
-                                    <td colSpan={2} className="pt-2 text-right">
-                                        <span className="text-sm font-medium">Free</span>
-                                    </td>
-                                </tr>
-                            )}
-                            {discount > 1 && (
-                                <tr>
-                                    <td colSpan={2} className="pt-2 text-right pr-8">
-                                        <span className="text-[10px] uppercase tracking-widest font-bold text-green-600">Welcome Offer</span>
-                                    </td>
-                                    <td colSpan={2} className="pt-2 text-right">
-                                        <span className="text-sm font-medium text-green-600">-₹{Math.round(discount).toLocaleString()}</span>
-                                    </td>
-                                </tr>
-                            )}
-                            <tr>
-                                <td colSpan={2} className="pt-4 text-right pr-8">
-                                    <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-900">Total Amount</span>
-                                </td>
-                                <td colSpan={2} className="pt-4 text-right">
-                                    <span className="text-xl font-bold">₹{total.toLocaleString()}</span>
-                                </td>
-                            </tr>
-                        </tfoot>
                     </table>
+
+                    {/* Mobile List View */}
+                    <div className="md:hidden space-y-6 divide-y divide-zinc-100 border-t border-b border-zinc-100 py-6 print:hidden">
+                        {order.items.map((item, idx) => {
+                            const price = item.price || item.price_offer || item.price_base || 0;
+                            return (
+                                <div key={idx} className={cn("pt-6 first:pt-0 pb-6 last:pb-0")}>
+                                    <div className="flex gap-4 mb-3">
+                                        <div className="w-16 h-20 relative bg-zinc-50 border border-zinc-100 flex-shrink-0">
+                                            {(item.image || item.main_image || item.product_images?.[0]?.url) && (
+                                                <Image
+                                                    src={(item.image || item.main_image || item.product_images?.[0]?.url)!}
+                                                    alt={item.name}
+                                                    fill
+                                                    className="object-cover"
+                                                />
+                                            )}
+                                        </div>
+                                        <div className="flex-grow">
+                                            <h4 className="text-sm font-medium uppercase tracking-tight">{item.name}</h4>
+                                            {item.size && <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Size: {item.size}</p>}
+                                            <div className="mt-2 flex justify-between items-center text-xs">
+                                                <span className="text-zinc-500 font-mono">₹{price.toLocaleString()} × {item.quantity}</span>
+                                                <span className="font-bold">₹{(price * item.quantity).toLocaleString()}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+
+                    {/* Simple Footer/Totals (Always visible, styled for mobile too) */}
+                    <div className="mt-8 space-y-3">
+                        <div className="flex justify-between md:justify-end md:gap-12 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                            <span>Subtotal</span>
+                            <span className="text-zinc-900 md:w-32 md:text-right">₹{subtotal.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between md:justify-end md:gap-12 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                            <span>Shipping</span>
+                            <span className="text-zinc-900 md:w-32 md:text-right">{calculatedShipping > 0 ? `₹${calculatedShipping.toLocaleString()}` : 'FREE'}</span>
+                        </div>
+                        {discount > 1 && (
+                            <div className="flex justify-between md:justify-end md:gap-12 text-[10px] font-bold uppercase tracking-widest text-green-600">
+                                <span>Welcome Offer</span>
+                                <span className="md:w-32 md:text-right">-₹{Math.round(discount).toLocaleString()}</span>
+                            </div>
+                        )}
+                        <div className="flex justify-between md:justify-end md:gap-12 pt-4 border-t border-zinc-100">
+                            <span className="text-xs font-bold uppercase tracking-[0.2em]">Total</span>
+                            <span className="text-xl font-bold md:w-32 md:text-right">₹{total.toLocaleString()}</span>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Footer */}
@@ -300,14 +307,24 @@ export default function InvoicePage() {
 
             <style jsx global>{`
                 @media print {
-                    @page { margin: 20mm; size: auto; }
+                    @page { margin: 10mm; size: auto; }
                     body { 
-                        background: white;
+                        background: white !important;
+                        color: black !important;
                         -webkit-print-color-adjust: exact;
                         print-color-adjust: exact;
+                        overflow: visible !important;
+                        position: static !important;
                     }
-                    /* ... */
-                    nav, footer, header { display: none !important; } 
+                    /* Force hide fixed UI elements */
+                    header, nav, footer, 
+                    .z-[50], .z-[60], .z-[70], .z-[80], 
+                    [data-sonner-toaster],
+                    .fixed, .sticky { 
+                        display: none !important; 
+                        opacity: 0 !important;
+                        pointer-events: none !important;
+                    } 
                     .print\\:hidden { display: none !important; }
                     .print\\:p-0 { padding: 0 !important; }
                     .print\\:border-none { border: none !important; }
@@ -315,6 +332,10 @@ export default function InvoicePage() {
                     .print\\:max-w-none { max-width: none !important; }
                     .print\\:block { display: block !important; }
                     .print\\:break-inside-avoid { break-inside: avoid; }
+                    
+                    /* Ensure table and list show appropriately in print */
+                    .md\\:table { display: table !important; width: 100% !important; }
+                    .md\\:hidden { display: none !important; }
                 }
             `}</style>
         </div>
