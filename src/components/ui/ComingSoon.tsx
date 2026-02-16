@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
-import { Instagram, Twitter, Mail, ArrowRight, ShieldCheck, Zap, Smartphone } from "lucide-react";
+import { Instagram, Twitter, Mail, ArrowRight, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function ComingSoon() {
@@ -17,123 +17,127 @@ export function ComingSoon() {
         }
     };
 
-    return (
-        <div className="relative min-h-screen bg-black flex flex-col items-center justify-center p-6 overflow-hidden font-sans text-white">
-            {/* Background Aesthetic Elements */}
-            <div className="absolute top-1/4 -left-20 w-80 h-80 bg-zinc-800/20 blur-[120px] rounded-full animate-pulse" />
-            <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-zinc-900/30 blur-[120px] rounded-full animate-pulse" />
+    const specs = useMemo(() => [
+        { id: "01", label: "Architecture", value: "Mobile-First UX" },
+        { id: "02", label: "Aesthetic", value: "Premium Noir" },
+        { id: "03", label: "Logistics", value: "Real-time Tracking" },
+        { id: "04", label: "Integrations", value: "WhatsApp / Email" }
+    ], []);
 
-            {/* Content Container */}
-            <div className="relative z-10 max-w-2xl w-full text-center space-y-16">
-                {/* Logo Section */}
-                <div className="flex flex-col items-center space-y-4 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-                    <div className="relative w-48 h-48 md:w-64 md:h-64 transition-transform hover:scale-105 duration-500">
+    return (
+        <div className="relative min-h-screen bg-[#050505] text-white selection:bg-white selection:text-black overflow-hidden font-mono tracking-tight">
+            {/* Architectural Grid */}
+            <div className="absolute inset-0 opacity-[0.03]"
+                style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+            <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+            {/* Corner Markers */}
+            <div className="absolute top-8 left-8 w-4 h-4 border-t-2 border-l-2 border-white/20" />
+            <div className="absolute top-8 right-8 w-4 h-4 border-t-2 border-r-2 border-white/20" />
+            <div className="absolute bottom-8 left-8 w-4 h-4 border-b-2 border-l-2 border-white/20" />
+            <div className="absolute bottom-8 right-8 w-4 h-4 border-b-2 border-r-2 border-white/20" />
+
+            <main className="relative z-10 min-h-screen flex flex-col md:flex-row">
+                {/* Left Section: Branding & Identity */}
+                <div className="w-full md:w-1/2 flex flex-col justify-between p-12 md:p-24 border-b md:border-b-0 md:border-r border-white/5">
+                    <div className="space-y-4">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] uppercase tracking-widest text-zinc-400">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                            System Active - v1.0
+                        </div>
+                        <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.8] mb-8">
+                            BLAC<br />TIFY
+                        </h1>
+                    </div>
+
+                    <div className="space-y-12">
+                        <div className="space-y-2">
+                            <h2 className="text-3xl font-bold tracking-tighter italic uppercase">Coming Soon</h2>
+                            <p className="text-zinc-500 max-w-sm text-sm leading-relaxed">
+                                We are engineering a curated ecosystem of high-aesthetic essentials. Pre-launch sequence initiated.
+                            </p>
+                        </div>
+
+                        {/* Subscription Block */}
+                        <div className="max-w-md">
+                            {isSubscribed ? (
+                                <div className="py-6 border-t border-white/10 flex items-center justify-between text-xs transition-all animate-in fade-in slide-in-from-left-4">
+                                    <span className="uppercase tracking-widest">Awaiting Link Distribution</span>
+                                    <span className="text-zinc-500">[ ACCESS GRANTED ]</span>
+                                </div>
+                            ) : (
+                                <form onSubmit={handleSubscribe} className="group relative">
+                                    <input
+                                        type="email"
+                                        required
+                                        placeholder="Enter terminal email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full bg-transparent border-b border-white/10 py-6 text-sm uppercase tracking-widest outline-none focus:border-white transition-all placeholder:text-zinc-800"
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="absolute right-0 bottom-6 text-zinc-500 hover:text-white transition-colors"
+                                    >
+                                        <ArrowRight size={20} />
+                                    </button>
+                                </form>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right Section: Spec Sheet & Identity */}
+                <div className="w-full md:w-1/2 flex flex-col justify-between p-12 md:p-24 bg-white/[0.01]">
+                    <div className="relative aspect-square w-full max-w-[300px] mx-auto opacity-40 mix-blend-screen grayscale">
                         <Image
                             src="/logo.webp"
-                            alt="Blactify Logo"
+                            alt="Core"
                             fill
-                            className="object-contain brightness-0 invert"
+                            className="object-contain"
                             priority
                         />
                     </div>
-                    <div className="space-y-2">
-                        <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white uppercase italic">
-                            COMING SOON
-                        </h1>
-                        <p className="text-zinc-500 text-xs font-bold uppercase tracking-[0.4em]">
-                            The Premium Minimalist Experience
-                        </p>
-                    </div>
-                </div>
 
-                {/* Notes Section (The "Another Notes") */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-8 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-200 text-center">
-                    <div className="flex flex-col items-center space-y-3 p-6 rounded-[32px] bg-zinc-900/50 border border-zinc-800 backdrop-blur-sm transition-all hover:border-zinc-700 hover:bg-zinc-900/80">
-                        <Smartphone className="w-5 h-5 text-white" />
-                        <h3 className="text-[10px] font-bold uppercase tracking-widest text-white">Mobile-First UI</h3>
-                        <p className="text-[10px] text-zinc-500 leading-relaxed uppercase">
-                            Experience a seamless, app-like interface in your browser. Designed for high-speed, on-the-go shopping.
-                        </p>
-                    </div>
-                    <div className="flex flex-col items-center space-y-3 p-6 rounded-[32px] bg-zinc-900/50 border border-zinc-800 backdrop-blur-sm transition-all hover:border-zinc-700 hover:bg-zinc-900/80">
-                        <Zap className="w-5 h-5 text-white" />
-                        <h3 className="text-[10px] font-bold uppercase tracking-widest text-white">Noir Aesthetic</h3>
-                        <p className="text-[10px] text-zinc-500 leading-relaxed uppercase">
-                            High-contrast visuals inspired by streetwear culture and minimalist industrial design.
-                        </p>
-                    </div>
-                    <div className="flex flex-col items-center space-y-3 p-6 rounded-[32px] bg-zinc-900/50 border border-zinc-800 backdrop-blur-sm transition-all hover:border-zinc-700 hover:bg-zinc-900/80">
-                        <ShieldCheck className="w-5 h-5 text-white" />
-                        <h3 className="text-[10px] font-bold uppercase tracking-widest text-white">Direct Access</h3>
-                        <p className="text-[10px] text-zinc-500 leading-relaxed uppercase">
-                            Instant updates via WhatsApp and Email. Real-time tracking and automated post-purchase engagement.
-                        </p>
-                    </div>
-                </div>
+                    <div className="space-y-8">
+                        <div className="grid grid-cols-2 gap-x-12 gap-y-8">
+                            {specs.map((spec) => (
+                                <div key={spec.id} className="space-y-2">
+                                    <div className="flex items-center gap-2 text-[10px] text-zinc-600 uppercase tracking-widest">
+                                        <span>{spec.id}</span>
+                                        <Minus className="w-3" />
+                                        <span>{spec.label}</span>
+                                    </div>
+                                    <p className="text-xs uppercase font-bold tracking-wider">{spec.value}</p>
+                                </div>
+                            ))}
+                        </div>
 
-                {/* Additional Brand Note */}
-                <div className="max-w-xl mx-auto py-4 animate-in fade-in duration-1000 delay-300">
-                    <p className="text-[11px] text-zinc-500 font-medium uppercase tracking-[0.2em] leading-relaxed italic">
-                        "Curating a collection of high-aesthetic essentials for the modern shopper. Quality over quantity, always."
-                    </p>
-                </div>
-
-                {/* Waitlist / Subscribe Form */}
-                <div className="max-w-md mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-16 duration-1000 delay-500">
-                    <p className="text-sm text-zinc-500 font-medium">
-                        Be the first to know when we go live.
-                    </p>
-                    {isSubscribed ? (
-                        <div className="p-6 bg-white text-black rounded-[32px] animate-in zoom-in duration-500 flex items-center justify-center gap-3">
-                            <ShieldCheck size={20} />
-                            <span className="text-[10px] font-bold uppercase tracking-widest">
-                                You&apos;re on the list.
+                        <div className="flex items-center justify-between pt-12 border-t border-white/10">
+                            <div className="flex gap-6">
+                                <a href="#" className="opacity-40 hover:opacity-100 transition-opacity">
+                                    <Instagram size={18} />
+                                </a>
+                                <a href="#" className="opacity-40 hover:opacity-100 transition-opacity">
+                                    <Twitter size={18} />
+                                </a>
+                                <a href="#" className="opacity-40 hover:opacity-100 transition-opacity">
+                                    <Mail size={18} />
+                                </a>
+                            </div>
+                            <span className="text-[10px] opacity-20 uppercase tracking-[0.3em]">
+                                est. 2026
                             </span>
                         </div>
-                    ) : (
-                        <form
-                            onSubmit={handleSubscribe}
-                            className="group flex flex-col md:flex-row gap-3 p-2 bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 rounded-[40px] transition-all focus-within:bg-zinc-900 focus-within:border-zinc-700"
-                        >
-                            <input
-                                type="email"
-                                required
-                                placeholder="Email address"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="flex-1 bg-transparent px-6 py-4 text-sm text-white placeholder:text-zinc-600 outline-none"
-                            />
-                            <button
-                                type="submit"
-                                className="bg-white text-black px-8 py-4 rounded-full text-[10px] font-bold uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 hover:bg-zinc-200"
-                            >
-                                Notify Me
-                                <ArrowRight size={14} />
-                            </button>
-                        </form>
-                    )}
+                    </div>
                 </div>
+            </main>
 
-                {/* Social Links */}
-                <div className="flex items-center justify-center gap-10 pt-12 border-t border-zinc-900 animate-in fade-in duration-1000 delay-700">
-                    <a href="#" className="text-zinc-600 hover:text-white transition-all hover:scale-110">
-                        <Instagram size={20} />
-                    </a>
-                    <a href="#" className="text-zinc-600 hover:text-white transition-all hover:scale-110">
-                        <Twitter size={20} />
-                    </a>
-                    <a href="#" className="text-zinc-600 hover:text-white transition-all hover:scale-110">
-                        <Mail size={20} />
-                    </a>
-                </div>
-            </div>
-
-            {/* Bottom Credits */}
-            <div className="absolute bottom-8 left-0 right-0 text-center opacity-30">
-                <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.5em]">
-                    &copy; 2026 BLACTIFY. ALL RIGHTS RESERVED.
-                </span>
-            </div>
+            {/* Background Texture Overlay */}
+            <div className="pointer-events-none absolute inset-0 mix-blend-overlay opacity-20"
+                style={{ backgroundImage: "url('https://grainy-gradients.vercel.app/noise.svg')" }} />
         </div>
     );
 }
