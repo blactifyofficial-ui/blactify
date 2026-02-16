@@ -25,24 +25,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            console.log("Auth State Changed. User:", user?.email);
             setUser(user);
 
             if (user) {
+                console.log("Syncing profile for user:", user.uid);
                 // Sync profile and check if admin
                 await syncUserProfile(user);
 
+                console.log("Checking is_admin status for user:", user.uid);
                 const { data, error } = await supabase
                     .from("profiles")
                     .select("is_admin")
                     .eq("id", user.uid)
                     .single();
 
+                if (error) {
+                    console.error("Error fetching profile is_admin:", error);
+                }
+
                 if (!error && data) {
+                    console.log("Is Admin data:", data);
                     setIsAdmin(data.is_admin);
                 } else {
+                    console.log("User is not admin or profile missing. Data:", data);
                     setIsAdmin(false);
                 }
             } else {
+                console.log("No user logged in.");
                 setIsAdmin(false);
             }
 

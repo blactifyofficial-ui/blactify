@@ -27,6 +27,7 @@ interface Order {
     status: string;
     items: OrderItem[];
     payment_id: string;
+    tracking_id?: string;
 }
 
 export default function OrdersPage() {

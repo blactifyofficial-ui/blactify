@@ -30,6 +30,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
     const [order, setOrder] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
+    const [trackingId, setTrackingId] = useState("");
 
     useEffect(() => {
         async function fetchOrder() {
@@ -42,6 +43,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
 
                 if (error) throw error;
                 setOrder(data);
+                setTrackingId(data.tracking_id || "");
             } catch (err) {
 
             } finally {
@@ -66,6 +68,26 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
         } catch (err) {
 
             toast.error("Failed to update status");
+        } finally {
+            setUpdating(false);
+        }
+    };
+
+    const handleUpdateTracking = async () => {
+        if (!trackingId.trim() && !order.tracking_id) return;
+
+        setUpdating(true);
+        try {
+            const { error } = await supabase
+                .from("orders")
+                .update({ tracking_id: trackingId })
+                .eq("id", id);
+
+            if (error) throw error;
+            toast.success("Tracking ID updated");
+            setOrder({ ...order, tracking_id: trackingId });
+        } catch (err) {
+            toast.error("Failed to update tracking ID");
         } finally {
             setUpdating(false);
         }
@@ -198,20 +220,57 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                         </div>
                     </div>
 
-                    {/* Shipping Address */}
-                    <div className="bg-white rounded-3xl border border-zinc-100 overflow-hidden shadow-sm">
-                        <div className="bg-zinc-50/50 px-6 py-4 border-b border-zinc-100">
-                            <h3 className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
-                                <MapPin size={16} />
-                                Shipping Address
-                            </h3>
+                    {/* Shipping Address & Tracking */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="bg-white rounded-3xl border border-zinc-100 overflow-hidden shadow-sm h-full">
+                            <div className="bg-zinc-50/50 px-6 py-4 border-b border-zinc-100">
+                                <h3 className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+                                    <MapPin size={16} />
+                                    Shipping Address
+                                </h3>
+                            </div>
+                            <div className="p-6">
+                                <p className="text-lg font-bold mb-2">{order.customer_details?.name}</p>
+                                <p className="text-zinc-500 text-sm font-medium italic leading-relaxed max-w-sm">
+                                    {order.shipping_address?.address},<br />
+                                    {order.shipping_address?.city}, {order.shipping_address?.state} - {order.shipping_address?.pincode}
+                                </p>
+                            </div>
                         </div>
-                        <div className="p-6">
-                            <p className="text-lg font-bold mb-2">{order.customer_details?.name}</p>
-                            <p className="text-zinc-500 text-sm font-medium italic leading-relaxed max-w-sm">
-                                {order.shipping_address?.address},<br />
-                                {order.shipping_address?.city}, {order.shipping_address?.state} - {order.shipping_address?.pincode}
-                            </p>
+
+                        <div className="bg-white rounded-3xl border border-zinc-100 overflow-hidden shadow-sm h-full">
+                            <div className="bg-zinc-50/50 px-6 py-4 border-b border-zinc-100">
+                                <h3 className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+                                    <Truck size={16} />
+                                    Order Tracking
+                                </h3>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                <div>
+                                    <label className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1.5 block">
+                                        Tracking ID
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={trackingId}
+                                            onChange={(e) => setTrackingId(e.target.value)}
+                                            placeholder="Paste tracking ID here..."
+                                            className="flex-1 bg-zinc-50 border border-zinc-100 rounded-xl px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-black/5 transition-all"
+                                        />
+                                        <button
+                                            onClick={handleUpdateTracking}
+                                            disabled={updating || trackingId === (order.tracking_id || "")}
+                                            className="px-4 py-2 bg-black text-white text-xs font-bold rounded-xl hover:bg-zinc-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider"
+                                        >
+                                            Update
+                                        </button>
+                                    </div>
+                                    <p className="mt-2 text-[10px] text-zinc-400 italic">
+                                        This ID will be visible to the customer in their order details.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

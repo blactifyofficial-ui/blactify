@@ -21,11 +21,13 @@ export default function AdminLoginPage() {
     const handleLogin = async () => {
         try {
             setError(null);
-            await signInWithPopup(auth, googleProvider);
+            console.log("Initiating Google Sign-In...");
+            const result = await signInWithPopup(auth, googleProvider);
+            console.log("Sign-in successful for:", result.user.email);
             // AuthContext will handle the redirect if is_admin is true
-        } catch (err) {
-
-            setError("Failed to sign in. Please try again.");
+        } catch (err: any) {
+            console.error("Sign-in error:", err);
+            setError(err.message || "Failed to sign in. Please try again.");
         }
     };
 

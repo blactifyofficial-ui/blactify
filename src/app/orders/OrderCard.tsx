@@ -26,6 +26,7 @@ interface Order {
     status: string;
     items: OrderItem[];
     payment_id: string;
+    tracking_id?: string;
 }
 
 interface OrderCardProps {
@@ -113,17 +114,31 @@ export default function OrderCard({ order }: OrderCardProps) {
                         </div>
 
                         {order.payment_id && (
-                            <div className="mt-8 flex items-center justify-between border-t border-zinc-50 pt-6">
-                                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
-                                    <CreditCard size={14} />
-                                    Payment ID: {order.payment_id}
+                            <div className="flex flex-col gap-4 w-full">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                                        <CreditCard size={14} />
+                                        Payment ID: {order.payment_id}
+                                    </div>
+                                    <Link
+                                        href={`/invoice/${order.id}`}
+                                        className="text-[10px] font-bold uppercase tracking-widest text-black hover:underline flex items-center gap-1 group/btn"
+                                    >
+                                        Receipt <ExternalLink size={12} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
+                                    </Link>
                                 </div>
-                                <Link
-                                    href={`/invoice/${order.id}`}
-                                    className="text-[10px] font-bold uppercase tracking-widest text-black hover:underline flex items-center gap-1 group/btn"
-                                >
-                                    Receipt <ExternalLink size={12} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
-                                </Link>
+
+                                {order.tracking_id && (
+                                    <div className="flex items-center gap-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                                        <div className="flex-1">
+                                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-0.5">Tracking ID</p>
+                                            <p className="text-sm font-mono font-bold tracking-tight">{order.tracking_id}</p>
+                                        </div>
+                                        <div className="px-3 py-1.5 bg-black text-white text-[10px] font-bold uppercase tracking-widest rounded-full">
+                                            In Transit
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
