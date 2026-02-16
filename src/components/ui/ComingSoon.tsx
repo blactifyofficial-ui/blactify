@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { ArrowRight, X } from "lucide-react";
+import { Eye, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function ComingSoon() {
@@ -90,7 +90,7 @@ export function ComingSoon() {
                                     type="submit"
                                     className="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 bg-black text-white rounded-full flex items-center justify-center transition-transform hover:scale-105 active:scale-95 shadow-lg"
                                 >
-                                    <ArrowRight size={18} />
+                                    <Eye size={18} />
                                 </button>
                             </form>
                         )}
