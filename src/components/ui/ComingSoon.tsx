@@ -27,8 +27,8 @@ export function ComingSoon() {
 
                 {/* Logo */}
                 <div className={cn(
-                    "relative z-10 mb-2 md:mb-6 transition-opacity duration-1000 ease-in-out",
-                    isVisible ? "opacity-100" : "opacity-30"
+                    "relative z-10 mb-2 md:mb-6 transition-all duration-1000 ease-in-out",
+                    isVisible ? "opacity-100 animate-eye-glow-dark" : "opacity-30"
                 )}>
                     <Image
                         src={logoIcon}
@@ -56,7 +56,7 @@ export function ComingSoon() {
                         "text-[10px] md:text-[11px] uppercase tracking-[0.3em] font-black transition-opacity duration-1000 ease-in-out",
                         isVisible ? "text-[#333639]/60" : "text-[#333639]/10"
                     )}>
-                        KEEP IT BLACTIFY
+                        BLACTIFY | COMING SOON
                     </p>
                 </div>
             </div>
