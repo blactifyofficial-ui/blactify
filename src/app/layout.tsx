@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "blactify | coming soon",
   description: "Beyond Premium. Beyond Minimalist. Blactify is coming soon.",
   icons: {
-    icon: "/logo-v1.png",
+    icon: "/icon.png",
   },
 };
 
