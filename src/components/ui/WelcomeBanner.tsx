@@ -10,15 +10,50 @@ export default function WelcomeBanner() {
     const { applyDiscount } = useCartStore();
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            // Force show for development/testing
-            // const dismissed = localStorage.getItem("welcome-offer-dismissed");
-            // if (!dismissed) {
-            setIsOpen(true);
-            // }
-        }, 1000);
+        const checkAndShow = () => {
+            const dismissed = localStorage.getItem("welcome-offer-dismissed");
+            // Only show if not already dismissed and user has scrolled down
+            if (!dismissed && window.scrollY > 300) {
+                setIsOpen(true);
+                return true;
+            }
+            return false;
+        };
 
-        return () => clearTimeout(timer);
+        const handleScroll = () => {
+            if (checkAndShow()) {
+                window.removeEventListener("scroll", handleScroll);
+            }
+        };
+
+        // If animation has already played in this session, start listening immediately.
+        // Otherwise, wait for the animation to finish (approx 8s).
+        const animationShown = sessionStorage.getItem("welcome-animation-shown");
+        const initialDelay = animationShown ? 100 : 8000;
+
+        const timer = setTimeout(() => {
+            window.addEventListener("scroll", handleScroll);
+
+            // Check immediately in case they already scrolled
+            if (checkAndShow()) {
+                window.removeEventListener("scroll", handleScroll);
+            }
+
+            // Fallback: show after additional 15s if still not shown
+            const fallbackTimer = setTimeout(() => {
+                const dismissed = localStorage.getItem("welcome-offer-dismissed");
+                if (!dismissed) {
+                    setIsOpen(true);
+                }
+            }, 15000);
+
+            return () => clearTimeout(fallbackTimer);
+        }, initialDelay);
+
+        return () => {
+            window.removeEventListener("scroll", handleScroll);
+            clearTimeout(timer);
+        };
     }, []);
 
     const dismiss = () => {
