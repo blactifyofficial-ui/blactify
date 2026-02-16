@@ -10,6 +10,21 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-heading: "Druk Wide Bold", sans-serif;
+  --animate-eye-glow: eye-glow 2s ease-in-out infinite;
+
+  @keyframes eye-glow {
+
+    0%,
+    100% {
+      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+      opacity: 0.8;
+    }
+
+    50% {
+      filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.7));
+      opacity: 1;
+    }
+  }
 }
 
 @media (prefers-color-scheme: dark) {
