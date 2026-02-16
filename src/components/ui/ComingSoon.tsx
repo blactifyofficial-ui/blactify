@@ -1,13 +1,20 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Instagram, Twitter, Mail, ArrowRight, Minus } from "lucide-react";
+import { ArrowRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function ComingSoon() {
     const [email, setEmail] = useState("");
     const [isSubscribed, setIsSubscribed] = useState(false);
+    const [isOpening, setIsOpening] = useState(false);
+
+    useEffect(() => {
+        // Trigger entrance animation like the WelcomeAnimation component
+        const timer = setTimeout(() => setIsOpening(true), 100);
+        return () => clearTimeout(timer);
+    }, []);
 
     const handleSubscribe = (e: React.FormEvent) => {
         e.preventDefault();
@@ -17,127 +24,101 @@ export function ComingSoon() {
         }
     };
 
-    const specs = useMemo(() => [
-        { id: "01", label: "Architecture", value: "Mobile-First UX" },
-        { id: "02", label: "Aesthetic", value: "Premium Noir" },
-        { id: "03", label: "Logistics", value: "Real-time Tracking" },
-        { id: "04", label: "Integrations", value: "WhatsApp / Email" }
-    ], []);
-
     return (
-        <div className="relative min-h-screen bg-[#050505] text-white selection:bg-white selection:text-black overflow-hidden font-mono tracking-tight">
-            {/* Architectural Grid */}
-            <div className="absolute inset-0 opacity-[0.03]"
-                style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+        <div className="relative min-h-screen bg-white text-black overflow-hidden font-sans selection:bg-black selection:text-white">
+            {/* Background Branding (Motion like WelcomeAnimation) */}
+            <div className="absolute inset-0 flex items-center justify-center p-8 opacity-5">
+                <span className={cn(
+                    "font-heading text-[30vw] md:text-[40vw] leading-none tracking-tighter italic font-black transition-all duration-1000",
+                    isOpening ? "translate-y-0 opacity-10" : "translate-y-20 opacity-0"
+                )}>
+                    BLACTIFY
+                </span>
+            </div>
 
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-            <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-
-            {/* Corner Markers */}
-            <div className="absolute top-8 left-8 w-4 h-4 border-t-2 border-l-2 border-white/20" />
-            <div className="absolute top-8 right-8 w-4 h-4 border-t-2 border-r-2 border-white/20" />
-            <div className="absolute bottom-8 left-8 w-4 h-4 border-b-2 border-l-2 border-white/20" />
-            <div className="absolute bottom-8 right-8 w-4 h-4 border-b-2 border-r-2 border-white/20" />
-
-            <main className="relative z-10 min-h-screen flex flex-col md:flex-row">
-                {/* Left Section: Branding & Identity */}
-                <div className="w-full md:w-1/2 flex flex-col justify-between p-12 md:p-24 border-b md:border-b-0 md:border-r border-white/5">
-                    <div className="space-y-4">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] uppercase tracking-widest text-zinc-400">
-                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                            System Active - v1.0
-                        </div>
-                        <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.8] mb-8">
-                            BLAC<br />TIFY
-                        </h1>
-                    </div>
-
-                    <div className="space-y-12">
-                        <div className="space-y-2">
-                            <h2 className="text-3xl font-bold tracking-tighter italic uppercase">Coming Soon</h2>
-                            <p className="text-zinc-500 max-w-sm text-sm leading-relaxed">
-                                We are engineering a curated ecosystem of high-aesthetic essentials. Pre-launch sequence initiated.
-                            </p>
-                        </div>
-
-                        {/* Subscription Block */}
-                        <div className="max-w-md">
-                            {isSubscribed ? (
-                                <div className="py-6 border-t border-white/10 flex items-center justify-between text-xs transition-all animate-in fade-in slide-in-from-left-4">
-                                    <span className="uppercase tracking-widest">Awaiting Link Distribution</span>
-                                    <span className="text-zinc-500">[ ACCESS GRANTED ]</span>
-                                </div>
-                            ) : (
-                                <form onSubmit={handleSubscribe} className="group relative">
-                                    <input
-                                        type="email"
-                                        required
-                                        placeholder="Enter terminal email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full bg-transparent border-b border-white/10 py-6 text-sm uppercase tracking-widest outline-none focus:border-white transition-all placeholder:text-zinc-800"
-                                    />
-                                    <button
-                                        type="submit"
-                                        className="absolute right-0 bottom-6 text-zinc-500 hover:text-white transition-colors"
-                                    >
-                                        <ArrowRight size={20} />
-                                    </button>
-                                </form>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Right Section: Spec Sheet & Identity */}
-                <div className="w-full md:w-1/2 flex flex-col justify-between p-12 md:p-24 bg-white/[0.01]">
-                    <div className="relative aspect-square w-full max-w-[300px] mx-auto opacity-40 mix-blend-screen grayscale">
+            <main className="relative z-10 min-h-screen flex flex-col items-center justify-center p-6 text-center">
+                {/* Logo Section */}
+                <div className={cn(
+                    "mb-12 transition-all duration-1000 delay-300",
+                    isOpening ? "scale-100 opacity-100" : "scale-90 opacity-0"
+                )}>
+                    <div className="relative w-48 h-48 md:w-64 md:h-64 mx-auto mix-blend-multiply transition-transform hover:rotate-1 duration-500">
                         <Image
                             src="/logo.webp"
-                            alt="Core"
+                            alt="Blactify Logo"
                             fill
                             className="object-contain"
                             priority
                         />
                     </div>
+                </div>
 
-                    <div className="space-y-8">
-                        <div className="grid grid-cols-2 gap-x-12 gap-y-8">
-                            {specs.map((spec) => (
-                                <div key={spec.id} className="space-y-2">
-                                    <div className="flex items-center gap-2 text-[10px] text-zinc-600 uppercase tracking-widest">
-                                        <span>{spec.id}</span>
-                                        <Minus className="w-3" />
-                                        <span>{spec.label}</span>
-                                    </div>
-                                    <p className="text-xs uppercase font-bold tracking-wider">{spec.value}</p>
-                                </div>
-                            ))}
-                        </div>
+                {/* Content Overlay - Styled like WelcomeBanner.tsx */}
+                <div className={cn(
+                    "w-full max-w-xl mx-auto rounded-[48px] bg-black/5 backdrop-blur-xl border border-black/5 p-12 md:p-16 space-y-10 transition-all duration-1000 delay-500",
+                    isOpening ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
+                )}>
+                    <div className="space-y-4">
+                        <h1 className="font-heading text-6xl md:text-8xl tracking-tighter leading-[0.85] font-black italic">
+                            COMING<br />SOON
+                        </h1>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-400">
+                            The Premium Minimalist Experience
+                        </p>
+                    </div>
 
-                        <div className="flex items-center justify-between pt-12 border-t border-white/10">
-                            <div className="flex gap-6">
-                                <a href="#" className="opacity-40 hover:opacity-100 transition-opacity">
-                                    <Instagram size={18} />
-                                </a>
-                                <a href="#" className="opacity-40 hover:opacity-100 transition-opacity">
-                                    <Twitter size={18} />
-                                </a>
-                                <a href="#" className="opacity-40 hover:opacity-100 transition-opacity">
-                                    <Mail size={18} />
-                                </a>
+                    <p className="text-zinc-500 text-sm md:text-base leading-relaxed max-w-sm mx-auto">
+                        We are currently refining our curated collection of timeless essentials. Precision engineering takes time.
+                    </p>
+
+                    <div className="pt-4">
+                        {isSubscribed ? (
+                            <div className="py-6 rounded-full bg-black text-white text-[10px] font-bold uppercase tracking-widest animate-in zoom-in duration-500">
+                                You&apos;re on the list.
                             </div>
-                            <span className="text-[10px] opacity-20 uppercase tracking-[0.3em]">
-                                est. 2026
-                            </span>
+                        ) : (
+                            <form onSubmit={handleSubscribe} className="relative group">
+                                <input
+                                    type="email"
+                                    required
+                                    placeholder="ENTER EMAIL FOR EARLY ACCESS"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full bg-white/50 border border-black/10 rounded-full px-8 py-6 text-[10px] font-bold uppercase tracking-[0.2em] outline-none focus:border-black/30 transition-all placeholder:text-zinc-300"
+                                />
+                                <button
+                                    type="submit"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 bg-black text-white rounded-full flex items-center justify-center transition-transform hover:scale-105 active:scale-95 shadow-lg"
+                                >
+                                    <ArrowRight size={18} />
+                                </button>
+                            </form>
+                        )}
+                    </div>
+
+                    {/* Footer Info */}
+                    <div className="pt-8 grid grid-cols-2 gap-8 border-t border-black/5">
+                        <div className="text-left space-y-1">
+                            <span className="text-[9px] font-bold text-zinc-300 uppercase tracking-widest">Protocol</span>
+                            <p className="text-[10px] font-bold uppercase">Mobile-First UI</p>
+                        </div>
+                        <div className="text-right space-y-1">
+                            <span className="text-[9px] font-bold text-zinc-300 uppercase tracking-widest">Aesthetic</span>
+                            <p className="text-[10px] font-bold uppercase">Timeless Noir</p>
                         </div>
                     </div>
                 </div>
-            </main>
 
-            {/* Background Texture Overlay */}
-            <div className="pointer-events-none absolute inset-0 mix-blend-overlay opacity-20"
-                style={{ backgroundImage: "url('https://grainy-gradients.vercel.app/noise.svg')" }} />
+                {/* Subtitle - Like WelcomeAnimation */}
+                <div className={cn(
+                    "mt-12 transition-all duration-700 delay-1000",
+                    isOpening ? "opacity-40 translate-y-0" : "opacity-0 translate-y-4"
+                )}>
+                    <p className="text-[9px] font-bold uppercase tracking-[0.5em] text-black">
+                        Meets Timeless Essentials
+                    </p>
+                </div>
+            </main>
         </div>
     );
 }
