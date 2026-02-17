@@ -43,6 +43,8 @@ export default function ProductDetailPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [touchStart, setTouchStart] = useState<number | null>(null);
     const [touchEnd, setTouchEnd] = useState<number | null>(null);
+    const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
+    const [sizeGuideActiveSize, setSizeGuideActiveSize] = useState<string | null>(null);
 
     // Minimum swipe distance (in px)
     const minSwipeDistance = 50;
@@ -66,7 +68,7 @@ export default function ProductDetailPage() {
                 // Try fetching by ID first, then by handle
                 const { data, error } = await supabase
                     .from("products")
-                    .select("*, categories(name), product_images(*), product_variants(*)")
+                    .select("*, categories(name), product_images(*), product_variants(*, variant_measurements(*, measurement_types(*)))")
                     .or(`id.eq.${id},handle.eq.${id}`)
                     .single();
 
@@ -304,7 +306,28 @@ export default function ProductDetailPage() {
                             <div className="mb-10">
                                 <div className="flex items-center justify-between mb-4">
                                     <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Select Size</span>
-                                    <button className="text-[10px] font-bold uppercase tracking-widest text-black underline underline-offset-4">Size Guide</button>
+                                    {(() => {
+                                        const hasMeasurements = productVariants.some(v => v.variant_measurements && v.variant_measurements.length > 0);
+                                        return (
+                                            <button
+                                                disabled={!hasMeasurements}
+                                                onClick={() => setIsSizeGuideOpen(true)}
+                                                className={cn(
+                                                    "text-[10px] font-bold uppercase tracking-widest transition-all relative group",
+                                                    hasMeasurements
+                                                        ? "text-black hover:text-zinc-600 underline underline-offset-4"
+                                                        : "text-zinc-300 cursor-not-allowed opacity-50 capitalize"
+                                                )}
+                                            >
+                                                Size Guide
+                                                {!hasMeasurements && (
+                                                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1 bg-black text-white text-[9px] font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap pointer-events-none uppercase tracking-[0.2em] transform translate-y-1 group-hover:translate-y-0 shadow-xl">
+                                                        No Guide Available
+                                                    </span>
+                                                )}
+                                            </button>
+                                        );
+                                    })()}
                                 </div>
                                 <div className="flex gap-4">
                                     {sizes.map((size: string) => (
@@ -539,6 +562,98 @@ export default function ProductDetailPage() {
                                     <Send size={16} />
                                 </button>
                             </form>
+                        </div>
+                    </>
+                )}
+
+                {/* Size Guide Modal: Smooth Edition */}
+                {isSizeGuideOpen && (
+                    <>
+                        <div
+                            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md animate-in fade-in duration-1000"
+                            onClick={() => setIsSizeGuideOpen(false)}
+                        />
+                        <div
+                            className="fixed inset-x-0 bottom-0 z-[110] mx-auto w-full max-w-2xl bg-white rounded-t-[3rem] p-10 sm:p-14 shadow-[0_-40px_100px_rgba(0,0,0,0.2)] flex flex-col max-h-[90vh] border-t border-zinc-100/50 transform transition-all duration-1000 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] animate-in slide-in-from-bottom-full zoom-in-[0.98]"
+                        >
+                            {/* Decorative Handle */}
+                            <div className="w-12 h-1 bg-zinc-100 rounded-full mx-auto mb-10 shrink-0" />
+
+                            <div className="flex items-center justify-between mb-12 flex-shrink-0 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-150 fill-mode-both">
+                                <div className="space-y-1.5">
+                                    <h2 className="text-4xl font-extrabold uppercase tracking-tighter text-black leading-none">Dimensions</h2>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 bg-black rounded-full" />
+                                        <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-400">Precision Analysis Protocol</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setIsSizeGuideOpen(false)}
+                                    className="w-14 h-14 flex items-center justify-center hover:bg-black hover:text-white rounded-full transition-all duration-500 border border-zinc-100 group"
+                                >
+                                    <X size={24} className="group-hover:rotate-90 transition-transform duration-500" />
+                                </button>
+                            </div>
+
+                            <div className="overflow-x-auto pb-8 custom-scrollbar animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300 fill-mode-both">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="border-b border-zinc-100">
+                                            <th className="py-6 px-4 text-[11px] font-bold uppercase tracking-[0.25em] text-zinc-400">Ref. Size</th>
+                                            {/* Extract all measurement types across all variants */}
+                                            {Array.from(new Set(
+                                                productVariants.flatMap(v =>
+                                                    v.variant_measurements?.map(m => m.measurement_types?.name)
+                                                ).filter(Boolean)
+                                            )).map((name, i) => (
+                                                <th key={i} className="py-6 px-4 text-[11px] font-bold uppercase tracking-[0.25em] text-zinc-400 whitespace-nowrap">
+                                                    {name}
+                                                </th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-zinc-50">
+                                        {productVariants.sort((a, b) => {
+                                            const order: Record<string, number> = { 'XS': 1, 'S': 2, 'M': 3, 'L': 4, 'XL': 5, 'XXL': 6 };
+                                            return (order[a.size] || 99) - (order[b.size] || 99);
+                                        }).map((variant, idx) => (
+                                            <tr
+                                                key={variant.id}
+                                                className={cn(
+                                                    "group hover:bg-zinc-50/80 transition-all duration-500 cursor-default animate-in fade-in slide-in-from-bottom-4 fill-mode-both",
+                                                    selectedSize === variant.size && "bg-zinc-50"
+                                                )}
+                                                style={{ animationDelay: `${400 + (idx * 50)}ms`, animationDuration: '800ms' }}
+                                            >
+                                                <td className="py-8 px-4">
+                                                    <span className="text-base font-black text-black tracking-tight">{variant.size}</span>
+                                                </td>
+                                                {Array.from(new Set(
+                                                    productVariants.flatMap(v =>
+                                                        v.variant_measurements?.map(m => m.measurement_types?.name)
+                                                    ).filter(Boolean)
+                                                )).map((typeName, i) => {
+                                                    const m = variant.variant_measurements?.find(vm => vm.measurement_types?.name === typeName);
+                                                    return (
+                                                        <td key={i} className="py-8 px-4">
+                                                            <div className="space-y-1">
+                                                                <span className="text-base font-medium text-zinc-600 group-hover:text-black group-hover:font-bold transition-all duration-300">
+                                                                    {m?.value || "-"}
+                                                                </span>
+                                                                <div className="h-0.5 w-0 bg-black group-hover:w-4 transition-all duration-500" />
+                                                            </div>
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <p className="mt-6 text-[10px] font-bold uppercase tracking-widest text-zinc-400 italic text-center">
+                                * All measurements are in inches unless otherwise specified.
+                            </p>
                         </div>
                     </>
                 )}

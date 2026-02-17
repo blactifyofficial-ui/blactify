@@ -32,6 +32,15 @@ export interface ProductVariant {
     price_override?: number;
     sku?: string;
     created_at?: string;
+    variant_measurements?: VariantMeasurement[];
+}
+
+export interface VariantMeasurement {
+    id: string;
+    variant_id: string;
+    measurement_type_id: string;
+    value: string;
+    measurement_types?: MeasurementType;
 }
 
 export interface Product {

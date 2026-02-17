@@ -31,6 +31,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
     const [trackingId, setTrackingId] = useState("");
+    const [itemMeasurements, setItemMeasurements] = useState<Record<string, any>>({});
 
     useEffect(() => {
         async function fetchOrder() {
@@ -53,6 +54,47 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
 
         fetchOrder();
     }, [id]);
+
+    useEffect(() => {
+        if (!order?.items) return;
+
+        async function fetchMeasurements() {
+            try {
+                const measurementsMap: Record<string, any> = {};
+
+                for (const item of order.items) {
+                    if (!item.id || !item.size) continue;
+
+                    const key = `${item.id}-${item.size}`;
+                    if (measurementsMap[key]) continue;
+
+                    const { data: variant } = await supabase
+                        .from('product_variants')
+                        .select(`
+                            id,
+                            variant_measurements (
+                                value,
+                                measurement_types (
+                                    name
+                                )
+                            )
+                        `)
+                        .eq('product_id', item.id)
+                        .eq('size', item.size)
+                        .maybeSingle();
+
+                    if (variant?.variant_measurements) {
+                        measurementsMap[key] = variant.variant_measurements;
+                    }
+                }
+                setItemMeasurements(measurementsMap);
+            } catch (err) {
+                // Fail silently
+            }
+        }
+
+        fetchMeasurements();
+    }, [order]);
 
     const handleUpdateStatus = async (newStatus: string) => {
         setUpdating(true);
@@ -93,6 +135,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
         }
     };
 
+
     const getStatusIcon = (status: string) => {
         switch (status?.toLowerCase()) {
             case 'paid': return CreditCard;
@@ -123,6 +166,13 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
     }
 
     const StatusIcon = getStatusIcon(order.status);
+
+    const itemsSubtotal = order.items?.reduce((acc: number, item: any) => {
+        const price = item.price || item.price_offer || item.price_base || 0;
+        return acc + (price * item.quantity);
+    }, 0) || 0;
+
+    const shippingCharge = order.amount - itemsSubtotal;
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20 font-inter">
@@ -194,12 +244,31 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                                         </div>
                                         <div>
                                             <h4 className="font-semibold text-base">{item.name}</h4>
-                                            <p className="text-xs text-zinc-400 font-medium italic">Quantity: {item.quantity}</p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-xs text-zinc-400 font-medium italic">Quantity: {item.quantity}</p>
+                                                {item.size && (
+                                                    <>
+                                                        <span className="text-zinc-100 font-light mx-1">|</span>
+                                                        <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider italic">Size: {item.size}</p>
+                                                    </>
+                                                )}
+                                            </div>
+                                            {/* Variant Measurements */}
+                                            {item.size && itemMeasurements[`${item.id}-${item.size}`] && (
+                                                <div className="mt-2 flex flex-wrap gap-2">
+                                                    {itemMeasurements[`${item.id}-${item.size}`].map((m: any, i: number) => (
+                                                        <div key={i} className="px-2 py-1 bg-zinc-50 border border-zinc-100 rounded-lg flex flex-col items-start min-w-[60px]">
+                                                            <span className="text-[7px] font-bold uppercase tracking-widest text-zinc-400">{m.measurement_types?.name}</span>
+                                                            <span className="text-[10px] font-bold text-black">{m.value}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-bold">₹{item.price * item.quantity}</p>
-                                        <p className="text-[10px] text-zinc-400 font-medium italic">₹{item.price} each</p>
+                                        <p className="font-bold">₹{((item.price || item.price_offer || item.price_base || 0) * item.quantity).toLocaleString('en-IN')}</p>
+                                        <p className="text-[10px] text-zinc-400 font-medium italic">₹{(item.price || item.price_offer || item.price_base || 0).toLocaleString('en-IN')} each</p>
                                     </div>
                                 </div>
                             ))}
@@ -207,15 +276,19 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                         <div className="bg-zinc-50/30 p-6 space-y-3">
                             <div className="flex justify-between text-sm">
                                 <span className="text-zinc-500 font-medium italic">Subtotal</span>
-                                <span className="font-bold">₹{order.amount}</span>
+                                <span className="font-bold">₹{itemsSubtotal.toLocaleString('en-IN')}</span>
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span className="text-zinc-500 font-medium italic">Shipping</span>
-                                <span className="text-green-600 font-bold uppercase tracking-widest text-[10px]">Free</span>
+                                {shippingCharge > 0 ? (
+                                    <span className="font-bold">₹{shippingCharge.toLocaleString('en-IN')}</span>
+                                ) : (
+                                    <span className="text-green-600 font-bold uppercase tracking-widest text-[10px]">Free</span>
+                                )}
                             </div>
                             <div className="flex justify-between pt-3 border-t border-zinc-100">
                                 <span className="text-lg font-bold">Total Amount</span>
-                                <span className="text-2xl font-extrabold">₹{order.amount}</span>
+                                <span className="text-2xl font-extrabold">₹{order.amount.toLocaleString('en-IN')}</span>
                             </div>
                         </div>
                     </div>
@@ -223,7 +296,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                     {/* Shipping Address & Tracking */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="bg-white rounded-3xl border border-zinc-100 overflow-hidden shadow-sm h-full">
-                            <div className="bg-zinc-50/50 px-6 py-4 border-b border-zinc-100">
+                            <div className="bg-zinc-50/50 px-6 py-4 border-b border-zinc-100 flex items-center justify-between">
                                 <h3 className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
                                     <MapPin size={16} />
                                     Shipping Address
@@ -232,8 +305,14 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                             <div className="p-6">
                                 <p className="text-lg font-bold mb-2">{order.customer_details?.name}</p>
                                 <p className="text-zinc-500 text-sm font-medium italic leading-relaxed max-w-sm">
-                                    {order.shipping_address?.address},<br />
-                                    {order.shipping_address?.city}, {order.shipping_address?.state} - {order.shipping_address?.pincode}
+                                    {order.shipping_address?.address}
+                                    {order.shipping_address?.apartment && <>, {order.shipping_address.apartment}</>},<br />
+                                    {order.shipping_address?.city}
+                                    {order.shipping_address?.district && <>, {order.shipping_address.district}</>}, {order.shipping_address?.state} - {order.shipping_address?.pincode}
+                                </p>
+                                <p className="mt-4 text-sm font-bold flex items-center gap-2">
+                                    <Phone size={14} className="text-zinc-400" />
+                                    {order.customer_details?.phone}
                                 </p>
                             </div>
                         </div>

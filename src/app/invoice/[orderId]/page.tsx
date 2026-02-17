@@ -168,6 +168,7 @@ export default function InvoicePage() {
                             order.shipping_address.apartment,
                             order.shipping_address.address,
                             order.shipping_address.city,
+                            order.shipping_address.district,
                             order.shipping_address.state,
                             order.shipping_address.pincode
                         ].filter(Boolean).join("\n")}</p>
@@ -338,6 +339,6 @@ export default function InvoicePage() {
                     .md\\:hidden { display: none !important; }
                 }
             `}</style>
-        </div>
+        </div >
     );
 }
