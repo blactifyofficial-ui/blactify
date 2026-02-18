@@ -82,6 +82,8 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
         fetchCategories();
         if (isEditing && productId) {
             fetchProduct();
+        } else if (!isEditing) {
+            generateNextId();
         }
     }, [isEditing, productId]);
 
@@ -388,10 +390,9 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                 }
             }
 
-            const newId = `p - ${String(nextNumber).padStart(3, '0')} `;
+            const newId = `p-${String(nextNumber).padStart(3, '0')}`;
             setFormData(prev => ({ ...prev, id: newId }));
             if (errors.id) setErrors(prev => ({ ...prev, id: "" }));
-            toast.success(`Suggested ID: ${newId} `);
         } catch (err) {
 
             toast.error("Failed to generate ID");
@@ -577,18 +578,9 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                                 setFormData({ ...formData, id: e.target.value });
                                                 if (errors.id) setErrors(prev => ({ ...prev, id: "" }));
                                             }}
-                                            className={`w - full pl - 12 pr - 6 py - 4 bg - zinc - 50 / 50 border ${errors.id ? 'border-red-400' : 'border-zinc-100'} rounded - 2xl text - sm focus: bg - white focus: outline - none focus: ring - 2 focus: ring - black / 5 transition - all uppercase font - semibold`}
+                                            className={`w-full pl-12 pr-6 py-4 bg-zinc-50/50 border ${errors.id ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all uppercase font-semibold`}
                                         />
                                     </div>
-                                    <button
-                                        type="button"
-                                        onClick={generateNextId}
-                                        className="px-4 bg-zinc-50 text-zinc-400 border border-zinc-100 rounded-2xl hover:bg-zinc-100 transition-all active:scale-95 flex items-center gap-2 group"
-                                        title="Generate next ID"
-                                    >
-                                        <Sparkles size={16} className="group-hover:text-black transition-colors" />
-                                        <span className="text-[10px] font-bold uppercase tracking-widest hidden sm:inline">Generate</span>
-                                    </button>
                                 </div>
                                 {errors.id && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.id}</p>}
                             </label>
