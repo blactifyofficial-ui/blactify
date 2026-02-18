@@ -55,6 +55,24 @@ export default function AdminReportsPage() {
         return acc;
     }, {});
 
+    // Calculate Top Performing Assets from actual orders
+    const productSales = orders.reduce((acc: any, order) => {
+        const items = order.items || [];
+        items.forEach((item: any) => {
+            const name = item.name || "Unknown Product";
+            acc[name] = (acc[name] || 0) + (Number(item.quantity) || 1);
+        });
+        return acc;
+    }, {});
+
+    const topPerformingProducts = Object.entries(productSales)
+        .map(([name, sales]: [string, any]) => ({ name, sales }))
+        .sort((a, b) => b.sales - a.sales)
+        .slice(0, 3);
+
+    // Calculate growth trend (simple placeholder for now as we don't have historical comparisons yet)
+    const getTrend = (name: string) => "+0%"; // Logic for real trend would require comparing date ranges
+
     if (loading) return <AdminLoading message="Synthesizing longitudinal fiscal reports..." />;
 
     return (
@@ -160,29 +178,32 @@ export default function AdminReportsPage() {
                 <div className="lg:col-span-2">
                     <AdminCard title="Protocol Velocity" icon={<TrendingUp size={18} />} subtitle="Top Performing Assets" className="h-full">
                         <div className="space-y-5">
-                            {[
-                                { name: "Aesthetic Core v1", sales: 124, trend: "+12%" },
-                                { name: "Monolith Structure", sales: 89, trend: "+8%" },
-                                { name: "Quantum Surface", sales: 72, trend: "-2%" },
-                            ].map((product, i) => (
-                                <div key={i} className="flex items-center justify-between p-5 bg-zinc-50 border border-zinc-100 rounded-2xl hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all duration-500 group/item">
-                                    <div className="flex items-center gap-5">
-                                        <div className="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center text-xs font-black shadow-lg">
-                                            {i + 1}
+                            {topPerformingProducts.length > 0 ? (
+                                topPerformingProducts.map((product, i) => (
+                                    <div key={i} className="flex items-center justify-between p-5 bg-zinc-50 border border-zinc-100 rounded-2xl hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all duration-500 group/item">
+                                        <div className="flex items-center gap-5">
+                                            <div className="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center text-xs font-black shadow-lg">
+                                                {i + 1}
+                                            </div>
+                                            <div className="space-y-0.5">
+                                                <p className="text-[11px] font-black uppercase tracking-widest text-black group-hover/item:translate-x-1 transition-transform">{product.name}</p>
+                                                <p className="text-[9px] text-zinc-400 font-black uppercase tracking-widest">{product.sales} Deployments</p>
+                                            </div>
                                         </div>
-                                        <div className="space-y-0.5">
-                                            <p className="text-[11px] font-black uppercase tracking-widest text-black group-hover/item:translate-x-1 transition-transform">{product.name}</p>
-                                            <p className="text-[9px] text-zinc-400 font-black uppercase tracking-widest">{product.sales} Deployments</p>
+                                        <div className={cn(
+                                            "text-[9px] font-black px-2.5 py-1 rounded-full border shadow-sm",
+                                            getTrend(product.name).startsWith("+") ? "bg-green-50 text-green-700 border-green-100" : "bg-red-50 text-red-700 border-red-100"
+                                        )}>
+                                            {getTrend(product.name)}
                                         </div>
                                     </div>
-                                    <div className={cn(
-                                        "text-[9px] font-black px-2.5 py-1 rounded-full border shadow-sm",
-                                        product.trend.startsWith("+") ? "bg-green-50 text-green-700 border-green-100" : "bg-red-50 text-red-700 border-red-100"
-                                    )}>
-                                        {product.trend}
-                                    </div>
+                                ))
+                            ) : (
+                                <div className="py-12 text-center">
+                                    <Activity className="mx-auto text-zinc-100 mb-4 animate-pulse" size={48} />
+                                    <p className="text-[9px] text-zinc-300 font-black uppercase tracking-widest">No deployments logged yet.</p>
                                 </div>
-                            ))}
+                            )}
                             <div className="mt-8 pt-8 border-t border-zinc-50 text-center">
                                 <Activity size={32} className="mx-auto text-zinc-100 mb-4 animate-pulse" />
                                 <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] italic leading-loose px-4">
