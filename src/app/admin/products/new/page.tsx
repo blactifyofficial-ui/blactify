@@ -522,7 +522,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                         setFormData({ ...formData, category_id: e.target.value });
                                         if (errors.category_id) setErrors(prev => ({ ...prev, category_id: "" }));
                                     }}
-                                    className={`w-full pl-12 pr-10 py-4 bg-zinc-50/50 border ${errors.category_id ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all cursor-pointer font-medium appearance-none`}
+                                    className={`w-full pl-12 pr-10 py-4 bg-zinc-50 border ${errors.category_id ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all cursor-pointer font-medium appearance-none`}
                                 >
                                     <option value="">Select Category</option>
                                     {categories.map((cat) => (
@@ -557,7 +557,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                         setFormData({ ...formData, name: e.target.value });
                                         if (errors.name) setErrors(prev => ({ ...prev, name: "" }));
                                     }}
-                                    className={`w-full pl-12 pr-6 py-4 bg-zinc-50/50 border ${errors.name ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-normal`}
+                                    className={`w-full pl-12 pr-6 py-4 bg-zinc-50 border ${errors.name ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-normal placeholder:text-zinc-400`}
                                 />
                                 {errors.name && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.name}</p>}
                             </div>
@@ -578,7 +578,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                                 setFormData({ ...formData, id: e.target.value });
                                                 if (errors.id) setErrors(prev => ({ ...prev, id: "" }));
                                             }}
-                                            className={`w-full pl-12 pr-6 py-4 bg-zinc-50/50 border ${errors.id ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all uppercase font-semibold`}
+                                            className={`w-full pl-12 pr-6 py-4 bg-zinc-50 border ${errors.id ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all uppercase font-semibold placeholder:text-zinc-400`}
                                         />
                                     </div>
                                 </div>
@@ -599,7 +599,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                         setFormData({ ...formData, price_base: e.target.value });
                                         if (errors.price_base) setErrors(prev => ({ ...prev, price_base: "" }));
                                     }}
-                                    className={`w-full pl-12 pr-6 py-4 bg-zinc-50/50 border ${errors.price_base ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-bold`}
+                                    className={`w-full pl-12 pr-6 py-4 bg-zinc-50 border ${errors.price_base ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-bold placeholder:text-zinc-400`}
                                 />
                                 {errors.price_base && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.price_base}</p>}
                             </div>
@@ -614,7 +614,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                     placeholder="Optional"
                                     value={formData.price_offer}
                                     onChange={(e) => setFormData({ ...formData, price_offer: e.target.value })}
-                                    className="w-full pl-12 pr-6 py-4 bg-zinc-50/50 border border-zinc-100 rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-bold text-green-600"
+                                    className="w-full pl-12 pr-6 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-bold text-green-600 placeholder:text-zinc-400"
                                 />
                             </div>
                         </label>
@@ -629,7 +629,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                     setFormData({ ...formData, handle: e.target.value });
                                     if (errors.handle) setErrors(prev => ({ ...prev, handle: "" }));
                                 }}
-                                className={`w-full px-6 py-4 bg-zinc-50/50 border ${errors.handle ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-normal`}
+                                className={`w-full px-6 py-4 bg-zinc-50 border ${errors.handle ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-normal placeholder:text-zinc-400`}
                             />
                             {errors.handle && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.handle}</p>}
                         </label>
@@ -642,7 +642,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                             placeholder="Enter short description..."
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            className="w-full px-6 py-4 bg-zinc-50/50 border border-zinc-100 rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-normal"
+                            className="w-full px-6 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-normal placeholder:text-zinc-400"
                         />
                     </label>
                 </div>

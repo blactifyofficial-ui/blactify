@@ -6,7 +6,7 @@ import { ChevronDown, ChevronUp, ShoppingBag, ArrowLeft, Smartphone, ShieldCheck
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useAuth } from "@/store/AuthContext";
 import { loadRazorpay } from "@/lib/razorpay";
 import { saveOrder } from "@/lib/order-sync";
@@ -34,7 +34,7 @@ function SafeImage({ src, alt, ...props }: any) {
     );
 }
 
-export default function CheckoutPage() {
+function CheckoutContent() {
     const { items, getSubtotal, getTotalPrice, getShippingCharge, clearCart, removeItem, discountCode, applyDiscount, removeDiscount } = useCartStore();
     const router = useRouter();
     const { user } = useAuth();
@@ -912,5 +912,13 @@ export default function CheckoutPage() {
                 </div>
             </div>
         </div >
+    );
+}
+
+export default function CheckoutPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin"></div></div>}>
+            <CheckoutContent />
+        </Suspense>
     );
 }
