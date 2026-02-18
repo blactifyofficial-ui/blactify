@@ -69,7 +69,8 @@ export default function ImageCropper({ image, onCrop, onCancel, aspectRatio = 1 
                             autoCropArea={1}
                             background={false}
                             responsive={true}
-                            checkOrientation={false}
+                            checkOrientation={true}
+                            checkCrossOrigin={true}
                         />
                     </div>
 

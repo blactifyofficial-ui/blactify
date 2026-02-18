@@ -21,7 +21,8 @@ import {
     Loader2,
     Sparkles,
     Plus,
-    Trash2
+    Trash2,
+    Crop
 } from "lucide-react";
 import ImageCropper from "@/components/admin/ImageCropper";
 
@@ -262,6 +263,12 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
             };
             reader.readAsDataURL(file);
         }
+    };
+
+    const handleRecrop = (url: string, field: string) => {
+        if (!url) return;
+        setCroppingImage(url);
+        setCroppingField(field);
     };
 
     const handleCropComplete = async (croppedImageData: string) => {
@@ -829,16 +836,29 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                             {img.label}
                                         </div>
                                         {formData[img.key] && !uploading && (
-                                            <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setFormData({ ...formData, [img.key]: "" });
-                                                }}
-                                                className="absolute top-1 right-1 w-6 h-6 bg-white shadow-lg rounded-full flex items-center justify-center text-red-500 md:opacity-0 md:group-hover:opacity-100 transition-all z-10"
-                                            >
-                                                <X size={12} />
-                                            </button>
+                                            <div className="absolute top-1 right-1 flex flex-col gap-1 z-10 md:opacity-0 md:group-hover:opacity-100 transition-all">
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setFormData({ ...formData, [img.key]: "" });
+                                                    }}
+                                                    className="w-6 h-6 bg-white shadow-lg rounded-full flex items-center justify-center text-red-500"
+                                                >
+                                                    <X size={12} />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleRecrop(formData[img.key] as string, img.key);
+                                                    }}
+                                                    className="w-6 h-6 bg-white shadow-lg rounded-full flex items-center justify-center text-black"
+                                                    title="Recrop image"
+                                                >
+                                                    <Crop size={12} />
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
                                     <input
