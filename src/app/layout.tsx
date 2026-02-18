@@ -1,5 +1,7 @@
+import type { Metadata } from "next";
 import { Inter, Outfit, Space_Grotesk } from "next/font/google";
-import { AppLayout } from "@/components/layout/AppLayout";
+import { Toaster } from "sonner";
+import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
@@ -16,8 +18,6 @@ export const metadata: Metadata = {
   },
 };
 
-import { Toaster } from "sonner";
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,7 +27,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} ${outfit.variable} ${spaceGrotesk.variable} font-sans antialiased text-black`}>
         <Toaster position="top-center" richColors />
-        <AppLayout>{children}</AppLayout>
+        {children}
       </body>
     </html>
   );
