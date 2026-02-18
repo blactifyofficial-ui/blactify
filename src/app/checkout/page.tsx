@@ -14,6 +14,7 @@ import { markWelcomeDiscountUsed } from "@/lib/profile-sync";
 import { Tag } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { getStoreSettings } from "@/app/actions/settings";
 
 // Helper component for robust image fallbacks
 function SafeImage({ src, alt, ...props }: any) {
@@ -42,6 +43,8 @@ export default function CheckoutPage() {
     const [showOrderSummary, setShowOrderSummary] = useState(false);
     const [discountInput, setDiscountInput] = useState("");
     const [stockErrors, setStockErrors] = useState<Record<string, string>>({});
+    const [storeEnabled, setStoreEnabled] = useState(true);
+    const [checkingStore, setCheckingStore] = useState(true);
 
     const searchParams = useSearchParams();
     const isDirect = searchParams.get("direct") === "true";
@@ -100,6 +103,14 @@ export default function CheckoutPage() {
         if (user?.email) {
             setFormData(prev => ({ ...prev, email: user.email! }));
         }
+
+        // Check store status
+        getStoreSettings().then(settings => {
+            if (settings) {
+                setStoreEnabled(settings.purchases_enabled);
+            }
+            setCheckingStore(false);
+        });
     }, [user]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -337,6 +348,32 @@ export default function CheckoutPage() {
     };
 
     if (!isMounted) return null;
+
+    if (checkingStore) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-white">
+                <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
+
+    if (!storeEnabled) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-white">
+                <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mb-6">
+                    <ShoppingBag className="text-zinc-400" size={24} />
+                </div>
+                <h1 className="text-xl font-medium mb-4 text-zinc-900 uppercase">Store is currently paused</h1>
+                <p className="text-zinc-500 mb-8 max-w-md text-sm leading-relaxed">
+                    We are currently updating our inventory or performing maintenance.
+                    Please check back later to complete your purchase.
+                </p>
+                <Link href="/" className="bg-black text-white px-10 py-4 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-800 transition-all active:scale-95">
+                    Return to Home
+                </Link>
+            </div>
+        );
+    }
 
     if (!user) {
         return (

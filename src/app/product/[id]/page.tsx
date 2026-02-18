@@ -12,6 +12,7 @@ import { fetchReviews, postReview } from "@/lib/review-sync";
 import { type Product } from "@/components/ui/ProductCard";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { getStoreSettings } from "@/app/actions/settings";
 
 interface Review {
     id: string;
@@ -45,6 +46,15 @@ export default function ProductDetailPage() {
     const [touchEnd, setTouchEnd] = useState<number | null>(null);
     const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
     const [sizeGuideActiveSize, setSizeGuideActiveSize] = useState<string | null>(null);
+    const [storeEnabled, setStoreEnabled] = useState(true);
+
+    useEffect(() => {
+        getStoreSettings().then(settings => {
+            if (settings) {
+                setStoreEnabled(settings.purchases_enabled);
+            }
+        });
+    }, []);
 
     // Minimum swipe distance (in px)
     const minSwipeDistance = 50;
@@ -150,7 +160,7 @@ export default function ProductDetailPage() {
         : (product.stock ?? 0);
 
     return (
-        <main className="min-h-screen bg-white text-black pb-24 font-inter">
+        <main className="min-h-screen bg-white text-black pb-48 lg:pb-24 font-inter">
             <div className="max-w-7xl mx-auto">
                 {/* Breadcrumbs */}
                 <nav className="px-6 py-6 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
@@ -357,63 +367,75 @@ export default function ProductDetailPage() {
                             </div>
                         )}
 
-                        <div className="flex flex-col gap-3">
-                            <button
-                                onClick={async () => {
-                                    if (!user) {
-                                        window.dispatchEvent(new CustomEvent("open-auth-modal"));
-                                        return;
-                                    }
-                                    if (!isNoSize && !selectedSize) {
-                                        toast.error("Please select a size !");
-                                        return;
-                                    }
-                                    await addItem(product, selectedSize || undefined);
-                                }}
-                                disabled={currentStock <= 0}
-                                className={cn(
-                                    "w-full h-16 rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all",
-                                    currentStock <= 0
-                                        ? "bg-zinc-100 text-zinc-400 cursor-not-allowed"
-                                        : "bg-black text-white shadow-2xl shadow-black/10"
-                                )}
-                            >
-                                <ShoppingBag size={18} />
-                                {currentStock <= 0 ? "Unavailable" : "Add to Bag"}
-                            </button>
-                            <button
-                                onClick={async () => {
-                                    if (!user) {
-                                        window.dispatchEvent(new CustomEvent("open-auth-modal"));
-                                        return;
-                                    }
-                                    if (!isNoSize && !selectedSize) {
-                                        toast.error("Please select a size first");
-                                        return;
-                                    }
+                        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-zinc-100 z-50 lg:static lg:p-0 lg:bg-transparent lg:border-0 lg:z-auto flex flex-col gap-3">
+                            {storeEnabled && (
+                                <button
+                                    onClick={async () => {
+                                        if (!user) {
+                                            window.dispatchEvent(new CustomEvent("open-auth-modal"));
+                                            return;
+                                        }
+                                        if (!isNoSize && !selectedSize) {
+                                            toast.error("Please select a size first");
+                                            return;
+                                        }
+                                        await addItem(product, selectedSize || undefined);
+                                    }}
+                                    disabled={currentStock <= 0}
+                                    className={cn(
+                                        "w-full h-16 rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all",
+                                        currentStock <= 0
+                                            ? "bg-zinc-100 text-zinc-400 cursor-not-allowed"
+                                            : "bg-black text-white shadow-2xl shadow-black/10"
+                                    )}
+                                >
+                                    <ShoppingBag size={18} />
+                                    {currentStock <= 0 ? "Unavailable" : "Add to Bag"}
+                                </button>
+                            )}
 
-                                    // Direct Checkout Flow: Store in sessionStorage and redirect
-                                    const directItem = {
-                                        ...product,
-                                        quantity: 1,
-                                        size: selectedSize || undefined,
-                                        cartId: `direct-${product.id}-${selectedSize || 'no-size'}`
-                                    };
+                            {!storeEnabled ? (
+                                <div className="w-full h-16 rounded-full bg-zinc-100 flex flex-col items-center justify-center text-center px-4">
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-2">
+                                        <ShieldCheck size={14} />
+                                        Store is currently paused
+                                    </span>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={async () => {
+                                        if (!user) {
+                                            window.dispatchEvent(new CustomEvent("open-auth-modal"));
+                                            return;
+                                        }
+                                        if (!isNoSize && !selectedSize) {
+                                            toast.error("Please select a size first");
+                                            return;
+                                        }
 
-                                    sessionStorage.setItem("direct-checkout-item", JSON.stringify(directItem));
-                                    router.push("/checkout?direct=true");
-                                }}
-                                disabled={currentStock <= 0}
-                                className={cn(
-                                    "w-full h-16 rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all",
-                                    currentStock <= 0
-                                        ? "hidden"
-                                        : "bg-white text-black border border-zinc-200"
-                                )}
-                            >
-                                Buy Now
-                                <ArrowRight size={18} />
-                            </button>
+                                        // Direct Checkout Flow: Store in sessionStorage and redirect
+                                        const directItem = {
+                                            ...product,
+                                            quantity: 1,
+                                            size: selectedSize || undefined,
+                                            cartId: `direct-${product.id}-${selectedSize || 'no-size'}`
+                                        };
+
+                                        sessionStorage.setItem("direct-checkout-item", JSON.stringify(directItem));
+                                        router.push("/checkout?direct=true");
+                                    }}
+                                    disabled={currentStock <= 0}
+                                    className={cn(
+                                        "w-full h-16 rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all",
+                                        currentStock <= 0
+                                            ? "hidden"
+                                            : "bg-white text-black border border-zinc-200"
+                                    )}
+                                >
+                                    Buy Now
+                                    <ArrowRight size={18} />
+                                </button>
+                            )}
                         </div>
 
                         {/* Features Grid - Inside details for desktop layout if preferred, or outside below */}
