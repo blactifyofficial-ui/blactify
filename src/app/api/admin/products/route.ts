@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { deleteFromCloudinary } from "@/lib/cloudinary";
 
 export async function POST(request: Request) {
     try {
@@ -143,6 +144,8 @@ export async function PUT(request: Request) {
 
         // 3. Handle Images
         if (images) {
+            // Before deleting images from DB, we should technically handle Cloudinary deletion for removed images.
+            // For now, let's focus on the absolute deletion of a product.
             await supabaseAdmin.from("product_images").delete().eq("product_id", id);
             if (images.length > 0) {
                 const { error: imageError } = await supabaseAdmin
@@ -166,6 +169,18 @@ export async function DELETE(request: Request) {
 
         if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
 
+        // 1. Fetch images to delete from Cloudinary
+        const { data: images } = await supabaseAdmin
+            .from("product_images")
+            .select("url")
+            .eq("product_id", id);
+
+        if (images && images.length > 0) {
+            // Parallely delete images from Cloudinary
+            await Promise.allSettled(images.map(img => deleteFromCloudinary(img.url)));
+        }
+
+        // 2. Delete the product (cascades or manual deletion of variants handled by DB schema usually)
         const { error } = await supabaseAdmin.from("products").delete().eq("id", id);
         if (error) throw error;
 
