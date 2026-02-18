@@ -57,16 +57,21 @@ export async function saveOrder(orderData: {
     };
 
     try {
+        console.log("Starting saveOrder for ID:", orderData.razorpay_order_id);
         // 1. Try to decrement stock first as an atomic operation
         // This acts as a final check and reservation
         await decrementStockSecure(orderData.items as any[]);
+        console.log("Stock decrement successful for ID:", orderData.razorpay_order_id);
 
         // 2. If stock decrement was successful, save the order
-        const { error } = await supabaseAdmin
+        const orderIdToSave = orderData.razorpay_order_id || `order_${Date.now()}`;
+        console.log("Inserting order into DB with ID:", orderIdToSave);
+
+        const { data: savedData, error } = await supabaseAdmin
             .from("orders")
             .insert([
                 {
-                    id: orderData.razorpay_order_id || `order_${Date.now()}`, // Using order_id as PK as per schema
+                    id: orderIdToSave,
                     payment_id: orderData.razorpay_payment_id,
                     user_id: orderData.user_id,
                     items: orderData.items,
@@ -76,16 +81,23 @@ export async function saveOrder(orderData: {
                     customer_details: orderData.customer_details,
                     status: orderData.status,
                 },
-            ]);
+            ])
+            .select();
 
         if (error) {
-            console.error("Order save error:", error);
-            return { success: false, error: { message: "Failed to save order details." } };
+            console.error("Order save error details:", {
+                message: error.message,
+                details: error.details,
+                hint: error.hint,
+                code: error.code
+            });
+            return { success: false, error: { message: "Failed to save order details.", technical: error.message } };
         }
 
+        console.log("Order saved successfully in DB:", savedData?.[0]?.id);
         return { success: true };
     } catch (err: any) {
-
+        console.error("Critical error in saveOrder:", err.message);
 
         let userMessage = "An unexpected error occurred during checkout. Please try again.";
         const techMessage = err.message || "";
@@ -105,6 +117,7 @@ export async function saveOrder(orderData: {
 }
 
 export async function getOrder(orderId: string) {
+    console.log("Fetching order details for ID:", orderId);
     try {
         const { data, error } = await supabaseAdmin
             .from("orders")
@@ -112,10 +125,19 @@ export async function getOrder(orderId: string) {
             .eq("id", orderId)
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error("Fetch order error details:", {
+                message: error.message,
+                details: error.details,
+                code: error.code
+            });
+            throw error;
+        }
+
+        console.log("Order fetched successfully:", data?.id);
         return { success: true, order: data };
     } catch (err: any) {
-        console.error("Fetch order error:", err);
+        console.error("Fetch order error:", err.message);
         return { success: false, error: err.message };
     }
 }
