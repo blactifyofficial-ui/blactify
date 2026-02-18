@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 interface HeroProps {
-    title: string;
+    title: string | React.ReactNode;
     subtitle?: string;
     images: string[];
     ctaText?: string;
@@ -82,7 +82,7 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
                 >
                     <Image
                         src={img}
-                        alt={title}
+                        alt={typeof title === 'string' ? title : "Hero Image"}
                         fill
                         sizes="100vw"
                         className="object-cover"

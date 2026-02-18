@@ -33,7 +33,7 @@ export default function Home() {
   return (
     <main className="flex flex-col">
       <Hero
-        title="Meet Timeless Essentials"
+        title={<>Meet Timeless <br className="hidden md:block" /> Essentials</>}
         images={products.slice(0, 3).map(p => p.product_images?.[0]?.url || p.main_image || "/placeholder-product.jpg")}
         ctaText="Shop Now"
         ctaLink="/shop"
