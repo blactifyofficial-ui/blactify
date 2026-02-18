@@ -9,6 +9,14 @@ export const metadata: Metadata = {
         index: false,
         follow: false,
     },
+    appleWebApp: {
+        capable: true,
+        statusBarStyle: "default",
+        title: "Blactify Admin",
+    },
+    icons: {
+        apple: "/logo.png",
+    }
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
