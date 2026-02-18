@@ -614,7 +614,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                     placeholder="Optional"
                                     value={formData.price_offer}
                                     onChange={(e) => setFormData({ ...formData, price_offer: e.target.value })}
-                                    className="w-full pl-12 pr-6 py-4 bg-zinc-50/50 border border-zinc-100 rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-bold text-green-600"
+                                    className="w-full pl-12 pr-6 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-bold text-green-600 placeholder:text-zinc-400"
                                 />
                             </div>
                         </label>
@@ -629,7 +629,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                     setFormData({ ...formData, handle: e.target.value });
                                     if (errors.handle) setErrors(prev => ({ ...prev, handle: "" }));
                                 }}
-                                className={`w-full px-6 py-4 bg-zinc-50/50 border ${errors.handle ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-normal`}
+                                className={`w-full px-6 py-4 bg-zinc-50 border ${errors.handle ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-normal placeholder:text-zinc-400`}
                             />
                             {errors.handle && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.handle}</p>}
                         </label>
@@ -642,7 +642,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                             placeholder="Enter short description..."
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            className="w-full px-6 py-4 bg-zinc-50/50 border border-zinc-100 rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-normal"
+                            className="w-full px-6 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-normal placeholder:text-zinc-400"
                         />
                     </label>
                 </div>
