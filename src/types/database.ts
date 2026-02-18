@@ -75,6 +75,7 @@ export interface CustomerDetails {
     name: string;
     email: string;
     phone: string;
+    secondary_phone?: string;
 }
 
 export interface ShippingAddress {
@@ -84,6 +85,8 @@ export interface ShippingAddress {
     state: string;
     pincode: string;
     district?: string;
+    firstName?: string;
+    lastName?: string;
 }
 
 export interface Order {
@@ -96,6 +99,7 @@ export interface Order {
     status: 'paid' | 'processing' | 'shipped' | 'delivered' | 'failed';
     shipping_address: ShippingAddress;
     customer_details: CustomerDetails;
+    payment_details?: any;
     tracking_id?: string;
     created_at: string;
     order_items?: OrderItem[];

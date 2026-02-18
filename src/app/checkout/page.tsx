@@ -277,12 +277,19 @@ function CheckoutContent() {
                             currency: "INR",
                             items: activeItems,
                             status: "paid",
-                            shipping_address: formData,
+                            shipping_address: formData, // Snapshot of full address
                             customer_details: {
                                 name: `${formData.firstName} ${formData.lastName}`.trim(),
                                 email: formData.email,
                                 phone: formData.phone,
                                 secondary_phone: formData.secondaryPhone
+                            },
+                            payment_details: {
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                method: "Razorpay",
+                                timestamp: new Date().toISOString()
                             }
                         });
 
