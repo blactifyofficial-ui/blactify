@@ -41,17 +41,25 @@ export default function AdminProductsPage() {
         if (!productToDelete) return;
         setIsDeleting(true);
         try {
-            const { error } = await supabase.from("products").delete().eq("id", productToDelete);
-            if (error) throw error;
+            const response = await fetch(`/api/admin/products?id=${productToDelete}`, {
+                method: "DELETE"
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Deletion failed");
+            }
+
             toast.success("Protocol: Asset Purged");
             refetch();
             setDeleteModalOpen(false);
-        } catch (err) {
+        } catch (err: any) {
             toast.error("Deletion failed: Active constraints detected.");
         } finally {
             setIsDeleting(false);
         }
     };
+
 
     return (
         <div className="space-y-10 pb-20 font-inter animate-in fade-in duration-700">

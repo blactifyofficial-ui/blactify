@@ -337,105 +337,45 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
         try {
             const finalId = isEditing ? productId : formData.id;
 
-            // 1. Prepare Product Data
-            const sizeVariantsArray = formData.variants.map(v => v.size);
+            // Prepare images
+            const images = [];
+            if (formData.main_image) images.push({ url: formData.main_image, position: 0 });
+            if (formData.image1) images.push({ url: formData.image1, position: 1 });
+            if (formData.image2) images.push({ url: formData.image2, position: 2 });
+            if (formData.image3) images.push({ url: formData.image3, position: 3 });
 
-            const dataToSave = {
+            const payload = {
                 id: finalId,
                 name: formData.name,
                 handle: formData.handle || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
                 price_base: parseFloat(String(formData.price_base)) || 0,
                 price_offer: formData.price_offer ? parseFloat(String(formData.price_offer)) : null,
                 category_id: formData.category_id || null,
-                // Images are handled in product_images table
-                description: formData.description
+                description: formData.description,
+                variants: formData.variants,
+                images: images
             };
 
-            // 2. Upsert Product
-            const { error: productError } = isEditing
-                ? await supabase.from("products").update(dataToSave).eq("id", finalId)
-                : await supabase.from("products").insert([dataToSave]);
+            const response = await fetch("/api/admin/products", {
+                method: isEditing ? "PUT" : "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
 
-            if (productError) throw productError;
-
-            if (formData.variants.length > 0) {
-                // 1. Get existing variants to identify deletions
-                const { data: existingVariants } = await supabase
-                    .from("product_variants")
-                    .select("id, size")
-                    .eq("product_id", finalId);
-
-                if (existingVariants) {
-                    const sizesToKeep = formData.variants.map(v => v.size);
-                    const variantsToDelete = existingVariants.filter(ev => !sizesToKeep.includes(ev.size));
-                    if (variantsToDelete.length > 0) {
-                        await supabase.from("product_variants").delete().in("id", variantsToDelete.map(v => v.id));
-                    }
-                }
-
-                // 2. Upsert current variants and their measurements
-                for (const variant of formData.variants) {
-                    const { data: vData, error: vError } = await supabase
-                        .from("product_variants")
-                        .upsert([{
-                            product_id: finalId,
-                            size: variant.size,
-                            stock: variant.stock
-                        }], { onConflict: 'product_id, size' })
-                        .select()
-                        .single();
-
-                    if (vError) throw vError;
-
-                    // Sync Measurements
-                    // Delete all measurements for this variant first (simpler than selective upsert)
-                    await supabase.from("variant_measurements").delete().eq("variant_id", vData.id);
-
-                    const measToInsert = Object.entries(variant.measurements)
-                        .filter(([_, value]) => value !== "") // Don't save empty values
-                        .map(([typeId, value]) => ({
-                            variant_id: vData.id,
-                            measurement_type_id: typeId,
-                            value: value
-                        }));
-
-                    if (measToInsert.length > 0) {
-                        const { error: mError } = await supabase.from("variant_measurements").insert(measToInsert);
-                        if (mError) throw mError;
-                    }
-                }
-            } else if (isEditing) {
-                // If no variants left, delete all
-                await supabase.from("product_variants").delete().eq("product_id", finalId);
-            }
-
-            // 4. Manage Images in `product_images` table
-            // Delete existing
-            await supabase.from("product_images").delete().eq("product_id", finalId);
-
-            // Insert new
-            const imagesToInsert = [];
-            if (formData.main_image) imagesToInsert.push({ product_id: finalId, url: formData.main_image, position: 0 });
-            if (formData.image1) imagesToInsert.push({ product_id: finalId, url: formData.image1, position: 1 });
-            if (formData.image2) imagesToInsert.push({ product_id: finalId, url: formData.image2, position: 2 });
-            if (formData.image3) imagesToInsert.push({ product_id: finalId, url: formData.image3, position: 3 });
-
-            if (imagesToInsert.length > 0) {
-                const { error: imageError } = await supabase.from("product_images").insert(imagesToInsert);
-                if (imageError) throw imageError;
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to save product");
             }
 
             toast.success(isEditing ? "Product updated successfully!" : "Product created successfully!");
             router.push("/admin/products");
             router.refresh();
         } catch (err: any) {
-
             toast.error(err.message || "Failed to save product. Please try again.");
         } finally {
             setSaving(false);
         }
     };
-
     const generateNextId = async () => {
         try {
             const { data, error } = await supabase
