@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Outfit, Space_Grotesk } from "next/font/google";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Toaster } from "sonner";
 import "./globals.css";
 
 const inter = Inter({
@@ -42,7 +41,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${outfit.variable} ${spaceGrotesk.variable} font-sans antialiased text-black`}>
-        <Toaster position="top-center" richColors />
         <AppLayout>{children}</AppLayout>
       </body>
     </html>
