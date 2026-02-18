@@ -1,4 +1,6 @@
-import { supabase } from "./supabase";
+"use server";
+
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export async function saveOrder(orderData: {
     user_id: string;
@@ -20,7 +22,7 @@ export async function saveOrder(orderData: {
 
                 // Auto-resolve size if missing (handles "One Size" default variants)
                 if (!size || size === "no size") {
-                    const { data: variants } = await supabase
+                    const { data: variants } = await supabaseAdmin
                         .from('product_variants')
                         .select('size')
                         .eq('product_id', item.id);
@@ -33,7 +35,7 @@ export async function saveOrder(orderData: {
                     }
                 }
 
-                const { data: success, error: stockError } = await supabase.rpc('decrement_stock_secure', {
+                const { data: success, error: stockError } = await supabaseAdmin.rpc('decrement_stock_secure', {
                     p_product_id: String(item.id),
                     p_size: size,
                     p_quantity: item.quantity
@@ -60,7 +62,7 @@ export async function saveOrder(orderData: {
         await decrementStockSecure(orderData.items as any[]);
 
         // 2. If stock decrement was successful, save the order
-        const { error } = await supabase
+        const { error } = await supabaseAdmin
             .from("orders")
             .insert([
                 {
@@ -77,8 +79,8 @@ export async function saveOrder(orderData: {
             ]);
 
         if (error) {
-
-            return { success: false, error };
+            console.error("Order save error:", error);
+            return { success: false, error: { message: "Failed to save order details." } };
         }
 
         return { success: true };
