@@ -29,34 +29,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(user);
 
             if (user) {
-                console.log("Syncing profile for user:", user.uid);
-                // Sync profile and check if admin
-                await syncUserProfile(user);
+                try {
+                    console.log("Syncing profile for user:", user.uid);
+                    await syncUserProfile(user);
 
-                console.log("Checking is_admin status for user:", user.uid);
-                const { data, error } = await supabase
-                    .from("profiles")
-                    .select("is_admin")
-                    .eq("id", user.uid)
-                    .single();
+                    console.log("Checking is_admin status for user:", user.uid);
+                    const { data, error } = await supabase
+                        .from("profiles")
+                        .select("is_admin")
+                        .eq("id", user.uid)
+                        .single();
 
-                if (error) {
-                    console.error("Error fetching profile is_admin:", error);
-                }
-
-                if (!error && data) {
-                    console.log("Is Admin data:", data);
-                    setIsAdmin(data.is_admin);
-                } else {
-                    console.log("User is not admin or profile missing. Data:", data);
+                    if (error) {
+                        console.error("Error fetching profile is_admin:", error);
+                        setIsAdmin(false);
+                    } else if (data) {
+                        console.log("Is Admin status:", data.is_admin);
+                        setIsAdmin(data.is_admin);
+                    } else {
+                        console.log("No profile data found for user:", user.uid);
+                        setIsAdmin(false);
+                    }
+                } catch (err) {
+                    console.error("Error in auth sync process:", err);
                     setIsAdmin(false);
                 }
             } else {
-                console.log("No user logged in.");
+                console.log("No user session found.");
                 setIsAdmin(false);
             }
 
             setLoading(false);
+            console.log("Auth state initialized. Loading: false");
         });
 
         return () => unsubscribe();
@@ -64,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return (
         <AuthContext.Provider value={{ user, isAdmin, loading }}>
-            {!loading && children}
+            {children}
         </AuthContext.Provider>
     );
 }

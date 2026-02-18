@@ -7,7 +7,6 @@ import Image from "next/image";
 import { toast } from "sonner";
 import {
     ChevronLeft,
-    Link as LinkIcon,
     Calendar,
     User,
     Phone,
@@ -18,11 +17,32 @@ import {
     CheckCircle2,
     Clock,
     CreditCard,
-    Box
+    Box,
+    Activity,
+    Shield
 } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { AdminLoading, AdminPageHeader, AdminCard } from "@/components/admin/AdminUI";
 
+const STATUS_SEQUENCE = ["paid", "processing", "shipped", "delivered"];
 const STATUS_OPTIONS = ["paid", "processing", "shipped", "delivered", "failed"];
+
+const getAvailableStatuses = (currentStatus: string) => {
+    const status = currentStatus?.toLowerCase();
+    if (status === "failed") return ["failed"];
+    if (status === "delivered") return ["delivered"];
+    const currentIndex = STATUS_SEQUENCE.indexOf(status);
+    if (currentIndex === -1) return STATUS_OPTIONS;
+    const available = [status];
+    if (currentIndex < STATUS_SEQUENCE.length - 1) {
+        available.push(STATUS_SEQUENCE[currentIndex + 1]);
+    }
+    if (status !== "delivered" && !available.includes("failed")) {
+        available.push("failed");
+    }
+    return available;
+};
 
 export default function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -41,33 +61,27 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                     .select("*")
                     .eq("id", id)
                     .single();
-
                 if (error) throw error;
                 setOrder(data);
                 setTrackingId(data.tracking_id || "");
             } catch (err) {
-
+                toast.error("Protocol Error", { description: "Failure to retrieve mission parameters." });
             } finally {
                 setLoading(false);
             }
         }
-
         fetchOrder();
     }, [id]);
 
     useEffect(() => {
         if (!order?.items) return;
-
         async function fetchMeasurements() {
             try {
                 const measurementsMap: Record<string, any> = {};
-
                 for (const item of order.items) {
                     if (!item.id || !item.size) continue;
-
                     const key = `${item.id}-${item.size}`;
                     if (measurementsMap[key]) continue;
-
                     const { data: variant } = await supabase
                         .from('product_variants')
                         .select(`
@@ -82,34 +96,31 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                         .eq('product_id', item.id)
                         .eq('size', item.size)
                         .maybeSingle();
-
                     if (variant?.variant_measurements) {
                         measurementsMap[key] = variant.variant_measurements;
                     }
                 }
                 setItemMeasurements(measurementsMap);
-            } catch (err) {
-                // Fail silently
-            }
+            } catch (err) { }
         }
-
         fetchMeasurements();
     }, [order]);
 
     const handleUpdateStatus = async (newStatus: string) => {
         setUpdating(true);
+        const normalizedStatus = newStatus.toLowerCase();
         try {
             const { error } = await supabase
                 .from("orders")
-                .update({ status: newStatus })
+                .update({ status: normalizedStatus })
                 .eq("id", id);
-
             if (error) throw error;
-            toast.success(`Order status updated to ${newStatus}`);
-            setOrder({ ...order, status: newStatus });
-        } catch (err) {
-
-            toast.error("Failed to update status");
+            toast.success("Status Synchronized", {
+                description: `Vector updated to ${normalizedStatus.toUpperCase()}`,
+            });
+            setOrder({ ...order, status: normalizedStatus });
+        } catch (err: any) {
+            toast.error("Transmission Failed");
         } finally {
             setUpdating(false);
         }
@@ -117,24 +128,21 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
 
     const handleUpdateTracking = async () => {
         if (!trackingId.trim() && !order.tracking_id) return;
-
         setUpdating(true);
         try {
             const { error } = await supabase
                 .from("orders")
                 .update({ tracking_id: trackingId })
                 .eq("id", id);
-
             if (error) throw error;
-            toast.success("Tracking ID updated");
+            toast.success("Logistics Updated", { description: "Tracking sequence finalized." });
             setOrder({ ...order, tracking_id: trackingId });
         } catch (err) {
-            toast.error("Failed to update tracking ID");
+            toast.error("Update Failure");
         } finally {
             setUpdating(false);
         }
     };
-
 
     const getStatusIcon = (status: string) => {
         switch (status?.toLowerCase()) {
@@ -146,120 +154,91 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
         }
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-[60vh] flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
-            </div>
-        );
-    }
+    if (loading) return <AdminLoading message="Accessing deployment detailed registry..." />;
 
     if (!order) {
         return (
-            <div className="text-center py-20">
-                <p className="text-zinc-500">Order not found.</p>
-                <Link href="/admin/orders" className="text-sm font-bold text-black mt-4 inline-block hover:underline">
-                    Back to Orders
+            <div className="text-center py-32 font-inter">
+                <Shield className="mx-auto text-zinc-100 mb-6" size={64} />
+                <h2 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-4">Registry Null</h2>
+                <Link href="/admin/orders" className="text-[10px] font-black text-black uppercase tracking-[0.2em] border-b-2 border-black pb-1 hover:blur-[0.5px] transition-all">
+                    RETURN TO MISSION CONTROL
                 </Link>
             </div>
         );
     }
 
     const StatusIcon = getStatusIcon(order.status);
-
     const itemsSubtotal = order.items?.reduce((acc: number, item: any) => {
         const price = item.price || item.price_offer || item.price_base || 0;
         return acc + (price * item.quantity);
     }, 0) || 0;
-
     const shippingCharge = order.amount - itemsSubtotal;
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20 font-inter">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => router.back()}
-                        className="w-10 h-10 flex items-center justify-center bg-white border border-zinc-100 rounded-full hover:bg-zinc-50 transition-colors"
-                    >
-                        <ChevronLeft size={20} />
-                    </button>
-                    <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <span className="font-mono text-xs font-normal text-zinc-400">#{order.id}</span>
-                        </div>
-                        <h2 className="text-2xl font-bold tracking-tight">Order Details</h2>
-                    </div>
-                </div>
-
+        <div className="space-y-12 animate-in fade-in duration-700 pb-20 font-inter max-w-6xl mx-auto">
+            <AdminPageHeader
+                title="Deployment Analysis"
+                subtitle={`Registry Entry #${order.id.slice(0, 12)}...`}
+            >
                 <div className="flex items-center gap-3">
-                    <div className="relative">
+                    <div className="relative group">
                         <select
-                            value={order.status}
+                            value={order.status?.toLowerCase() || ""}
                             disabled={updating}
                             onChange={(e) => handleUpdateStatus(e.target.value)}
-                            className="appearance-none pl-12 pr-10 py-3 bg-white border border-zinc-100 rounded-2xl text-sm font-bold uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-black/5 transition-all disabled:opacity-50 cursor-pointer"
+                            className="appearance-none pl-12 pr-10 py-3 bg-white border border-zinc-100 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:outline-none focus:ring-4 focus:ring-black/5 focus:border-black/10 transition-all disabled:opacity-50 cursor-pointer shadow-sm min-w-[200px]"
                         >
-                            {STATUS_OPTIONS.map(opt => (
-                                <option key={opt} value={opt}>{opt}</option>
+                            {getAvailableStatuses(order.status).map(opt => (
+                                <option key={opt} value={opt}>{opt.toUpperCase()}</option>
                             ))}
                         </select>
                         <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                            <StatusIcon size={18} className="text-zinc-400" />
+                            <StatusIcon size={18} className={cn(
+                                "transition-colors duration-300",
+                                order.status?.toLowerCase() === 'failed' ? "text-red-500" : "text-black"
+                            )} />
                         </div>
                     </div>
                 </div>
-            </div>
+            </AdminPageHeader>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Main Content: Items & Address */}
-                <div className="lg:col-span-2 space-y-8">
-                    {/* Items */}
-                    <div className="bg-white rounded-3xl border border-zinc-100 overflow-hidden shadow-sm">
-                        <div className="bg-zinc-50/50 px-6 py-4 border-b border-zinc-100">
-                            <h3 className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
-                                <Package size={16} />
-                                Order Items ({order.items?.length || 0})
-                            </h3>
-                        </div>
-                        <div className="divide-y divide-zinc-100">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                <div className="lg:col-span-2 space-y-10">
+                    <AdminCard title="Logistics Manifest" icon={<Package size={18} />} subtitle={`Total Assets: ${order.items?.length || 0}`}>
+                        <div className="divide-y divide-zinc-50 -mx-8 -mb-8">
                             {order.items?.map((item: any, index: number) => (
-                                <div key={index} className="px-6 py-5 flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-16 h-16 bg-zinc-50 rounded-2xl overflow-hidden flex-shrink-0 relative">
+                                <div key={index} className="px-8 py-8 flex items-center justify-between group hover:bg-zinc-50 transition-colors duration-500">
+                                    <div className="flex items-center gap-6">
+                                        <div className="w-20 h-20 bg-zinc-50 rounded-[2rem] overflow-hidden flex-shrink-0 relative shadow-inner">
                                             {(item.main_image || item.imageUrl) ? (
                                                 <Image
                                                     src={item.main_image || item.imageUrl}
                                                     alt={item.name}
                                                     fill
-                                                    sizes="64px"
-                                                    className="object-cover"
+                                                    sizes="80px"
+                                                    className="object-cover transition-transform duration-700 group-hover:scale-110"
                                                 />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-zinc-300">
-                                                    <Box size={24} />
+                                                <div className="w-full h-full flex items-center justify-center text-zinc-200">
+                                                    <Box size={32} />
                                                 </div>
                                             )}
                                         </div>
-                                        <div>
-                                            <h4 className="font-semibold text-base">{item.name}</h4>
-                                            <div className="flex items-center gap-2">
-                                                <p className="text-xs text-zinc-400 font-medium italic">Quantity: {item.quantity}</p>
+                                        <div className="space-y-1.5">
+                                            <h4 className="font-black text-lg tracking-tight">{item.name}</h4>
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 bg-white px-3 py-1 rounded-full border border-zinc-50">QTY: {item.quantity}</span>
                                                 {item.size && (
-                                                    <>
-                                                        <span className="text-zinc-100 font-light mx-1">|</span>
-                                                        <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider italic">Size: {item.size}</p>
-                                                    </>
+                                                    <span className="text-[9px] font-black uppercase tracking-widest text-zinc-900 bg-black/5 px-3 py-1 rounded-full italic">SIZE: {item.size}</span>
                                                 )}
                                             </div>
-                                            {/* Variant Measurements */}
                                             {item.size && itemMeasurements[`${item.id}-${item.size}`] && (
-                                                <div className="mt-2 flex flex-wrap gap-2">
+                                                <div className="flex flex-wrap gap-2 pt-2">
                                                     {itemMeasurements[`${item.id}-${item.size}`].map((m: any, i: number) => (
-                                                        <div key={i} className="px-2 py-1 bg-zinc-50 border border-zinc-100 rounded-lg flex flex-col items-start min-w-[60px]">
-                                                            <span className="text-[7px] font-bold uppercase tracking-widest text-zinc-400">{m.measurement_types?.name}</span>
-                                                            <span className="text-[10px] font-bold text-black">{m.value}</span>
+                                                        <div key={i} className="px-2 py-1 bg-zinc-50 border border-black/5 rounded-lg flex flex-col items-start min-w-[70px] shadow-sm">
+                                                            <span className="text-[7px] font-black uppercase tracking-[0.2em] text-zinc-400">{m.measurement_types?.name}</span>
+                                                            <span className="text-[10px] font-black text-black">{m.value}</span>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -267,146 +246,125 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-bold">₹{((item.price || item.price_offer || item.price_base || 0) * item.quantity).toLocaleString('en-IN')}</p>
-                                        <p className="text-[10px] text-zinc-400 font-medium italic">₹{(item.price || item.price_offer || item.price_base || 0).toLocaleString('en-IN')} each</p>
+                                        <p className="font-black text-xl tracking-tighter">₹{((item.price || item.price_offer || item.price_base || 0) * item.quantity).toLocaleString()}</p>
+                                        <p className="text-[9px] text-zinc-300 font-black uppercase tracking-widest italic">₹{(item.price || item.price_offer || item.price_base || 0).toLocaleString()} / UNIT</p>
                                     </div>
                                 </div>
                             ))}
+                            <div className="p-8 bg-zinc-50/50 space-y-4">
+                                <div className="flex justify-between text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">
+                                    <span>ASSETS SUB-TOTAL</span>
+                                    <span className="text-zinc-900">₹{itemsSubtotal.toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">
+                                    <span>LOGISTICS SURCHARGE</span>
+                                    <span className={cn(
+                                        "font-black",
+                                        shippingCharge > 0 ? "text-zinc-900" : "text-green-600 tracking-[0.4em]"
+                                    )}>
+                                        {shippingCharge > 0 ? `₹${shippingCharge.toLocaleString()}` : "FREE DEPLOYMENT"}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between pt-6 border-t border-zinc-100">
+                                    <span className="text-sm font-black uppercase tracking-[0.4em] text-zinc-900">MISSION VALUATION</span>
+                                    <span className="text-3xl font-black tracking-tighter text-black">₹{order.amount.toLocaleString()}</span>
+                                </div>
+                            </div>
                         </div>
-                        <div className="bg-zinc-50/30 p-6 space-y-3">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-zinc-500 font-medium italic">Subtotal</span>
-                                <span className="font-bold">₹{itemsSubtotal.toLocaleString('en-IN')}</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                                <span className="text-zinc-500 font-medium italic">Shipping</span>
-                                {shippingCharge > 0 ? (
-                                    <span className="font-bold">₹{shippingCharge.toLocaleString('en-IN')}</span>
-                                ) : (
-                                    <span className="text-green-600 font-bold uppercase tracking-widest text-[10px]">Free</span>
-                                )}
-                            </div>
-                            <div className="flex justify-between pt-3 border-t border-zinc-100">
-                                <span className="text-lg font-bold">Total Amount</span>
-                                <span className="text-2xl font-extrabold">₹{order.amount.toLocaleString('en-IN')}</span>
-                            </div>
-                        </div>
-                    </div>
+                    </AdminCard>
 
-                    {/* Shipping Address & Tracking */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="bg-white rounded-3xl border border-zinc-100 overflow-hidden shadow-sm h-full">
-                            <div className="bg-zinc-50/50 px-6 py-4 border-b border-zinc-100 flex items-center justify-between">
-                                <h3 className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
-                                    <MapPin size={16} />
-                                    Shipping Address
-                                </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <AdminCard title="Deployment Vector" icon={<MapPin size={18} />}>
+                            <div className="space-y-4">
+                                <div className="p-5 bg-zinc-50 rounded-[2rem] border border-zinc-100 italic">
+                                    <p className="text-lg font-black tracking-tight mb-3 text-black">{order.customer_details?.name}</p>
+                                    <div className="space-y-1 text-[11px] font-bold text-zinc-500 uppercase tracking-widest leading-loose">
+                                        <p>{order.shipping_address?.address}{order.shipping_address?.apartment && <>, {order.shipping_address.apartment}</>}</p>
+                                        <p>{order.shipping_address?.city}{order.shipping_address?.district && <>, {order.shipping_address.district}</>}</p>
+                                        <p>{order.shipping_address?.state} — {order.shipping_address?.pincode}</p>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <div className="flex items-center gap-3 px-5 py-3 bg-zinc-50 rounded-2xl border border-zinc-100">
+                                        <Phone size={14} className="text-zinc-400" />
+                                        <span className="text-xs font-black tracking-widest">{order.customer_details?.phone}</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="p-6">
-                                <p className="text-lg font-bold mb-2">{order.customer_details?.name}</p>
-                                <p className="text-zinc-500 text-sm font-medium italic leading-relaxed max-w-sm">
-                                    {order.shipping_address?.address}
-                                    {order.shipping_address?.apartment && <>, {order.shipping_address.apartment}</>},<br />
-                                    {order.shipping_address?.city}
-                                    {order.shipping_address?.district && <>, {order.shipping_address.district}</>}, {order.shipping_address?.state} - {order.shipping_address?.pincode}
-                                </p>
-                                <p className="mt-4 text-sm font-bold flex items-center gap-2">
-                                    <Phone size={14} className="text-zinc-400" />
-                                    {order.customer_details?.phone}
-                                </p>
-                            </div>
-                        </div>
+                        </AdminCard>
 
-                        <div className="bg-white rounded-3xl border border-zinc-100 overflow-hidden shadow-sm h-full">
-                            <div className="bg-zinc-50/50 px-6 py-4 border-b border-zinc-100">
-                                <h3 className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
-                                    <Truck size={16} />
-                                    Order Tracking
-                                </h3>
-                            </div>
-                            <div className="p-6 space-y-4">
-                                <div>
-                                    <label className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1.5 block">
-                                        Tracking ID
+                        <AdminCard title="Registry Tracking" icon={<Activity size={18} />}>
+                            <div className="space-y-6">
+                                <div className="space-y-3">
+                                    <label className="text-[9px] text-zinc-400 font-black uppercase tracking-[0.3em] italic mb-1.5 block">
+                                        Asset Tracking ID
                                     </label>
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
                                             value={trackingId}
                                             onChange={(e) => setTrackingId(e.target.value)}
-                                            placeholder="Paste tracking ID here..."
-                                            className="flex-1 bg-zinc-50 border border-zinc-100 rounded-xl px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-black/5 transition-all"
+                                            placeholder="Paste Protocol ID..."
+                                            className="flex-1 bg-zinc-50 border border-zinc-100 rounded-2xl px-5 py-3 text-xs font-bold focus:outline-none focus:ring-4 focus:ring-black/5 transition-all placeholder:text-zinc-300"
                                         />
                                         <button
                                             onClick={handleUpdateTracking}
                                             disabled={updating || trackingId === (order.tracking_id || "")}
-                                            className="px-4 py-2 bg-black text-white text-xs font-bold rounded-xl hover:bg-zinc-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider"
+                                            className="px-6 py-3 bg-black text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-zinc-800 transition-all disabled:opacity-50 shadow-xl shadow-black/10"
                                         >
-                                            Update
+                                            SYNC
                                         </button>
                                     </div>
-                                    <p className="mt-2 text-[10px] text-zinc-400 italic">
-                                        This ID will be visible to the customer in their order details.
+                                    <p className="text-[8px] text-zinc-300 font-black uppercase tracking-widest leading-tight">
+                                        This ID will be broadcasted to the customer's secure interface upon reconciliation.
                                     </p>
                                 </div>
                             </div>
-                        </div>
+                        </AdminCard>
                     </div>
                 </div>
 
-                {/* Sidebar: Customer & Payment Info */}
-                <div className="space-y-8">
-                    {/* Customer Info */}
-                    <div className="bg-white p-6 rounded-3xl border border-zinc-100 shadow-sm">
-                        <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-6 italic">Customer Info</h3>
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 bg-zinc-50 rounded-xl flex items-center justify-center text-zinc-400">
-                                    <User size={18} />
+                <div className="space-y-10">
+                    <AdminCard title="Identity Node" icon={<User size={18} />} subtitle="Verified Bio-data">
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-5 p-4 hover:bg-zinc-50 rounded-[1.5rem] transition-colors group">
+                                <div className="w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                    <User size={20} />
                                 </div>
-                                <div className="flex-1 overflow-hidden">
-                                    <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Name</p>
-                                    <p className="text-sm font-bold truncate">{order.customer_details?.name || "Guest"}</p>
+                                <div className="space-y-0.5">
+                                    <p className="text-[8px] text-zinc-400 font-black uppercase tracking-[0.3em]">Identity</p>
+                                    <p className="text-sm font-black tracking-tight">{order.customer_details?.name || "GUEST PROTOCOL"}</p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 bg-zinc-50 rounded-xl flex items-center justify-center text-zinc-400">
-                                    <Phone size={18} />
+                            <div className="flex items-center gap-5 p-4 hover:bg-zinc-50 rounded-[1.5rem] transition-colors group">
+                                <div className="w-12 h-12 bg-zinc-100 text-black rounded-2xl flex items-center justify-center group-hover:bg-black group-hover:text-white transition-all group-hover:scale-110">
+                                    <Mail size={20} />
                                 </div>
-                                <div className="flex-1 overflow-hidden">
-                                    <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Phone</p>
-                                    <p className="text-sm font-bold">{order.customer_details?.phone || "N/A"}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 bg-zinc-50 rounded-xl flex items-center justify-center text-zinc-400">
-                                    <Mail size={18} />
-                                </div>
-                                <div className="flex-1 overflow-hidden">
-                                    <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Email</p>
-                                    <p className="text-sm font-bold truncate">{order.customer_details?.email || "N/A"}</p>
+                                <div className="space-y-0.5 overflow-hidden">
+                                    <p className="text-[8px] text-zinc-400 font-black uppercase tracking-[0.3em]">Communication</p>
+                                    <p className="text-[11px] font-black tracking-widest truncate">{order.customer_details?.email || "N/A"}</p>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </AdminCard>
 
-                    {/* Payment Info */}
-                    <div className="bg-white p-6 rounded-3xl border border-zinc-100 shadow-sm">
-                        <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-6 italic">Payment Details</h3>
-                        <div className="space-y-4">
-                            <div>
-                                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1">Razorpay Payment ID</p>
-                                <p className="text-xs font-mono font-bold break-all bg-zinc-50 p-2 rounded-lg border border-zinc-100">{order.payment_id || "N/A"}</p>
+                    <AdminCard title="Fiscal Nexus" icon={<CreditCard size={18} />} subtitle="Transaction Telemetry">
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <p className="text-[8px] text-zinc-400 font-black uppercase tracking-[0.3em]">Fiscal Hash</p>
+                                <p className="text-[10px] font-mono font-black break-all bg-zinc-50 p-4 rounded-2xl border border-zinc-100 shadow-inner italic">
+                                    {order.payment_id || "GATEWAY_NULL"}
+                                </p>
                             </div>
-                            <div>
-                                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1">Creation Date</p>
-                                <div className="flex items-center gap-2 text-sm font-bold">
-                                    <Calendar size={14} className="text-zinc-400" />
-                                    {new Date(order.created_at).toLocaleString()}
+                            <div className="pt-4 border-t border-zinc-50 flex items-center gap-4">
+                                <Calendar size={16} className="text-zinc-400" />
+                                <div className="space-y-0.5">
+                                    <p className="text-[8px] text-zinc-400 font-black uppercase tracking-[0.3em]">Deployment Epoch</p>
+                                    <p className="text-xs font-black tracking-widest">{new Date(order.created_at).toLocaleString()}</p>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </AdminCard>
                 </div>
             </div>
         </div>

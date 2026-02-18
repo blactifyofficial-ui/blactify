@@ -535,8 +535,8 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                         <ChevronLeft size={20} />
                     </button>
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight">{isEditing ? "Edit Product" : "New Product"}</h2>
-                        <p className="text-xs text-zinc-400 font-medium italic">Enter the product details below.</p>
+                        <h2 className="text-2xl font-bold tracking-tight text-black">{isEditing ? "Edit Product" : "New Product"}</h2>
+                        <p className="text-xs text-zinc-600 font-medium italic">Enter the product details below.</p>
                     </div>
                 </div>
             </div>
@@ -544,7 +544,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
             <form onSubmit={handleSubmit} noValidate className="space-y-8">
                 {/* 1. Category Section */}
                 <div className="bg-white p-8 rounded-[2rem] border border-zinc-100 shadow-sm space-y-6">
-                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 flex items-center gap-2">
                         <Tag size={14} />
                         Product Category
                     </h3>
@@ -605,7 +605,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
 
                 {/* 2. Product Information */}
                 <div className="bg-white p-8 rounded-[2rem] border border-zinc-100 shadow-sm space-y-6">
-                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 flex items-center gap-2">
                         <Type size={14} />
                         Product Information
                     </h3>
@@ -725,7 +725,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
 
                 {/* 3. Variants & Stock */}
                 <div className={`bg-white p-8 rounded-[2rem] border ${errors.variants ? 'border-red-400' : 'border-zinc-100'} shadow-sm space-y-6`}>
-                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 flex items-center gap-2">
                         <Tag size={14} />
                         Variants & Stock
                     </h3>
@@ -911,7 +911,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                                     e.stopPropagation();
                                                     setFormData({ ...formData, [img.key]: "" });
                                                 }}
-                                                className="absolute top-1 right-1 w-6 h-6 bg-white shadow-lg rounded-full flex items-center justify-center text-red-500 opacity-0 group-hover:opacity-100 transition-all z-10"
+                                                className="absolute top-1 right-1 w-6 h-6 bg-white shadow-lg rounded-full flex items-center justify-center text-red-500 md:opacity-0 md:group-hover:opacity-100 transition-all z-10"
                                             >
                                                 <X size={12} />
                                             </button>

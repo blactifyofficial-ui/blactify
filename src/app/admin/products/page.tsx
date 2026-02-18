@@ -1,222 +1,164 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { toast } from "sonner";
 import {
     Search,
     Plus,
     Edit,
     Trash2,
-    MoreHorizontal,
     Package,
-    IndianRupee,
-    Tag,
     Box,
-    ChevronLeft,
     ChevronRight,
 } from "lucide-react";
 import { DeleteModal } from "@/components/ui/DeleteModal";
+import { Pagination } from "@/components/ui/Pagination";
+import { useAdminProducts } from "@/hooks/useAdminProducts";
+import { AdminLoading, AdminPageHeader, AdminCard } from "@/components/admin/AdminUI";
+import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 export default function AdminProductsPage() {
-    const [products, setProducts] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [page, setPage] = useState(1);
-    const [pageSize] = useState(12);
-    const [totalCount, setTotalCount] = useState(0);
+    const pageSize = 12;
+
+    const { products, totalCount, loading, refetch } = useAdminProducts({
+        page,
+        pageSize,
+        searchTerm
+    });
 
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [productToDelete, setProductToDelete] = useState<string | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            fetchProducts();
-        }, 400); // Debounce search
-        return () => clearTimeout(handler);
-    }, [page, searchTerm]);
-
-    async function fetchProducts() {
-        setLoading(true);
-        try {
-            const from = (page - 1) * pageSize;
-            const to = from + pageSize - 1;
-
-            let query = supabase
-                .from("products")
-                .select(`
-                    *,
-                    categories!left (
-                        name
-                    ),
-                    product_variants (
-                        stock
-                    ),
-                    product_images (
-                        url,
-                        position
-                    )
-                `, { count: 'exact' });
-
-            if (searchTerm) {
-                query = query.ilike('name', `%${searchTerm}%`);
-            }
-
-            const { data, error, count } = await query
-                .order("created_at", { ascending: false })
-                .range(from, to);
-
-            if (error) throw error;
-
-            // Calculate total stock from variants & get main image
-            const processedData = data?.map(product => {
-                // Find main image (position 0) or fallback to any image
-                const images = product.product_images || [];
-                const mainImg = images.find((img: any) => img.position === 0) || images[0];
-
-                return {
-                    ...product,
-                    stock: product.product_variants?.reduce((sum: number, v: any) => sum + (v.stock || 0), 0) || 0,
-                    main_image: mainImg?.url || null // Override for display
-                };
-            }) || [];
-
-            setProducts(processedData);
-            setTotalCount(count || 0);
-        } catch (err) {
-
-            toast.error("Failed to load products");
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    const handleDeleteClick = (id: string) => {
-        setProductToDelete(id);
-        setDeleteModalOpen(true);
-    };
+    const totalPages = Math.ceil(totalCount / pageSize);
 
     const confirmDelete = async () => {
         if (!productToDelete) return;
-
         setIsDeleting(true);
         try {
-            const { error } = await supabase
-                .from("products")
-                .delete()
-                .eq("id", productToDelete);
-
+            const { error } = await supabase.from("products").delete().eq("id", productToDelete);
             if (error) throw error;
-            toast.success("Product deleted successfully");
-            setProducts(products.filter(p => p.id !== productToDelete));
+            toast.success("Protocol: Asset Purged");
+            refetch();
             setDeleteModalOpen(false);
-            setProductToDelete(null);
         } catch (err) {
-
-            toast.error("Failed to delete product");
+            toast.error("Deletion failed: Active constraints detected.");
         } finally {
             setIsDeleting(false);
         }
     };
 
-    const totalPages = Math.ceil(totalCount / pageSize);
-
     return (
-        <div className="space-y-8 pb-20 font-inter">
+        <div className="space-y-10 pb-20 font-inter animate-in fade-in duration-700">
             <DeleteModal
                 isOpen={deleteModalOpen}
                 onClose={() => setDeleteModalOpen(false)}
                 onConfirm={confirmDelete}
-                title="Delete Product"
-                description="Are you sure you want to delete this product? This action cannot be undone."
+                title="Purge Asset"
+                description="This action will permanently delete the product and all associated variants from the global registry."
                 loading={isDeleting}
             />
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Products</h2>
-                    <p className="text-zinc-500 text-sm font-medium italic">Manage your inventory and store listings.</p>
-                </div>
 
-                <Link
-                    href="/admin/products/new"
-                    className="flex items-center justify-center gap-2 bg-black text-white px-6 py-3 rounded-2xl text-sm font-bold active:scale-95 transition-all shadow-lg shadow-black/10"
-                >
-                    <Plus size={18} />
-                    Add New Product
-                </Link>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-1">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+            <AdminPageHeader
+                title="Products"
+                subtitle="High-fidelity inventory control and asset management"
+            >
+                <div className="relative group flex-1 md:flex-none">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-black transition-colors" size={18} />
                     <input
                         type="text"
-                        placeholder="Search products..."
+                        placeholder="Search Inventory..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-12 pr-6 py-4 bg-white border border-zinc-100 rounded-2xl w-full focus:outline-none focus:ring-2 focus:ring-black/5 transition-all text-sm font-normal shadow-sm"
+                        className="pl-12 pr-6 py-3 bg-white border border-zinc-100 rounded-2xl w-full sm:w-80 focus:outline-none focus:ring-4 focus:ring-black/5 focus:border-black/10 transition-all text-sm font-medium shadow-sm"
                     />
                 </div>
-            </div>
+                <Link
+                    href="/admin/products/new"
+                    className="flex items-center justify-center gap-2 bg-black text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-black/10 shrink-0"
+                >
+                    <Plus size={16} strokeWidth={3} />
+                    Register Asset
+                </Link>
+            </AdminPageHeader>
 
             {loading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {[1, 2, 3, 4, 5, 6, 7, 8].map(i => <div key={i} className="h-80 bg-white rounded-3xl border border-zinc-100 animate-pulse" />)}
-                </div>
+                <AdminLoading message="Accessing inventory registry..." />
             ) : (
-                <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="space-y-12">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                         {products.length > 0 ? (
                             products.map((product) => (
-                                <div key={product.id} className="group bg-white rounded-3xl border border-zinc-100 overflow-hidden shadow-sm hover:shadow-xl transition-all relative">
-                                    <div className="aspect-square bg-zinc-50 relative overflow-hidden">
-                                        {product.main_image ? (
+                                <div key={product.id} className="group bg-white rounded-[2.5rem] border border-zinc-100 overflow-hidden shadow-sm hover:shadow-2xl hover:border-black/5 transition-all duration-700 relative flex flex-col">
+                                    <div className="aspect-[4/5] bg-zinc-50 relative overflow-hidden">
+                                        {(product as any).main_image ? (
                                             <Image
-                                                src={product.main_image}
+                                                src={(product as any).main_image}
                                                 alt={product.name}
                                                 fill
                                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                                                className="object-cover transition-transform duration-500 group-hover:scale-110"
+                                                className="object-cover transition-transform duration-700 group-hover:scale-110"
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center text-zinc-200">
                                                 <Package size={64} />
                                             </div>
                                         )}
-                                        <div className="absolute top-4 right-4 flex gap-2 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all">
+
+                                        {/* Overlay Actions */}
+                                        <div className="absolute top-5 right-5 flex gap-2 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 z-20">
                                             <Link
                                                 href={`/admin/products/edit/${product.id}`}
-                                                className="w-10 h-10 bg-white shadow-xl rounded-full flex items-center justify-center text-zinc-600 hover:text-black hover:scale-110 transition-all"
+                                                className="w-12 h-12 bg-white/90 backdrop-blur shadow-2xl rounded-full flex items-center justify-center text-zinc-600 hover:text-black hover:scale-110 transition-all border border-zinc-100"
                                             >
                                                 <Edit size={18} />
                                             </Link>
                                             <button
-                                                onClick={() => handleDeleteClick(product.id)}
-                                                className="w-10 h-10 bg-white shadow-xl rounded-full flex items-center justify-center text-red-400 hover:text-red-600 hover:scale-110 transition-all"
+                                                onClick={() => {
+                                                    setProductToDelete(product.id);
+                                                    setDeleteModalOpen(true);
+                                                }}
+                                                className="w-12 h-12 bg-white/90 backdrop-blur shadow-2xl rounded-full flex items-center justify-center text-red-400 hover:text-red-600 hover:scale-110 transition-all border border-zinc-100"
                                             >
                                                 <Trash2 size={18} />
                                             </button>
                                         </div>
-                                        <div className="absolute bottom-4 left-4">
-                                            <span className="bg-white/90 backdrop-blur px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-zinc-900 shadow-sm">
-                                                {product.categories?.name || "General"}
+
+                                        <div className="absolute bottom-5 left-5 z-20">
+                                            <span className="bg-black/80 backdrop-blur-md text-white px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.2em] shadow-2xl border border-white/10">
+                                                {(product as any).categories?.name || "Uncategorized"}
                                             </span>
                                         </div>
+
+                                        {/* Subtle overlay gradient */}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                                     </div>
 
-                                    <div className="p-6">
-                                        <h3 className="font-semibold text-lg mb-1 truncate">{product.name}</h3>
-                                        <div className="flex items-center justify-between mt-4 border-t border-zinc-50 pt-4">
-                                            <div className="flex items-center gap-1 text-black font-bold text-xl">
-                                                <span>₹{product.price_offer || product.price_base}</span>
+                                    <div className="p-8 flex-1 flex flex-col justify-between">
+                                        <div className="mb-6">
+                                            <h3 className="font-black text-lg text-black tracking-tight line-clamp-1 group-hover:text-zinc-600 transition-colors">{product.name}</h3>
+                                            <p className="text-[9px] font-black text-zinc-300 uppercase tracking-widest mt-1 italic">SKU: {product.id.slice(0, 8)}</p>
+                                        </div>
+
+                                        <div className="flex items-center justify-between pt-6 border-t border-zinc-50">
+                                            <div>
+                                                <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] mb-1">VALUATION</p>
+                                                <p className="text-xl font-black tracking-tighter text-black">
+                                                    ₹{(product.price_offer || product.price_base).toLocaleString()}
+                                                </p>
                                             </div>
-                                            <div className="flex flex-col items-end">
-                                                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Stock</p>
-                                                <p className={`text-xs font-medium ${product.stock < 10 ? 'text-red-500' : 'text-green-600'}`}>
-                                                    {product.stock} Units
+                                            <div className="text-right">
+                                                <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] mb-1">STOCK</p>
+                                                <p className={cn(
+                                                    "text-xs font-black uppercase tracking-widest",
+                                                    (product as any).stock < 10 ? 'text-red-500 animate-pulse' : 'text-zinc-900'
+                                                )}>
+                                                    {(product as any).stock} UNITS
                                                 </p>
                                             </div>
                                         </div>
@@ -224,49 +166,28 @@ export default function AdminProductsPage() {
                                 </div>
                             ))
                         ) : (
-                            <div className="col-span-full bg-white p-20 rounded-3xl border border-zinc-100 text-center">
-                                <Box className="mx-auto text-zinc-100 mb-4" size={64} />
-                                <p className="text-zinc-500 font-aesthetic">No products found.</p>
+                            <div className="col-span-full">
+                                <AdminCard className="py-32 text-center">
+                                    <Box className="mx-auto text-zinc-50 mb-8 opacity-50" size={80} />
+                                    <h4 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-2">Zero Assets</h4>
+                                    <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest italic leading-loose px-10">
+                                        No inventory matches your search query. Adjust filters or register a new asset.
+                                    </p>
+                                </AdminCard>
                             </div>
                         )}
                     </div>
 
-                    {/* Pagination Controls */}
                     {totalPages > 1 && (
-                        <div className="mt-12 flex items-center justify-center gap-4">
-                            <button
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
-                                disabled={page === 1}
-                                className="w-12 h-12 flex items-center justify-center bg-white border border-zinc-100 rounded-2xl text-zinc-400 hover:text-black disabled:opacity-30 disabled:hover:text-zinc-400 transition-all active:scale-90"
-                            >
-                                <ChevronLeft size={20} />
-                            </button>
-
-                            <div className="flex items-center gap-2">
-                                {Array.from({ length: totalPages }).map((_, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => setPage(i + 1)}
-                                        className={`w-12 h-12 flex items-center justify-center rounded-2xl text-sm font-bold transition-all active:scale-90 ${page === i + 1
-                                            ? "bg-black text-white shadow-lg shadow-black/10 scale-110"
-                                            : "bg-white border border-zinc-100 text-zinc-400 hover:text-black"
-                                            }`}
-                                    >
-                                        {i + 1}
-                                    </button>
-                                ))}
-                            </div>
-
-                            <button
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                disabled={page === totalPages}
-                                className="w-12 h-12 flex items-center justify-center bg-white border border-zinc-100 rounded-2xl text-zinc-400 hover:text-black disabled:opacity-30 disabled:hover:text-zinc-400 transition-all active:scale-90"
-                            >
-                                <ChevronRight size={20} />
-                            </button>
+                        <div className="pt-12 border-t border-zinc-50">
+                            <Pagination
+                                currentPage={page}
+                                totalPages={totalPages}
+                                onPageChange={setPage}
+                            />
                         </div>
                     )}
-                </>
+                </div>
             )}
         </div>
     );

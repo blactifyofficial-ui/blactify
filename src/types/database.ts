@@ -71,17 +71,33 @@ export interface Product {
     stock?: number;
 }
 
+export interface CustomerDetails {
+    name: string;
+    email: string;
+    phone: string;
+}
+
+export interface ShippingAddress {
+    address: string;
+    apartment?: string;
+    city: string;
+    state: string;
+    pincode: string;
+    district?: string;
+}
+
 export interface Order {
     id: string;
     payment_id?: string;
     user_id?: string;
     amount: number;
     currency: string;
-    items: any[]; // Legacy JSONB
-    status: string;
-    shipping_address: any;
-    customer_details: any;
-    created_at?: string;
+    items: any[]; // Standardized JSONB items
+    status: 'paid' | 'processing' | 'shipped' | 'delivered' | 'failed';
+    shipping_address: ShippingAddress;
+    customer_details: CustomerDetails;
+    tracking_id?: string;
+    created_at: string;
     order_items?: OrderItem[];
 }
 
@@ -92,5 +108,8 @@ export interface OrderItem {
     variant_id?: string;
     quantity: number;
     price_at_purchase: number;
+    name: string;
+    size?: string;
+    main_image?: string;
     created_at?: string;
 }

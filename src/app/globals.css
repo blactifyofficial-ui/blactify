@@ -3,13 +3,14 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #333639;
+  --foreground: #09090b;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-heading: "Druk Wide Bold", sans-serif;
+  --font-sans: "Inter", "system-ui", sans-serif;
   --animate-eye-glow: eye-glow 2s ease-in-out infinite;
   --animate-eye-glow-dark: eye-glow-dark 2s ease-in-out infinite;
   --animate-in: in 1s ease-out;
@@ -119,4 +120,36 @@
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  color: #000000;
+  letter-spacing: -0.02em;
+}
+
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4 {
+  color: #ffffff;
 }
