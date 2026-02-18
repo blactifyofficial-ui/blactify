@@ -11,7 +11,8 @@ export interface DashboardStats {
     recentOrders: Order[];
     revenueByMonth: { month: string; amount: number }[];
     conversionRate: string;
-    activeUsers: string;
+    activeUsers: number;
+    userGrowth: string;
 }
 
 export function useAdminStats() {
@@ -20,8 +21,9 @@ export function useAdminStats() {
         totalOrders: 0,
         recentOrders: [],
         revenueByMonth: [],
-        conversionRate: "4.8%",
-        activeUsers: "1,234"
+        conversionRate: "0%",
+        activeUsers: 0,
+        userGrowth: "0%"
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
@@ -55,12 +57,34 @@ export function useAdminStats() {
                 return { month, amount };
             });
 
+            // Fetch actual users count
+            const { count: usersCount, error: usersError } = await supabase
+                .from("profiles")
+                .select("*", { count: 'exact', head: true });
+
+            if (usersError) throw usersError;
+
+            // Fetch users from last 30 days for growth calculation
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+            const { count: recentUsersCount } = await supabase
+                .from("profiles")
+                .select("*", { count: 'exact', head: true })
+                .gt("created_at", thirtyDaysAgo.toISOString());
+
+            const growth = usersCount && usersCount > 0
+                ? `+${Math.round(((recentUsersCount || 0) / usersCount) * 100)}%`
+                : "0%";
+
             setStats(prev => ({
                 ...prev,
                 totalRevenue: revenue,
                 totalOrders: typedOrders.length,
                 recentOrders: typedOrders.slice(0, 5),
-                revenueByMonth: revByMonth
+                revenueByMonth: revByMonth,
+                activeUsers: usersCount || 0,
+                userGrowth: growth
             }));
         } catch (err: any) {
             console.error("Fetch dashboard stats error:", err);
