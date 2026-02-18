@@ -44,7 +44,7 @@ export function ComingSoon() {
                 <div className="flex flex-col gap-2 md:gap-4 mb-2 md:mb-8 text-center">
                     <h1 className={cn(
                         "text-5xl md:text-[110px] leading-[0.95] tracking-normal uppercase font-black transition-all duration-1000 ease-in-out",
-                        isVisible ? "text-[#333639]/90 scale-100" : "text-[#333639]/10 scale-95"
+                        isVisible ? "text-[#333639]/70 scale-100" : "text-[#333639]/10 scale-95"
                     )}>
                         COMING<br />SOON
                     </h1>
