@@ -178,7 +178,6 @@ export default function CheckoutSuccessPage() {
                     </p>
                     <p className="text-zinc-500 max-w-md mx-auto text-sm md:text-base leading-relaxed">
                         Order <span className="font-mono text-zinc-900">#{order.id.slice(0, 12)}</span> is being processed.
-                        A confirmation email has been sent to {order.customer_details.email}.
                     </p>
                     <div className="mt-8 flex flex-col sm:flex-row gap-4">
                         <Link
