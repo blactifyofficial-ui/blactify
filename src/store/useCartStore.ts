@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 import { Product } from "@/types/database";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { getStoreSettings } from "@/app/actions/settings";
 
 interface CartItem extends Product {
     quantity: number;
@@ -30,6 +31,12 @@ export const useCartStore = create<CartStore>()(
         (set, get) => ({
             items: [],
             addItem: async (product, size) => {
+                const settings = await getStoreSettings();
+                if (settings && !settings.purchases_enabled) {
+                    toast.error("Store is temporarily paused");
+                    return false;
+                }
+
                 const items = get().items;
                 const cartId = size ? `${product.id}-${size}` : product.id;
 

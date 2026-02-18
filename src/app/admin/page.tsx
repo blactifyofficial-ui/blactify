@@ -9,14 +9,69 @@ import {
     IndianRupee,
     BarChart3,
     Activity,
-    CheckCircle2
+    CheckCircle2,
+    Store,
+    AlertTriangle,
+    X,
+    Lock,
+    Unlock
 } from "lucide-react";
 import { useAdminStats } from "@/hooks/useAdminStats";
 import { AdminLoading, AdminPageHeader, AdminCard } from "@/components/admin/AdminUI";
 import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
+import { getStoreSettings, togglePurchaseStatus } from "@/app/actions/settings";
+import { toast } from "sonner";
 
 export default function AdminDashboardPage() {
     const { stats, loading } = useAdminStats();
+    const [purchasesEnabled, setPurchasesEnabled] = useState(true);
+    const [showDisableModal, setShowDisableModal] = useState(false);
+    const [confirmationText, setConfirmationText] = useState("");
+    const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
+
+    useEffect(() => {
+        getStoreSettings().then(settings => {
+            if (settings) {
+                setPurchasesEnabled(settings.purchases_enabled);
+            }
+        });
+    }, []);
+
+    const handleTogglePurchases = async () => {
+        if (purchasesEnabled) {
+            // Open modal to confirm disabling
+            setShowDisableModal(true);
+        } else {
+            // Enable directly
+            setIsUpdatingSettings(true);
+            const result = await togglePurchaseStatus(true);
+            setIsUpdatingSettings(false);
+            if (result.success) {
+                setPurchasesEnabled(true);
+                toast.success("Store purchases enabled successfully");
+            } else {
+                toast.error("Failed to enable purchases");
+            }
+        }
+    };
+
+    const confirmDisable = async () => {
+        if (confirmationText !== "STOP BUYING") return;
+
+        setIsUpdatingSettings(true);
+        const result = await togglePurchaseStatus(false);
+        setIsUpdatingSettings(false);
+
+        if (result.success) {
+            setPurchasesEnabled(false);
+            setShowDisableModal(false);
+            setConfirmationText("");
+            toast.success("Store purchases disabled successfully");
+        } else {
+            toast.error("Failed to disable purchases");
+        }
+    };
 
     const statCards = [
         { name: "Total Revenue", value: `₹${stats.totalRevenue.toLocaleString()}`, icon: IndianRupee, change: "+12.5%", trendingUp: true },
@@ -28,7 +83,7 @@ export default function AdminDashboardPage() {
     if (loading) return <AdminLoading message="Synthesizing intelligence protocol..." />;
 
     return (
-        <div className="space-y-12 animate-in fade-in duration-1000">
+        <div className="space-y-12 animate-in fade-in duration-1000 relative">
             <AdminPageHeader
                 title="Intelligence"
                 subtitle="Real-time performance metrics and global store diagnostics"
@@ -38,6 +93,40 @@ export default function AdminDashboardPage() {
                     <span className="text-[9px] font-black uppercase tracking-[0.2em]">Quantum Core Active</span>
                 </div>
             </AdminPageHeader>
+
+            {/* Store Controls */}
+            <div className="bg-zinc-50 border border-zinc-200 rounded-[2rem] p-8 flex items-center justify-between">
+                <div>
+                    <h3 className="text-lg font-black text-zinc-900 flex items-center gap-2">
+                        <Store size={20} />
+                        Store Controls
+                    </h3>
+                    <p className="text-xs text-zinc-500 mt-1 font-medium">Manage global store availability and purchase access.</p>
+                </div>
+                <button
+                    onClick={handleTogglePurchases}
+                    disabled={isUpdatingSettings}
+                    className={cn(
+                        "px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2",
+                        purchasesEnabled
+                            ? "bg-red-50 text-red-600 hover:bg-red-100 border border-red-100"
+                            : "bg-green-50 text-green-600 hover:bg-green-100 border border-green-100",
+                        isUpdatingSettings && "opacity-50 cursor-wait"
+                    )}
+                >
+                    {purchasesEnabled ? (
+                        <>
+                            <Lock size={14} />
+                            Disable Purchases
+                        </>
+                    ) : (
+                        <>
+                            <Unlock size={14} />
+                            Enable Purchases
+                        </>
+                    )}
+                </button>
+            </div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -166,6 +255,77 @@ export default function AdminDashboardPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Disable Purchase Confirmation Modal */}
+            {showDisableModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl shadow-black/20 border border-zinc-100 animate-in zoom-in-95 duration-300">
+                        <div className="flex justify-between items-start mb-6">
+                            <div className="p-3 bg-red-50 rounded-2xl text-red-600">
+                                <AlertTriangle size={24} />
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setShowDisableModal(false);
+                                    setConfirmationText("");
+                                }}
+                                className="p-2 hover:bg-zinc-100 rounded-full transition-colors"
+                            >
+                                <X size={20} className="text-zinc-400" />
+                            </button>
+                        </div>
+
+                        <h3 className="text-xl font-black text-zinc-900 mb-2">Disable Store Purchases?</h3>
+                        <p className="text-sm text-zinc-500 mb-6 leading-relaxed">
+                            This will prevent ALL customers from checking out. They will see a maintenance message.
+                            This action affects the live store immediately.
+                        </p>
+
+                        <div className="space-y-4">
+                            <p className="text-sm text-zinc-500 mb-4">
+                                To confirm, please type <span className="font-bold text-black">STOP BUYING</span> below.
+                            </p>
+                            <input
+                                type="text"
+                                value={confirmationText}
+                                onChange={(e) => setConfirmationText(e.target.value)}
+                                placeholder="STOP BUYING"
+                                className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-black/5 transition-all mb-6"
+                            />
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        setShowDisableModal(false);
+                                        setConfirmationText("");
+                                    }}
+                                    className="flex-1 px-4 py-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 rounded-xl text-xs font-bold uppercase tracking-widest transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    disabled={confirmationText !== "STOP BUYING" || isUpdatingSettings}
+                                    onClick={confirmDisable}
+                                    className={cn(
+                                        "flex-1 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2",
+                                        confirmationText === "STOP BUYING"
+                                            ? "bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-500/20"
+                                            : "bg-zinc-100 text-zinc-400 cursor-not-allowed"
+                                    )}
+                                >
+                                    {isUpdatingSettings ? (
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    ) : (
+                                        <>
+                                            <Lock size={14} />
+                                            Confirm Disable
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
