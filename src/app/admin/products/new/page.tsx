@@ -522,7 +522,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                         setFormData({ ...formData, category_id: e.target.value });
                                         if (errors.category_id) setErrors(prev => ({ ...prev, category_id: "" }));
                                     }}
-                                    className={`w - full pl - 12 pr - 10 py - 4 bg - zinc - 50 / 50 border ${errors.category_id ? 'border-red-400' : 'border-zinc-100'} rounded - 2xl text - sm focus: bg - white focus: outline - none focus: ring - 2 focus: ring - black / 5 transition - all cursor - pointer font - medium appearance - none`}
+                                    className={`w-full pl-12 pr-10 py-4 bg-zinc-50/50 border ${errors.category_id ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all cursor-pointer font-medium appearance-none`}
                                 >
                                     <option value="">Select Category</option>
                                     {categories.map((cat) => (
@@ -557,7 +557,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                         setFormData({ ...formData, name: e.target.value });
                                         if (errors.name) setErrors(prev => ({ ...prev, name: "" }));
                                     }}
-                                    className={`w - full pl - 12 pr - 6 py - 4 bg - zinc - 50 / 50 border ${errors.name ? 'border-red-400' : 'border-zinc-100'} rounded - 2xl text - sm focus: bg - white focus: outline - none focus: ring - 2 focus: ring - black / 5 transition - all font - normal`}
+                                    className={`w-full pl-12 pr-6 py-4 bg-zinc-50/50 border ${errors.name ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-normal`}
                                 />
                                 {errors.name && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.name}</p>}
                             </div>
@@ -599,7 +599,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                         setFormData({ ...formData, price_base: e.target.value });
                                         if (errors.price_base) setErrors(prev => ({ ...prev, price_base: "" }));
                                     }}
-                                    className={`w - full pl - 12 pr - 6 py - 4 bg - zinc - 50 / 50 border ${errors.price_base ? 'border-red-400' : 'border-zinc-100'} rounded - 2xl text - sm focus: bg - white focus: outline - none focus: ring - 2 focus: ring - black / 5 transition - all font - bold`}
+                                    className={`w-full pl-12 pr-6 py-4 bg-zinc-50/50 border ${errors.price_base ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-bold`}
                                 />
                                 {errors.price_base && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.price_base}</p>}
                             </div>
@@ -629,7 +629,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                     setFormData({ ...formData, handle: e.target.value });
                                     if (errors.handle) setErrors(prev => ({ ...prev, handle: "" }));
                                 }}
-                                className={`w - full px - 6 py - 4 bg - zinc - 50 / 50 border ${errors.handle ? 'border-red-400' : 'border-zinc-100'} rounded - 2xl text - sm focus: bg - white focus: outline - none focus: ring - 2 focus: ring - black / 5 transition - all font - normal`}
+                                className={`w-full px-6 py-4 bg-zinc-50/50 border ${errors.handle ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-normal`}
                             />
                             {errors.handle && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.handle}</p>}
                         </label>
@@ -648,7 +648,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                 </div>
 
                 {/* 3. Variants & Stock */}
-                <div className={`bg - white p - 8 rounded - [2rem] border ${errors.variants ? 'border-red-400' : 'border-zinc-100'} shadow - sm space - y - 6`}>
+                <div className={`bg-white p-8 rounded-[2rem] border ${errors.variants ? 'border-red-400' : 'border-zinc-100'} shadow-sm space-y-6`}>
                     <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 flex items-center gap-2">
                         <Tag size={14} />
                         Variants & Stock
@@ -795,12 +795,12 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                             ].map((img) => (
                                 <div key={img.key} className="space-y-2">
                                     <div
-                                        onClick={() => document.getElementById(`file - ${img.key} `)?.click()}
-                                        className={`aspect - square bg - zinc - 50 rounded - 2xl border ${errors.main_image && img.key === 'main_image' ? 'border-red-400' : 'border-zinc-100'} overflow - hidden relative group cursor - pointer hover: border - black / 10 transition - all hover: shadow - lg`}
+                                        onClick={() => document.getElementById(`file-${img.key}`)?.click()}
+                                        className={`aspect-square bg-zinc-50 rounded-2xl border ${errors.main_image && img.key === 'main_image' ? 'border-red-400' : 'border-zinc-100'} overflow-hidden relative group cursor-pointer hover:border-black/10 transition-all hover:shadow-lg`}
                                     >
                                         <input
                                             type="file"
-                                            id={`file - ${img.key} `}
+                                            id={`file-${img.key}`}
                                             className="hidden"
                                             accept="image/*"
                                             onChange={(e) => handleFileSelect(e, img.key)}
