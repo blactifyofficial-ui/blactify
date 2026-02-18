@@ -8,8 +8,8 @@ export function GET() {
         start_url: '/admin',
         scope: '/admin/',
         display: 'standalone',
-        background_color: '#000000',
-        theme_color: '#000000',
+        background_color: '#333639',
+        theme_color: '#333639',
         icons: [
             {
                 src: '/logo.webp',

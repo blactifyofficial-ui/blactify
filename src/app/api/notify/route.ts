@@ -33,7 +33,7 @@ export async function POST(req: Request) {
         // Shared Email Template Function
         const getEmailHtml = (isSeller: boolean) => `
             <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eeeeee; border-radius: 12px; overflow: hidden; color: #333333;">
-                <div style="background-color: #000000; padding: 30px; text-align: center;">
+                <div style="background-color: #333639; padding: 30px; text-align: center;">
                     <h1 style="color: #ffffff; margin: 0; text-transform: uppercase; letter-spacing: 0.2em; font-size: 24px; font-weight: 800;">
                         BLACTIFY
                     </h1>
@@ -98,7 +98,7 @@ export async function POST(req: Request) {
                                 ` : ""}
                                 <tr>
                                     <td style="padding-top: 10px; font-size: 16px; font-weight: 800; color: #111111; text-transform: uppercase;">Total Amount</td>
-                                    <td style="padding-top: 10px; text-align: right; font-size: 20px; font-weight: 900; color: #000000;">₹${Number(order.amount).toLocaleString('en-IN')}</td>
+                                    <td style="padding-top: 10px; text-align: right; font-size: 20px; font-weight: 900; color: #333639;">₹${Number(order.amount).toLocaleString('en-IN')}</td>
                                 </tr>
                             </table>
                         </div>

@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
         const html = `
             <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eeeeee; border-radius: 12px; overflow: hidden; color: #333333;">
-                <div style="background-color: #000000; padding: 30px; text-align: center;">
+                <div style="background-color: #333639; padding: 30px; text-align: center;">
                     <h1 style="color: #ffffff; margin: 0; text-transform: uppercase; letter-spacing: 0.2em; font-size: 24px; font-weight: 800;">
                         BLACTIFY
                     </h1>
