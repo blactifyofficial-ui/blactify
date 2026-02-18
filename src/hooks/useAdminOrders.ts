@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/lib/supabase";
 import { Order } from "@/types/database";
 import { toast } from "sonner";
+import { getAdminOrders } from "@/app/actions/orders";
 
 interface UseAdminOrdersProps {
     page: number;
@@ -21,26 +21,18 @@ export function useAdminOrders({ page, pageSize, searchTerm }: UseAdminOrdersPro
         setLoading(true);
         setError(null);
         try {
-            const from = (page - 1) * pageSize;
-            const to = from + pageSize - 1;
+            const result = await getAdminOrders({
+                page,
+                pageSize,
+                searchTerm
+            });
 
-            let query = supabase
-                .from("orders")
-                .select("*", { count: 'exact' });
-
-            if (searchTerm) {
-                // Search in ID or customer name
-                query = query.or(`id.ilike.%${searchTerm}%,customer_details->>name.ilike.%${searchTerm}%`);
+            if (result.success) {
+                setOrders(result.orders as any[]);
+                setTotalCount(result.totalCount);
+            } else {
+                throw new Error(result.error || "Failed to synchronise order data");
             }
-
-            const { data, error: supabaseError, count } = await query
-                .order("created_at", { ascending: false })
-                .range(from, to);
-
-            if (supabaseError) throw supabaseError;
-
-            setOrders((data as any[]) || []);
-            setTotalCount(count || 0);
         } catch (err: any) {
             console.error("Fetch orders error:", err);
             setError(err);
