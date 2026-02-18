@@ -8,6 +8,8 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 import { useAuth } from "@/store/AuthContext";
+import { signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import { loadRazorpay } from "@/lib/razorpay";
 import { saveOrder } from "@/lib/order-sync";
 import { markWelcomeDiscountUsed } from "@/lib/profile-sync";
@@ -550,7 +552,7 @@ function CheckoutContent() {
                         <section className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-lg font-medium text-zinc-900">Contact</h2>
-                                {!user && (
+                                {!user ? (
                                     <button
                                         type="button"
                                         onClick={() => window.dispatchEvent(new Event('open-auth-modal'))}
@@ -558,22 +560,40 @@ function CheckoutContent() {
                                     >
                                         Log in
                                     </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            signOut(auth);
+                                            toast.success("Signed out! You can now log in with a different account.");
+                                        }}
+                                        className="text-xs text-zinc-400 hover:text-red-500 transition-colors uppercase font-bold tracking-widest"
+                                    >
+                                        Switch Account
+                                    </button>
                                 )}
                             </div>
-                            <input
-                                type="email"
-                                name="email"
-                                placeholder="Email"
-                                required
-                                value={formData.email}
-                                onChange={handleChange}
-                                readOnly={!!user?.email}
-                                className={cn(
-                                    "w-full h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500",
-                                    user?.email && "bg-zinc-50 text-zinc-500",
-                                    errors.email && "border-red-500 focus:ring-red-500"
+                            <div className="space-y-2">
+                                <input
+                                    type="email"
+                                    name="email"
+                                    placeholder="Email"
+                                    required
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    readOnly={!!user?.email}
+                                    className={cn(
+                                        "w-full h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500",
+                                        user?.email && "bg-zinc-50 text-zinc-500",
+                                        errors.email && "border-red-500 focus:ring-red-500"
+                                    )}
+                                />
+                                {user && (
+                                    <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-widest">
+                                        Logged in as {user.displayName || "Member"}
+                                    </p>
                                 )}
-                            />
+                            </div>
                             {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
 
                         </section>
