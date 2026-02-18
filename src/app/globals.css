@@ -3,7 +3,7 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #333639;
+  --foreground: #09090b;
 }
 
 @theme inline {
@@ -13,6 +13,104 @@
   --font-sans: var(--font-outfit), var(--font-inter), ui-sans-serif, system-ui;
   --font-aesthetic: var(--font-space-grotesk), ui-serif, serif;
   --font-heading: "Druk Wide Bold", sans-serif;
+
+  --animate-eye-glow: eye-glow 2s ease-in-out infinite;
+  --animate-eye-glow-dark: eye-glow-dark 2s ease-in-out infinite;
+  --animate-in: in 1s ease-out;
+  --animate-fade-in: fade-in 1s ease-out forwards;
+  --animate-slide-up: slide-up 1s ease-out forwards;
+  --animate-zoom-in: zoom-in 0.5s ease-out forwards;
+  --animate-blob: blob 7s infinite;
+
+  @keyframes eye-glow {
+
+    0%,
+    100% {
+      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+      opacity: 0.8;
+    }
+
+    50% {
+      filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.7));
+      opacity: 1;
+    }
+  }
+
+  @keyframes eye-glow-dark {
+
+    0%,
+    100% {
+      filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.05));
+      opacity: 0.8;
+    }
+
+    50% {
+      filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.15));
+      opacity: 1;
+    }
+  }
+
+  @keyframes in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-up {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes zoom-in {
+    from {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes blob {
+    0% {
+      transform: translate(0px, 0px) scale(1);
+    }
+
+    33% {
+      transform: translate(30px, -50px) scale(1.1);
+    }
+
+    66% {
+      transform: translate(-20px, 20px) scale(0.9);
+    }
+
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+  }
 }
 
 @media (max-width: 768px) {
@@ -80,4 +178,36 @@ body {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+h1,
+h2,
+h3,
+h4 {
+  color: #000000;
+  letter-spacing: -0.02em;
+}
+
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4 {
+  color: #ffffff;
 }

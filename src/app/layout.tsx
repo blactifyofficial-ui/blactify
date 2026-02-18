@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Outfit, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -21,6 +22,9 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: "Blactify | Meets Timeless Essentials",
   description: "Modern e-commerce platform for high-aesthetic meets timeless essentials.",
+  icons: {
+    icon: "/icon.png",
+  },
 };
 
 export const viewport: Viewport = {
@@ -38,9 +42,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${outfit.variable} ${spaceGrotesk.variable} font-sans antialiased text-black`}>
+        <Toaster position="top-center" richColors />
         <AppLayout>{children}</AppLayout>
       </body>
     </html>
   );
 }
-

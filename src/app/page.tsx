@@ -22,15 +22,13 @@ export default function Home() {
         if (error) throw error;
         setProducts(data || []);
       } catch (err) {
-
+        console.error("Fetch products error:", err);
       } finally {
         setLoading(false);
       }
     }
     fetchProducts();
   }, []);
-
-  const heroProduct = products[0];
 
   return (
     <main className="flex flex-col">
