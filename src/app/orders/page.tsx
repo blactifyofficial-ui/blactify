@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/store/AuthContext";
-import { supabase } from "@/lib/supabase";
 import { Package, ChevronLeft } from "lucide-react";
+import { getUserOrders } from "@/lib/order-sync";
 import Link from "next/link";
 import Image from "next/image";
 import OrderCard from "./OrderCard";
@@ -41,17 +41,17 @@ export default function OrdersPage() {
             setLoading(true);
 
             try {
-                // Use Server Action to bypass RLS issues for Firebase-auth users
-                const { getUserOrders } = await import("@/lib/order-sync");
+                console.log("Initiating order fetch for UID:", user.uid);
                 const result = await getUserOrders(user.uid);
 
                 if (result.success) {
+                    console.log(`Orders fetched successfully: ${result.orders?.length || 0} items`);
                     setOrders((result.orders as Order[]) || []);
                 } else {
-                    console.error("Failed to fetch orders:", result.error);
+                    console.error("Failed to fetch orders via server action:", result.error);
                 }
             } catch (err) {
-                console.error("Error fetching orders:", err);
+                console.error("Error in fetchOrders sequence:", err);
             } finally {
                 setLoading(false);
             }

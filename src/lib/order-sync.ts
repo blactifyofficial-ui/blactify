@@ -1,6 +1,7 @@
 "use server";
 
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { appendOrderToSheet } from "./google-sheets";
 
 export async function saveOrder(orderData: {
     user_id: string;
@@ -45,6 +46,13 @@ export async function saveOrder(orderData: {
         }
 
         console.log("Atomic order created successfully:", orderIdToSave);
+
+        // 3. Sync to Google Sheets (Non-blocking)
+        appendOrderToSheet({
+            id: orderIdToSave,
+            ...orderData
+        }).catch(err => console.error("Google Sheets sync failed in background:", err));
+
         return { success: true };
     } catch (err: any) {
         console.error("Critical error in saveOrder:", err.message);
@@ -85,6 +93,7 @@ export async function getOrder(orderId: string) {
 }
 
 export async function getUserOrders(userId: string) {
+    console.log("getUserOrders called for userId:", userId);
     try {
         const { data, error } = await supabaseAdmin
             .from("orders")
@@ -92,7 +101,12 @@ export async function getUserOrders(userId: string) {
             .eq("user_id", userId)
             .order("created_at", { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+            console.error("Supabase error fetching orders:", error);
+            throw error;
+        }
+
+        console.log(`Successfully fetched ${data?.length || 0} orders for user:`, userId);
         return { success: true, orders: data || [] };
     } catch (err: any) {
         console.error("Fetch user orders error:", err.message);
