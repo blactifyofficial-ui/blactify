@@ -1,8 +1,8 @@
 import { User } from "firebase/auth";
 import { supabase } from "./supabase";
 
-export async function syncUserProfile(user: User) {
-    if (!user) return;
+export async function syncUserProfile(user: User): Promise<boolean> {
+    if (!user) return false;
 
     try {
         const response = await fetch("/api/user/sync-profile", {
@@ -21,9 +21,14 @@ export async function syncUserProfile(user: User) {
         if (!response.ok) {
             const error = await response.json();
             console.error("Profile sync API error:", error);
+            return false;
         }
+
+        const data = await response.json();
+        return data.isAdmin || false;
     } catch (err) {
         console.error("Failed to sync profile:", err);
+        return false;
     }
 }
 
