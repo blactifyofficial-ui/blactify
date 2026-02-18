@@ -38,18 +38,20 @@ export default function OrdersPage() {
     useEffect(() => {
         async function fetchOrders() {
             if (!user) return;
+            setLoading(true);
 
             try {
-                const { data, error } = await supabase
-                    .from("orders")
-                    .select("*")
-                    .eq("user_id", user.uid)
-                    .order("created_at", { ascending: false });
+                // Use Server Action to bypass RLS issues for Firebase-auth users
+                const { getUserOrders } = await import("@/lib/order-sync");
+                const result = await getUserOrders(user.uid);
 
-                if (error) throw error;
-                setOrders(data || []);
+                if (result.success) {
+                    setOrders((result.orders as Order[]) || []);
+                } else {
+                    console.error("Failed to fetch orders:", result.error);
+                }
             } catch (err) {
-
+                console.error("Error fetching orders:", err);
             } finally {
                 setLoading(false);
             }

@@ -141,3 +141,19 @@ export async function getOrder(orderId: string) {
         return { success: false, error: err.message };
     }
 }
+
+export async function getUserOrders(userId: string) {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from("orders")
+            .select("*")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        return { success: true, orders: data || [] };
+    } catch (err: any) {
+        console.error("Fetch user orders error:", err.message);
+        return { success: false, error: err.message };
+    }
+}
