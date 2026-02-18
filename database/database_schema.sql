@@ -5,7 +5,7 @@ CREATE TABLE categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     slug TEXT NOT NULL,
-    size_config JSONB DEFAULT '[]', -- Array of labels: ["Waist", "Rise", etc.]
+    size_config JSONB DEFAULT '[]', -- DEPRECATED: Use measurement_types instead
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -54,6 +54,28 @@ CREATE TABLE product_variants (
     UNIQUE(product_id, size)
 );
 
+-- 6. Measurement System
+CREATE TABLE measurement_types (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT UNIQUE NOT NULL, -- e.g. "Waist", "Inseam"
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE category_measurements (
+    category_id UUID REFERENCES categories(id) ON DELETE CASCADE,
+    measurement_type_id UUID REFERENCES measurement_types(id) ON DELETE CASCADE,
+    PRIMARY KEY (category_id, measurement_type_id)
+);
+
+CREATE TABLE variant_measurements (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    variant_id UUID REFERENCES product_variants(id) ON DELETE CASCADE,
+    measurement_type_id UUID REFERENCES measurement_types(id) ON DELETE CASCADE,
+    value TEXT NOT NULL, -- The specific measurement value
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(variant_id, measurement_type_id)
+);
+
 -- 6. Orders Table
 CREATE TABLE orders (
     id TEXT PRIMARY KEY, -- Razorpay Order ID
@@ -61,10 +83,11 @@ CREATE TABLE orders (
     user_id TEXT REFERENCES profiles(id),
     amount NUMERIC NOT NULL,
     currency TEXT DEFAULT 'INR',
-    items JSONB NOT NULL, -- Keep for legacy/backup, migrate to order_items
+    items JSONB NOT NULL, -- Legacy/Backup
     status TEXT DEFAULT 'pending', -- pending, paid, processing, shipped, delivered, failed
     shipping_address JSONB NOT NULL,
     customer_details JSONB NOT NULL,
+    tracking_id TEXT, -- Logistics Tracking ID
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -93,9 +116,11 @@ CREATE TABLE reviews (
 CREATE INDEX idx_products_handle ON products(handle);
 CREATE INDEX idx_products_category ON products(category_id);
 CREATE INDEX idx_orders_user ON orders(user_id);
+CREATE INDEX idx_orders_tracking ON orders(tracking_id);
 CREATE INDEX idx_reviews_product ON reviews(product_id);
 CREATE INDEX idx_product_images_product ON product_images(product_id);
 CREATE INDEX idx_product_variants_product ON product_variants(product_id);
+CREATE INDEX idx_variant_measurements_variant ON variant_measurements(variant_id);
 
 -- Row Level Security (RLS)
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
@@ -106,12 +131,18 @@ ALTER TABLE product_images ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_variants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE measurement_types ENABLE ROW LEVEL SECURITY;
+ALTER TABLE category_measurements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE variant_measurements ENABLE ROW LEVEL SECURITY;
 
 -- Policies
 CREATE POLICY "Public Read Access" ON products FOR SELECT USING (true);
 CREATE POLICY "Public Read Access" ON categories FOR SELECT USING (true);
 CREATE POLICY "Public Read Access" ON product_images FOR SELECT USING (true);
 CREATE POLICY "Public Read Access" ON product_variants FOR SELECT USING (true);
+CREATE POLICY "Public Read Access" ON measurement_types FOR SELECT USING (true);
+CREATE POLICY "Public Read Access" ON category_measurements FOR SELECT USING (true);
+CREATE POLICY "Public Read Access" ON variant_measurements FOR SELECT USING (true);
 
 CREATE POLICY "Users can manage own profile" ON profiles 
     FOR ALL USING (auth.uid()::text = id);
