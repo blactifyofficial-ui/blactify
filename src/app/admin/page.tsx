@@ -21,7 +21,7 @@ export default function AdminDashboardPage() {
     const statCards = [
         { name: "Total Revenue", value: `₹${stats.totalRevenue.toLocaleString()}`, icon: IndianRupee, change: "+12.5%", trendingUp: true },
         { name: "Total Orders", value: stats.totalOrders.toLocaleString(), icon: ShoppingBag, change: "+3.2%", trendingUp: true },
-        { name: "Active Users", value: stats.activeUsers, icon: Users, change: "+18%", trendingUp: true },
+        { name: "Active Users", value: stats.activeUsers.toLocaleString(), icon: Users, change: stats.userGrowth, trendingUp: true },
         { name: "System Status", value: "Optimal", icon: CheckCircle2, change: "Live", trendingUp: true },
     ];
 
