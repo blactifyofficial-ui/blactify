@@ -92,7 +92,7 @@ export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
             ))}
             <div className="absolute inset-0 bg-black/20" />
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-[#333639] z-10">
-                <h1 className="font-empire text-3xl md:text-5xl lg:text-7xl mb-4 md:mb-8 opacity-80 uppercase leading-none tracking-tighter drop-shadow-2xl">
+                <h1 className="font-empire text-3xl md:text-5xl lg:text-7xl mb-4 md:mb-8 opacity-85 uppercase leading-none tracking-tighter drop-shadow-2xl">
                     {title}
                 </h1>
 
