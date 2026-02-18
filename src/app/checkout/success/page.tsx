@@ -156,40 +156,37 @@ export default function CheckoutSuccessPage() {
     }
 
     return (
-        <div className="min-h-screen bg-white pb-20">
-            {/* Success Header Area */}
-            <div className="bg-zinc-50 border-b border-zinc-100 pt-20 pb-12 px-6">
-                <div className="max-w-4xl mx-auto flex flex-col items-center text-center">
-                    <div className="relative w-32 h-32 mb-8 animate-in zoom-in-50 duration-700">
-                        <Image
-                            src="/welcome-eye.png"
-                            alt="Success"
-                            fill
-                            className="object-contain"
-                        />
-                    </div>
-                    <div className="flex items-center gap-3 text-green-600 font-bold uppercase tracking-widest text-[10px] mb-4">
-                        <CheckCircle2 size={16} />
-                        Order Confirmed
-                    </div>
-                    <h1 className="text-3xl md:text-5xl font-heading font-bold text-zinc-900 mb-2 uppercase tracking-tight">Thank You.</h1>
-                    <p className="text-zinc-400 font-medium uppercase tracking-[0.3em] text-[10px] mb-6 animate-in fade-in slide-in-from-bottom-2 duration-1000">
-                        Keep it blactify
+        <div className="min-h-screen bg-white flex items-center justify-center p-6">
+            <div className="max-w-4xl w-full flex flex-col items-center text-center -mt-10">
+                <div className="relative w-32 h-32 mb-8 animate-in zoom-in-50 duration-700">
+                    <Image
+                        src="/welcome-eye.png"
+                        alt="Success"
+                        fill
+                        className="object-contain"
+                    />
+                </div>
+                <div className="flex items-center gap-3 text-green-600 font-bold uppercase tracking-widest text-[10px] mb-4">
+                    <CheckCircle2 size={16} />
+                    Order Confirmed
+                </div>
+                <h1 className="text-3xl md:text-5xl font-heading font-bold text-zinc-900 mb-2 uppercase tracking-tight">Thank You.</h1>
+                <p className="text-zinc-400 font-medium uppercase tracking-[0.3em] text-[10px] mb-6 animate-in fade-in slide-in-from-bottom-2 duration-1000">
+                    Keep it blactify
+                </p>
+                <p className="text-zinc-500 max-w-md mx-auto text-sm md:text-base leading-relaxed">
+                    Order <span className="font-mono text-zinc-900">#{order.id.slice(0, 12)}</span> is being processed.
+                </p>
+                <div className="mt-8 flex flex-col sm:flex-row items-center gap-4">
+                    <Link
+                        href="/"
+                        className="px-8 py-3 bg-black text-white text-xs font-bold uppercase tracking-widest rounded transition-all hover:bg-zinc-800"
+                    >
+                        Continue Shopping
+                    </Link>
+                    <p className="text-zinc-400 text-[10px] flex items-center justify-center">
+                        Redirecting in {countdown}s
                     </p>
-                    <p className="text-zinc-500 max-w-md mx-auto text-sm md:text-base leading-relaxed">
-                        Order <span className="font-mono text-zinc-900">#{order.id.slice(0, 12)}</span> is being processed.
-                    </p>
-                    <div className="mt-8 flex flex-col sm:flex-row gap-4">
-                        <Link
-                            href="/"
-                            className="px-8 py-3 bg-black text-white text-xs font-bold uppercase tracking-widest rounded transition-all hover:bg-zinc-800"
-                        >
-                            Continue Shopping
-                        </Link>
-                        <p className="text-zinc-400 text-[10px] flex items-center justify-center">
-                            Redirecting in {countdown}s
-                        </p>
-                    </div>
                 </div>
             </div>
         </div>
