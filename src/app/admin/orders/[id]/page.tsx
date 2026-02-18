@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
-import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
+import { getAdminOrderById, updateAdminOrder } from "@/app/actions/orders";
 import {
     ChevronLeft,
     Calendar,
@@ -56,14 +56,13 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
     useEffect(() => {
         async function fetchOrder() {
             try {
-                const { data, error } = await supabase
-                    .from("orders")
-                    .select("*")
-                    .eq("id", id)
-                    .single();
-                if (error) throw error;
-                setOrder(data);
-                setTrackingId(data.tracking_id || "");
+                const result = await getAdminOrderById(id);
+                if (result.success && result.order) {
+                    setOrder(result.order);
+                    setTrackingId(result.order.tracking_id || "");
+                } else {
+                    throw new Error(result.error || "Order not found");
+                }
             } catch (err) {
                 toast.error("Protocol Error", { description: "Failure to retrieve mission parameters." });
             } finally {
@@ -76,7 +75,10 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
     useEffect(() => {
         if (!order?.items) return;
         async function fetchMeasurements() {
+            // Note: If variant measurements are also blocked by RLS, we may need a server action for this as well.
+            // For now, attempting to keep it simple as the main issue was orders access.
             try {
+                const { supabase } = await import("@/lib/supabase");
                 const measurementsMap: Record<string, any> = {};
                 for (const item of order.items) {
                     if (!item.id || !item.size) continue;
@@ -110,11 +112,9 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
         setUpdating(true);
         const normalizedStatus = newStatus.toLowerCase();
         try {
-            const { error } = await supabase
-                .from("orders")
-                .update({ status: normalizedStatus })
-                .eq("id", id);
-            if (error) throw error;
+            const result = await updateAdminOrder(id, { status: normalizedStatus });
+            if (!result.success) throw new Error(result.error);
+
             toast.success("Status Synchronized", {
                 description: `Vector updated to ${normalizedStatus.toUpperCase()}`,
             });
@@ -130,11 +130,9 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
         if (!trackingId.trim() && !order.tracking_id) return;
         setUpdating(true);
         try {
-            const { error } = await supabase
-                .from("orders")
-                .update({ tracking_id: trackingId })
-                .eq("id", id);
-            if (error) throw error;
+            const result = await updateAdminOrder(id, { tracking_id: trackingId });
+            if (!result.success) throw new Error(result.error);
+
             toast.success("Logistics Updated", { description: "Tracking sequence finalized." });
             setOrder({ ...order, tracking_id: trackingId });
         } catch (err) {

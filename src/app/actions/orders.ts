@@ -46,3 +46,58 @@ export async function getAdminOrders({ page, pageSize, searchTerm }: GetAdminOrd
         };
     }
 }
+
+export async function getAdminOrderById(id: string) {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from("orders")
+            .select("*")
+            .eq("id", id)
+            .single();
+
+        if (error) {
+            console.error("getAdminOrderById database error:", error);
+            throw new Error(error.message);
+        }
+
+        return {
+            order: data,
+            success: true
+        };
+    } catch (error: any) {
+        console.error("getAdminOrderById unexpected error:", error);
+        return {
+            order: null,
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+export async function updateAdminOrder(id: string, updates: any) {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from("orders")
+            .update(updates)
+            .eq("id", id)
+            .select()
+            .single();
+
+        if (error) {
+            console.error("updateAdminOrder database error:", error);
+            throw new Error(error.message);
+        }
+
+        return {
+            order: data,
+            success: true
+        };
+    } catch (error: any) {
+        console.error("updateAdminOrder unexpected error:", error);
+        return {
+            order: null,
+            success: false,
+            error: error.message
+        };
+    }
+}

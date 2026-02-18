@@ -50,11 +50,11 @@ export default function AdminProductsPage() {
                 throw new Error(errorData.error || "Deletion failed");
             }
 
-            toast.success("Protocol: Asset Purged");
+            toast.success("Product deleted successfully");
             refetch();
             setDeleteModalOpen(false);
         } catch (err: any) {
-            toast.error("Deletion failed: Active constraints detected.");
+            toast.error("Could not delete product.");
         } finally {
             setIsDeleting(false);
         }
@@ -67,20 +67,20 @@ export default function AdminProductsPage() {
                 isOpen={deleteModalOpen}
                 onClose={() => setDeleteModalOpen(false)}
                 onConfirm={confirmDelete}
-                title="Purge Asset"
-                description="This action will permanently delete the product and all associated variants from the global registry."
+                title="Delete Product"
+                description="This will permanently remove the product and all its variations."
                 loading={isDeleting}
             />
 
             <AdminPageHeader
                 title="Products"
-                subtitle="High-fidelity inventory control and asset management"
+                subtitle="Manage your store catalog and stock"
             >
                 <div className="relative group flex-1 md:flex-none">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-black transition-colors" size={18} />
                     <input
                         type="text"
-                        placeholder="Search Inventory..."
+                        placeholder="Search products..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-12 pr-6 py-3 bg-white border border-zinc-100 rounded-2xl w-full sm:w-80 focus:outline-none focus:ring-4 focus:ring-black/5 focus:border-black/10 transition-all text-sm font-medium shadow-sm"
@@ -91,12 +91,12 @@ export default function AdminProductsPage() {
                     className="flex items-center justify-center gap-2 bg-black text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-black/10 shrink-0"
                 >
                     <Plus size={16} strokeWidth={3} />
-                    Register Asset
+                    Add Product
                 </Link>
             </AdminPageHeader>
 
             {loading ? (
-                <AdminLoading message="Accessing inventory registry..." />
+                <AdminLoading message="Loading products..." />
             ) : (
                 <div className="space-y-12">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -150,12 +150,12 @@ export default function AdminProductsPage() {
                                     <div className="p-8 flex-1 flex flex-col justify-between">
                                         <div className="mb-6">
                                             <h3 className="font-black text-lg text-black tracking-tight line-clamp-1 group-hover:text-zinc-600 transition-colors">{product.name}</h3>
-                                            <p className="text-[9px] font-black text-zinc-300 uppercase tracking-widest mt-1 italic">SKU: {product.id.slice(0, 8)}</p>
+                                            <p className="text-[9px] font-black text-zinc-300 uppercase tracking-widest mt-1 italic">ID: {product.id.slice(0, 8)}</p>
                                         </div>
 
                                         <div className="flex items-center justify-between pt-6 border-t border-zinc-50">
                                             <div>
-                                                <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] mb-1">VALUATION</p>
+                                                <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] mb-1">PRICE</p>
                                                 <p className="text-xl font-black tracking-tighter text-black">
                                                     ₹{(product.price_offer || product.price_base).toLocaleString()}
                                                 </p>
@@ -177,9 +177,9 @@ export default function AdminProductsPage() {
                             <div className="col-span-full">
                                 <AdminCard className="py-32 text-center">
                                     <Box className="mx-auto text-zinc-50 mb-8 opacity-50" size={80} />
-                                    <h4 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-2">Zero Assets</h4>
+                                    <h4 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-2">No Products Found</h4>
                                     <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest italic leading-loose px-10">
-                                        No inventory matches your search query. Adjust filters or register a new asset.
+                                        No products found. Try a different search or add a new product.
                                     </p>
                                 </AdminCard>
                             </div>

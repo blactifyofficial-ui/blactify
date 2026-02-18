@@ -63,7 +63,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                         <span className="text-2xl font-heading text-white uppercase leading-none tracking-tighter">
                             BLACTIFY
                         </span>
-                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500">CORE COMMAND</p>
+                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500">Admin Panel</p>
                     </div>
                     <div className="flex items-center gap-3">
                         <button

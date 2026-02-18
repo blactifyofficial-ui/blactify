@@ -18,7 +18,7 @@ export function AdminMobileHeader({ onMenuClick }: { onMenuClick: () => void }) 
                 </button>
                 <div className="flex flex-col">
                     <h2 className="text-sm font-black tracking-tight text-black leading-none uppercase">Blactify</h2>
-                    <p className="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-400">Core</p>
+                    <p className="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-400">Admin</p>
                 </div>
             </div>
 

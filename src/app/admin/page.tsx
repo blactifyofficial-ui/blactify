@@ -80,17 +80,17 @@ export default function AdminDashboardPage() {
         { name: "System Status", value: "Optimal", icon: CheckCircle2, change: "Live", trendingUp: true },
     ];
 
-    if (loading) return <AdminLoading message="Synthesizing intelligence protocol..." />;
+    if (loading) return <AdminLoading message="Getting things ready..." />;
 
     return (
         <div className="space-y-12 animate-in fade-in duration-1000 relative">
             <AdminPageHeader
-                title="Intelligence"
-                subtitle="Real-time performance metrics and global store diagnostics"
+                title="Dashboard"
+                subtitle="Store overview and performance"
             >
                 <div className="flex items-center gap-3 px-5 py-2.5 bg-black text-white rounded-full shadow-2xl shadow-black/20 border border-white/10">
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse ring-4 ring-green-500/20"></div>
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em]">Quantum Core Active</span>
+                    <span className="text-[9px] font-black uppercase tracking-[0.2em]">Store Online</span>
                 </div>
             </AdminPageHeader>
 
@@ -101,7 +101,7 @@ export default function AdminDashboardPage() {
                         <Store size={20} />
                         Store Controls
                     </h3>
-                    <p className="text-xs text-zinc-500 mt-1 font-medium">Manage global store availability and purchase access.</p>
+                    <p className="text-xs text-zinc-500 mt-1 font-medium">Control if customers can buy products.</p>
                 </div>
                 <button
                     onClick={handleTogglePurchases}
@@ -157,8 +157,8 @@ export default function AdminDashboardPage() {
                 {/* Recent Activity */}
                 <div className="lg:col-span-3">
                     <AdminCard
-                        title="Quantum Stream"
-                        subtitle="Latest logistical deployments across the high-frequency registry"
+                        title="Recent Activity"
+                        subtitle="Most recent orders and store updates"
                         icon={<Activity size={18} />}
                     >
                         <div className="space-y-6">
@@ -174,7 +174,7 @@ export default function AdminDashboardPage() {
                                                 {order.customer_details?.name?.[0]?.toUpperCase() || "#"}
                                             </div>
                                             <div className="space-y-1.5">
-                                                <p className="text-sm font-black text-black group-hover/item:translate-x-1 transition-transform duration-500">{order.customer_details?.name || "REDACTED CLIENT"}</p>
+                                                <p className="text-sm font-black text-black group-hover/item:translate-x-1 transition-transform duration-500">{order.customer_details?.name || "Guest"}</p>
                                                 <div className="flex items-center gap-3">
                                                     <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest bg-zinc-100 px-2 py-0.5 rounded-full">#{order.id.slice(0, 8)}</span>
                                                     <span className={cn(
@@ -195,9 +195,9 @@ export default function AdminDashboardPage() {
                             ) : (
                                 <div className="py-24 text-center">
                                     <ShoppingBag className="mx-auto text-zinc-50 mb-6 opacity-50" size={64} />
-                                    <h4 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-2">Zero Activity</h4>
+                                    <h4 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-2">No Activity</h4>
                                     <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest italic leading-loose px-10">
-                                        The high-frequency registry is currently dormant. No active deployments detected.
+                                        There is no recent activity to show.
                                     </p>
                                 </div>
                             )}
@@ -212,11 +212,11 @@ export default function AdminDashboardPage() {
                             <div className="flex items-center justify-between mb-3">
                                 <h3 className="text-xl font-black text-white flex items-center gap-3 uppercase tracking-tight">
                                     <BarChart3 size={22} />
-                                    Velocity Pulse
+                                    Sales Growth
                                 </h3>
-                                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.4em]">High Freq</span>
+                                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.4em]">LIVE</span>
                             </div>
-                            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest italic mb-12">Dynamic revenue projection across temporal nodes</p>
+                            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest italic mb-12">Monthly revenue overview</p>
                         </div>
 
                         <div className="h-72 flex items-end justify-between gap-4 relative z-10 px-2 mb-8">
@@ -241,11 +241,11 @@ export default function AdminDashboardPage() {
                         </div>
 
                         <div className="flex justify-between items-center relative z-10 px-1 border-t border-white/5 pt-8 mt-6">
-                            <span className="text-[9px] font-black text-zinc-700 uppercase tracking-[0.3em] font-aesthetic">Genesis Node</span>
+                            <span className="text-[9px] font-black text-zinc-700 uppercase tracking-[0.3em] font-aesthetic">Start</span>
                             <div className="flex gap-1">
                                 {[1, 2, 3].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-white/10"></div>)}
                             </div>
-                            <span className="text-[9px] font-black text-zinc-700 uppercase tracking-[0.3em] font-aesthetic">Zenith Node</span>
+                            <span className="text-[9px] font-black text-zinc-700 uppercase tracking-[0.3em] font-aesthetic">Current</span>
                         </div>
 
                         {/* Aesthetic Noise Overlay */}
@@ -275,10 +275,10 @@ export default function AdminDashboardPage() {
                             </button>
                         </div>
 
-                        <h3 className="text-xl font-black text-zinc-900 mb-2">Disable Store Purchases?</h3>
+                        <h3 className="text-xl font-black text-zinc-900 mb-2">Turn off purchases?</h3>
                         <p className="text-sm text-zinc-500 mb-6 leading-relaxed">
-                            This will prevent ALL customers from checking out. They will see a maintenance message.
-                            This action affects the live store immediately.
+                            This will stop customers from buying products. They will see a maintenance message.
+                            This takes effect immediately.
                         </p>
 
                         <div className="space-y-4">

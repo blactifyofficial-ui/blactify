@@ -42,13 +42,13 @@ export default function AdminOrdersPage() {
         <div className="space-y-8 font-inter animate-in fade-in duration-700">
             <AdminPageHeader
                 title="Orders"
-                subtitle="High-fidelity order management & logistics tracking"
+                subtitle="Manage and track customer orders"
             >
                 <div className="relative group">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-black transition-colors" size={18} />
                     <input
                         type="text"
-                        placeholder="Search Intelligence..."
+                        placeholder="Search orders..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-12 pr-6 py-3 bg-white border border-zinc-100 rounded-2xl w-full sm:w-80 focus:outline-none focus:ring-4 focus:ring-black/5 focus:border-black/10 transition-all text-sm font-medium placeholder:text-zinc-300 shadow-sm"
@@ -57,7 +57,7 @@ export default function AdminOrdersPage() {
             </AdminPageHeader>
 
             {loading ? (
-                <AdminLoading message="Querying order database..." />
+                <AdminLoading message="Loading orders..." />
             ) : (
                 <div className="grid gap-4">
                     {orders.length > 0 ? (
@@ -84,7 +84,7 @@ export default function AdminOrdersPage() {
                                             </span>
                                         </div>
                                         <h3 className="font-black text-lg text-black tracking-tight group-hover:translate-x-1 transition-transform duration-500">
-                                            {order.customer_details?.name || "Unidentified Client"}
+                                            {order.customer_details?.name || "Guest"}
                                         </h3>
                                         <div className="flex items-center gap-5 text-zinc-400">
                                             <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.2em] opacity-80 italic">
@@ -101,7 +101,7 @@ export default function AdminOrdersPage() {
 
                                 <div className="flex items-center justify-between sm:justify-end gap-10 mt-6 sm:mt-0 pt-6 sm:pt-0 border-t sm:border-t-0 border-zinc-50 relative z-10">
                                     <div className="text-left sm:text-right">
-                                        <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] mb-1">VALUATION</p>
+                                        <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] mb-1">TOTAL</p>
                                         <p className="text-2xl font-black tracking-tighter text-black">₹{order.amount.toLocaleString()}</p>
                                     </div>
                                     <div className="w-14 h-14 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-300 group-hover:bg-black group-hover:text-white group-hover:scale-110 transition-all duration-700 border border-zinc-100 shadow-sm">
@@ -116,8 +116,8 @@ export default function AdminOrdersPage() {
                     ) : (
                         <div className="bg-white p-32 rounded-[3.5rem] border border-zinc-100 text-center shadow-inner relative overflow-hidden">
                             <ShoppingBag className="mx-auto text-zinc-100 mb-8 opacity-50" size={80} />
-                            <h4 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-2">Zero Results</h4>
-                            <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest italic">No orders match your specific criteria.</p>
+                            <h4 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-2">No Results</h4>
+                            <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest italic">No orders found.</p>
                             <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.02] pointer-events-none"></div>
                         </div>
                     )}

@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 
-export function AdminLoading({ message = "Synchronizing data..." }: { message?: string }) {
+export function AdminLoading({ message = "Loading..." }: { message?: string }) {
     return (
         <div className="w-full flex flex-col items-center justify-center py-20 animate-in fade-in duration-500">
             <div className="relative">

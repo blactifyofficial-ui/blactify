@@ -66,7 +66,7 @@ export default function AdminCategoriesPage() {
         setFormError("");
 
         if (!validateName(newCategoryName)) {
-            setFormError("Identity must be 3-50 characters (alphanumeric and ' & - , only)");
+            setFormError("Name must be 3-50 characters (letters, numbers, and ' & - , only)");
             return;
         }
 
@@ -92,15 +92,15 @@ export default function AdminCategoriesPage() {
                 throw new Error(errorData.error || "Failed to process request");
             }
 
-            toast.success(editingId ? "System Entry Updated" : "New Taxonomy Created", {
-                description: `Successfully cataloged: ${newCategoryName}`,
+            toast.success(editingId ? "Category updated" : "New category created", {
+                description: `Category saved: ${newCategoryName}`,
             });
             resetForm();
             refetch();
         } catch (err: any) {
-            let message = err.message || "Process synchronization failed.";
+            let message = err.message || "Failed to save category.";
             if (err.message?.includes('23505') || err.message?.includes('unique constraint')) {
-                message = "Conflict: Identity already exists in database.";
+                message = "This category already exists.";
             }
             toast.error(message);
         } finally {
@@ -121,11 +121,11 @@ export default function AdminCategoriesPage() {
                 throw new Error(errorData.error || "Deletion failed");
             }
 
-            toast.success("Protocol: Category Purged");
+            toast.success("Category deleted");
             refetch();
             setDeleteModalOpen(false);
         } catch (err: any) {
-            toast.error("Deletion failed: Structural dependency detected.");
+            toast.error("Could not delete category.");
         } finally {
             setIsDeleting(false);
         }
@@ -137,24 +137,24 @@ export default function AdminCategoriesPage() {
                 isOpen={deleteModalOpen}
                 onClose={() => setDeleteModalOpen(false)}
                 onConfirm={confirmDelete}
-                title="Purge Category"
-                description="This action will permanently delete the category from the global registry. High structural impact possible."
+                title="Delete Category"
+                description="This will permanently delete the category."
                 loading={isDeleting}
             />
 
             <AdminPageHeader
                 title="Categories"
-                subtitle="High-level taxonomy and structural organization"
+                subtitle="Organize your products into categories"
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 items-start">
                 {/* Form Side - Sticky on both Mobile and Desktop */}
                 <div className="lg:col-span-2 sticky top-[72px] lg:top-10 z-30">
-                    <AdminCard title={editingId ? "Modify Entry" : "Register Category"}>
+                    <AdminCard title={editingId ? "Edit Category" : "Add Category"}>
                         <form onSubmit={handleSubmit} noValidate className="space-y-6">
                             <div className="space-y-4">
                                 <label className="block">
-                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-2 block italic">Category Identity</span>
+                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-2 block italic">Category Name</span>
                                     <div className="relative">
                                         <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={18} />
                                         <input
@@ -179,11 +179,11 @@ export default function AdminCategoriesPage() {
                                 </label>
 
                                 <div className="space-y-4 pt-4 border-t border-zinc-50">
-                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 block italic">Measurement Blueprints</span>
+                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 block italic">Size Options</span>
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
-                                            placeholder="Field name..."
+                                            placeholder="Add size (e.g. S, M, L)..."
                                             value={currentField}
                                             onChange={(e) => setCurrentField(e.target.value)}
                                             onKeyDown={(e) => {
@@ -207,7 +207,7 @@ export default function AdminCategoriesPage() {
                                             }}
                                             className="px-4 bg-zinc-100 text-zinc-500 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-zinc-200 transition-colors"
                                         >
-                                            Link
+                                            Add
                                         </button>
                                     </div>
 
@@ -235,7 +235,7 @@ export default function AdminCategoriesPage() {
                                         onClick={resetForm}
                                         className="flex-1 py-4 border border-zinc-100 text-zinc-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-50 transition-all font-aesthetic"
                                     >
-                                        Abort
+                                        Cancel
                                     </button>
                                 )}
                                 <button
@@ -244,7 +244,7 @@ export default function AdminCategoriesPage() {
                                     className="flex-[2] py-4 bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-zinc-800 transition-all disabled:opacity-50 shadow-xl shadow-black/10"
                                 >
                                     {adding ? <Loader2 className="animate-spin" size={16} /> : (editingId ? <Check size={18} /> : <Plus size={18} />)}
-                                    {editingId ? 'Modify Strategy' : 'Finalize Entry'}
+                                    {editingId ? 'Update Category' : 'Save Category'}
                                 </button>
                             </div>
                         </form>
@@ -255,7 +255,7 @@ export default function AdminCategoriesPage() {
                 <div className="lg:col-span-3">
                     <div className="space-y-4">
                         {loading ? (
-                            <AdminLoading message="Accessing taxonomy registry..." />
+                            <AdminLoading message="Loading categories..." />
                         ) : categories.length > 0 ? (
                             <>
                                 {categories.map((cat) => (
@@ -273,7 +273,7 @@ export default function AdminCategoriesPage() {
                                                         </span>
                                                     ))}
                                                     {(!(cat as any).size_config || (cat as any).size_config.length === 0) && (
-                                                        <span className="text-[8px] font-bold text-zinc-300 uppercase tracking-widest italic">Standard Configuration</span>
+                                                        <span className="text-[8px] font-bold text-zinc-300 uppercase tracking-widest italic">No sizes set</span>
                                                     )}
                                                 </div>
                                             </div>
@@ -310,9 +310,9 @@ export default function AdminCategoriesPage() {
                         ) : (
                             <AdminCard className="py-20 text-center">
                                 <Tag className="mx-auto text-zinc-50 mb-6 opacity-50" size={64} />
-                                <h4 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-2">No Taxonomy</h4>
+                                <h4 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-2">No Categories</h4>
                                 <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest italic leading-loose px-10">
-                                    The registry is currently empty. Initialize structural data via the entry form.
+                                    No categories found. Add one using the form.
                                 </p>
                             </AdminCard>
                         )}
