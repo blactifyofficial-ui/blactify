@@ -103,3 +103,19 @@ export async function saveOrder(orderData: {
         return { success: false, error: { message: userMessage, technical: techMessage } };
     }
 }
+
+export async function getOrder(orderId: string) {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from("orders")
+            .select("*")
+            .eq("id", orderId)
+            .single();
+
+        if (error) throw error;
+        return { success: true, order: data };
+    } catch (err: any) {
+        console.error("Fetch order error:", err);
+        return { success: false, error: err.message };
+    }
+}

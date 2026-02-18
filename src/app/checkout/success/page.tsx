@@ -81,13 +81,15 @@ export default function CheckoutSuccessPage() {
             }
 
             try {
-                const { data, error } = await supabase
-                    .from("orders")
-                    .select("*")
-                    .eq("id", orderId)
-                    .single();
+                // Use Server Action to fetch order (bypasses RLS issues)
+                const { getOrder } = await import("@/lib/order-sync");
+                const result = await getOrder(orderId);
 
-                if (error) throw error;
+                if (!result.success || !result.order) {
+                    throw new Error(result.error || "Order not found");
+                }
+
+                const data = result.order;
                 setOrder(data);
 
                 // Start Automation
