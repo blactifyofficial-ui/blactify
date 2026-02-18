@@ -160,7 +160,7 @@ export default function ProductDetailPage() {
         : (product.stock ?? 0);
 
     return (
-        <main className="min-h-screen bg-white text-black pb-48 lg:pb-24 font-inter">
+        <main className="min-h-screen bg-white text-black pb-24 font-inter">
             <div className="max-w-7xl mx-auto">
                 {/* Breadcrumbs */}
                 <nav className="px-6 py-6 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
@@ -367,7 +367,7 @@ export default function ProductDetailPage() {
                             </div>
                         )}
 
-                        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-zinc-100 z-50 lg:static lg:p-0 lg:bg-transparent lg:border-0 lg:z-auto flex flex-col gap-3">
+                        <div className="relative flex flex-col gap-3 mt-8 lg:mt-0">
                             {storeEnabled && (
                                 <button
                                     onClick={async () => {
