@@ -1,0 +1,177 @@
+import { NextResponse } from "next/server";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+
+export async function POST(request: Request) {
+    try {
+        const body = await request.json();
+        const { id, name, handle, price_base, price_offer, category_id, description, variants, images } = body;
+
+        // 1. Insert Product
+        const { error: productError } = await supabaseAdmin
+            .from("products")
+            .insert([{
+                id,
+                name,
+                handle,
+                price_base,
+                price_offer,
+                category_id,
+                description
+            }]);
+
+        if (productError) throw productError;
+
+        // 2. Handle Variants
+        if (variants && variants.length > 0) {
+            for (const variant of variants) {
+                const { data: vData, error: vError } = await supabaseAdmin
+                    .from("product_variants")
+                    .upsert([{
+                        product_id: id,
+                        size: variant.size,
+                        stock: variant.stock
+                    }], { onConflict: 'product_id, size' })
+                    .select()
+                    .single();
+
+                if (vError) throw vError;
+
+                // Sync Measurements
+                if (variant.measurements) {
+                    await supabaseAdmin.from("variant_measurements").delete().eq("variant_id", vData.id);
+
+                    const measToInsert = Object.entries(variant.measurements)
+                        .filter(([_, value]) => value !== "")
+                        .map(([typeId, value]) => ({
+                            variant_id: vData.id,
+                            measurement_type_id: typeId,
+                            value: value
+                        }));
+
+                    if (measToInsert.length > 0) {
+                        const { error: mError } = await supabaseAdmin.from("variant_measurements").insert(measToInsert);
+                        if (mError) throw mError;
+                    }
+                }
+            }
+        }
+
+        // 3. Handle Images
+        if (images && images.length > 0) {
+            await supabaseAdmin.from("product_images").delete().eq("product_id", id);
+            const { error: imageError } = await supabaseAdmin
+                .from("product_images")
+                .insert(images.map((img: any) => ({ ...img, product_id: id })));
+            if (imageError) throw imageError;
+        }
+
+        return NextResponse.json({ success: true });
+    } catch (err: any) {
+        console.error("Product creation error:", err);
+        return NextResponse.json({ error: err.message }, { status: 500 });
+    }
+}
+
+export async function PUT(request: Request) {
+    try {
+        const body = await request.json();
+        const { id, name, handle, price_base, price_offer, category_id, description, variants, images } = body;
+
+        // 1. Update Product
+        const { error: productError } = await supabaseAdmin
+            .from("products")
+            .update({
+                name,
+                handle,
+                price_base,
+                price_offer,
+                category_id,
+                description
+            })
+            .eq("id", id);
+
+        if (productError) throw productError;
+
+        // 2. Handle Variants (Sync)
+        if (variants) {
+            // Get existing to identify deletions
+            const { data: existingVariants } = await supabaseAdmin
+                .from("product_variants")
+                .select("id, size")
+                .eq("product_id", id);
+
+            if (existingVariants) {
+                const sizesToKeep = variants.map((v: any) => v.size);
+                const variantsToDelete = existingVariants.filter(ev => !sizesToKeep.includes(ev.size));
+                if (variantsToDelete.length > 0) {
+                    await supabaseAdmin.from("product_variants").delete().in("id", variantsToDelete.map(v => v.id));
+                }
+            }
+
+            for (const variant of variants) {
+                const { data: vData, error: vError } = await supabaseAdmin
+                    .from("product_variants")
+                    .upsert([{
+                        product_id: id,
+                        size: variant.size,
+                        stock: variant.stock
+                    }], { onConflict: 'product_id, size' })
+                    .select()
+                    .single();
+
+                if (vError) throw vError;
+
+                // Sync Measurements
+                await supabaseAdmin.from("variant_measurements").delete().eq("variant_id", vData.id);
+
+                if (variant.measurements) {
+                    const measToInsert = Object.entries(variant.measurements)
+                        .filter(([_, value]) => value !== "")
+                        .map(([typeId, value]) => ({
+                            variant_id: vData.id,
+                            measurement_type_id: typeId,
+                            value: value
+                        }));
+
+                    if (measToInsert.length > 0) {
+                        const { error: mError } = await supabaseAdmin.from("variant_measurements").insert(measToInsert);
+                        if (mError) throw mError;
+                    }
+                }
+            }
+        }
+
+        // 3. Handle Images
+        if (images) {
+            await supabaseAdmin.from("product_images").delete().eq("product_id", id);
+            if (images.length > 0) {
+                const { error: imageError } = await supabaseAdmin
+                    .from("product_images")
+                    .insert(images.map((img: any) => ({ ...img, product_id: id })));
+                if (imageError) throw imageError;
+            }
+        }
+
+        return NextResponse.json({ success: true });
+    } catch (err: any) {
+        console.error("Product update error:", err);
+        return NextResponse.json({ error: err.message }, { status: 500 });
+    }
+}
+
+export async function DELETE(request: Request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get("id");
+
+        if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
+
+        const { error } = await supabaseAdmin.from("products").delete().eq("id", id);
+        if (error) throw error;
+
+        return NextResponse.json({ success: true });
+    } catch (err: any) {
+        console.error("Product deletion error:", err);
+        return NextResponse.json({ error: err.message }, { status: 500 });
+    }
+}
