@@ -5,21 +5,25 @@ export async function syncUserProfile(user: User) {
     if (!user) return;
 
     try {
-        const { error } = await supabase
-            .from("profiles")
-            .upsert({
+        const response = await fetch("/api/user/sync-profile", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
                 id: user.uid,
                 email: user.email,
                 full_name: user.displayName,
                 avatar_url: user.photoURL,
-                updated_at: new Date().toISOString(),
-            }, {
-                onConflict: 'id'
-            });
+            }),
+        });
 
-
+        if (!response.ok) {
+            const error = await response.json();
+            console.error("Profile sync API error:", error);
+        }
     } catch (err) {
-
+        console.error("Failed to sync profile:", err);
     }
 }
 
