@@ -31,25 +31,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (user) {
                 try {
                     console.log("Syncing profile for user:", user.uid);
-                    await syncUserProfile(user);
-
-                    console.log("Checking is_admin status for user:", user.uid);
-                    const { data, error } = await supabase
-                        .from("profiles")
-                        .select("is_admin")
-                        .eq("id", user.uid)
-                        .single();
-
-                    if (error) {
-                        console.error("Error fetching profile is_admin:", error);
-                        setIsAdmin(false);
-                    } else if (data) {
-                        console.log("Is Admin status:", data.is_admin);
-                        setIsAdmin(data.is_admin);
-                    } else {
-                        console.log("No profile data found for user:", user.uid);
-                        setIsAdmin(false);
-                    }
+                    const adminStatus = await syncUserProfile(user);
+                    console.log("Admin status from sync:", adminStatus);
+                    setIsAdmin(adminStatus);
                 } catch (err) {
                     console.error("Error in auth sync process:", err);
                     setIsAdmin(false);

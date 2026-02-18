@@ -10,7 +10,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Missing user ID" }, { status: 400 });
         }
 
-        const { error } = await supabaseAdmin
+        const { data, error } = await supabaseAdmin
             .from("profiles")
             .upsert({
                 id,
@@ -20,14 +20,19 @@ export async function POST(request: Request) {
                 updated_at: new Date().toISOString(),
             }, {
                 onConflict: 'id'
-            });
+            })
+            .select("is_admin")
+            .single();
 
         if (error) {
             console.error("Profile sync error details:", error);
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
-        return NextResponse.json({ success: true });
+        return NextResponse.json({
+            success: true,
+            isAdmin: data?.is_admin || false
+        });
     } catch (err) {
         console.error("Critical error in sync-profile route:", err);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
