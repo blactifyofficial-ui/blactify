@@ -68,14 +68,21 @@ export function useAdminStats() {
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-            const { count: recentUsersCount } = await supabase
-                .from("profiles")
-                .select("*", { count: 'exact', head: true })
-                .gt("created_at", thirtyDaysAgo.toISOString());
+            let recentUsersCount = 0;
+            try {
+                const { count } = await supabase
+                    .from("profiles")
+                    .select("*", { count: 'exact', head: true })
+                    .gt("created_at", thirtyDaysAgo.toISOString());
+                recentUsersCount = count || 0;
+            } catch (err) {
+                console.warn("Failed to fetch growth stats: created_at column might be missing. Proceeding with 0% growth.");
+            }
 
             const growth = usersCount && usersCount > 0
-                ? `+${Math.round(((recentUsersCount || 0) / usersCount) * 100)}%`
+                ? `+${Math.round((recentUsersCount / usersCount) * 100)}%`
                 : "0%";
+
 
             setStats(prev => ({
                 ...prev,

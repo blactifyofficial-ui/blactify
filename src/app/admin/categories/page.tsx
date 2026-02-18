@@ -74,50 +74,22 @@ export default function AdminCategoriesPage() {
         const slug = newCategoryName.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
 
         try {
-            let categoryId = editingId;
+            const payload = {
+                id: editingId,
+                name: newCategoryName,
+                slug,
+                size_config: newSizeFields
+            };
 
-            if (editingId) {
-                const { error: updateError } = await supabase
-                    .from("categories")
-                    .update({ name: newCategoryName, slug })
-                    .eq("id", editingId);
-                if (updateError) throw updateError;
-            } else {
-                const { data: categoryData, error: insertError } = await supabase
-                    .from("categories")
-                    .insert([{ name: newCategoryName, slug }])
-                    .select()
-                    .single();
-                if (insertError) throw insertError;
-                categoryId = categoryData.id;
-            }
+            const response = await fetch("/api/admin/categories" + (editingId ? "" : ""), {
+                method: editingId ? "PUT" : "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
 
-            if (categoryId) {
-                if (editingId) {
-                    await supabase.from("category_measurements").delete().eq("category_id", categoryId);
-                }
-
-                if (newSizeFields.length > 0) {
-                    await supabase.from("measurement_types").upsert(
-                        newSizeFields.map(name => ({ name })),
-                        { onConflict: 'name' }
-                    );
-
-                    const { data: allTypes } = await supabase.from("measurement_types").select("id, name").in("name", newSizeFields);
-                    const finalTypeMap = new Map(allTypes?.map(m => [m.name, m.id]));
-
-                    const links = newSizeFields.map(name => {
-                        const typeId = finalTypeMap.get(name);
-                        return typeId ? { category_id: categoryId, measurement_type_id: typeId } : null;
-                    }).filter(Boolean);
-
-                    if (links.length > 0) {
-                        const { error: linkError } = await supabase
-                            .from("category_measurements")
-                            .insert(links);
-                        if (linkError) throw linkError;
-                    }
-                }
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to process request");
             }
 
             toast.success(editingId ? "System Entry Updated" : "New Taxonomy Created", {
@@ -126,8 +98,8 @@ export default function AdminCategoriesPage() {
             resetForm();
             refetch();
         } catch (err: any) {
-            let message = "Process synchronization failed.";
-            if (err.code === '23505') {
+            let message = err.message || "Process synchronization failed.";
+            if (err.message?.includes('23505') || err.message?.includes('unique constraint')) {
                 message = "Conflict: Identity already exists in database.";
             }
             toast.error(message);
@@ -140,12 +112,19 @@ export default function AdminCategoriesPage() {
         if (!categoryToDelete) return;
         setIsDeleting(true);
         try {
-            const { error } = await supabase.from("categories").delete().eq("id", categoryToDelete);
-            if (error) throw error;
+            const response = await fetch(`/api/admin/categories?id=${categoryToDelete}`, {
+                method: "DELETE"
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Deletion failed");
+            }
+
             toast.success("Protocol: Category Purged");
             refetch();
             setDeleteModalOpen(false);
-        } catch (err) {
+        } catch (err: any) {
             toast.error("Deletion failed: Structural dependency detected.");
         } finally {
             setIsDeleting(false);
