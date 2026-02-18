@@ -119,7 +119,7 @@ export default function AdminProductsPage() {
                                         )}
 
                                         {/* Overlay Actions */}
-                                        <div className="absolute top-5 right-5 flex gap-2 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 z-20">
+                                        <div className="absolute top-5 right-5 flex gap-2 lg:translate-y-2 lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100 transition-all duration-500 z-20">
                                             <Link
                                                 href={`/admin/products/edit/${product.id}`}
                                                 className="w-12 h-12 bg-white/90 backdrop-blur shadow-2xl rounded-full flex items-center justify-center text-zinc-600 hover:text-black hover:scale-110 transition-all border border-zinc-100"
