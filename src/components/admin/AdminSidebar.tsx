@@ -33,6 +33,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         setIsLoggingOut(true);
         try {
             await signOut(auth);
+            localStorage.removeItem("admin_session_start");
         } finally {
             setIsLoggingOut(false);
             setIsLogoutModalOpen(false);
