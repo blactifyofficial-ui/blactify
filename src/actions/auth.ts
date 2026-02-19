@@ -3,7 +3,6 @@
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { Resend } from "resend";
 import { SELLER_CONFIG } from "@/lib/config";
-import { EMAIL_REGEX, PASSWORD_REGEX, NAME_REGEX } from "@/lib/validation";
 import { EmailSchema, OTPSchema } from "@/lib/schemas";
 
 // Helper to generate a 6-character alphanumeric OTP
