@@ -12,7 +12,8 @@ async function getInitialProducts() {
     const { data, error } = await supabase
       .from("products")
       .select("*, product_images(*), product_variants(*)")
-      .limit(8)
+      .eq("show_on_home", true)
+      .limit(6)
       .order("created_at", { ascending: false });
 
     if (error) return [];

@@ -23,10 +23,13 @@ export default function AdminProductsPage() {
     const [page, setPage] = useState(1);
     const pageSize = 12;
 
+    const [showOnHomeOnly, setShowOnHomeOnly] = useState(false);
+
     const { products, totalCount, loading, refetch } = useAdminProducts({
         page,
         pageSize,
-        searchTerm
+        searchTerm,
+        showOnHome: showOnHomeOnly
     });
 
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -74,23 +77,32 @@ export default function AdminProductsPage() {
                 title="Products"
                 subtitle="Manage your store catalog and stock"
             >
-                <div className="relative group flex-1 md:flex-none">
+                <div className="relative group w-full md:w-72 lg:w-96 flex-none">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-black transition-colors" size={18} />
                     <input
                         type="text"
                         placeholder="Search products..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-12 pr-6 py-3 bg-white border border-zinc-100 rounded-2xl w-full sm:w-80 focus:outline-none focus:ring-4 focus:ring-black/5 focus:border-black/10 transition-all text-sm font-medium shadow-sm"
+                        className="pl-12 pr-6 py-3 bg-white border border-zinc-100 rounded-2xl w-full focus:outline-none focus:ring-4 focus:ring-black/5 focus:border-black/10 transition-all text-sm font-medium shadow-sm"
                     />
                 </div>
-                <Link
-                    href="/admin/products/new"
-                    className="flex items-center justify-center gap-2 bg-black text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-black/10 shrink-0"
-                >
-                    <Plus size={16} strokeWidth={3} />
-                    Add Product
-                </Link>
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <Link
+                        href="/admin/products/new"
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-black text-white px-6 py-4 md:py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-black/10 shrink-0"
+                    >
+                        <Plus size={16} strokeWidth={3} />
+                        <span className="hidden sm:inline">Add Product</span>
+                        <span className="sm:hidden text-[8px]">Add</span>
+                    </Link>
+                    <button
+                        onClick={() => setShowOnHomeOnly(!showOnHomeOnly)}
+                        className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-4 md:py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl ${showOnHomeOnly ? 'bg-black text-white shadow-black/10' : 'bg-white text-zinc-400 border border-zinc-100 shadow-sm'}`}
+                    >
+                        {showOnHomeOnly ? 'Featured' : 'Home'}
+                    </button>
+                </div>
             </AdminPageHeader>
 
             {loading ? (
@@ -148,7 +160,15 @@ export default function AdminProductsPage() {
                                     <div className="p-8 flex-1 flex flex-col justify-between">
                                         <div className="mb-6">
                                             <h3 className="font-black text-lg text-black tracking-tight line-clamp-1 group-hover:text-zinc-600 transition-colors">{product.name}</h3>
-                                            <p className="text-[9px] font-black text-zinc-300 uppercase tracking-widest mt-1 italic">ID: {product.id.slice(0, 8)}</p>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <p className="text-[9px] font-black text-zinc-300 uppercase tracking-widest italic">ID: {product.id.slice(0, 8)}</p>
+                                                {product.show_on_home && (
+                                                    <div className="flex items-center gap-1.5 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
+                                                        <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                                                        <span className="text-[8px] font-black text-emerald-600 uppercase tracking-wider">Live on Home</span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
 
                                         <div className="flex items-center justify-between pt-6 border-t border-zinc-50">
@@ -160,13 +180,9 @@ export default function AdminProductsPage() {
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] mb-1">STOCK</p>
-                                                <div className="flex flex-wrap gap-1">
-                                                    {(product.product_variants || []).map((v) => (
-                                                        <span key={v.id} className="px-2 py-0.5 bg-zinc-100 rounded-md text-[9px] font-bold text-zinc-600">
-                                                            {v.size}
-                                                        </span>
-                                                    ))}
-                                                </div>
+                                                <p className="text-xl font-black tracking-tighter text-black">
+                                                    {product.stock || 0}
+                                                </p>
                                             </div>
                                         </div>
                                     </div>

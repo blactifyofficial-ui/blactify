@@ -24,7 +24,8 @@ export default function HomeClient({ initialProducts }: HomeClientProps) {
                     const { data, error } = await supabase
                         .from("products")
                         .select("*, product_images(*), product_variants(*)")
-                        .limit(8)
+                        .eq("show_on_home", true)
+                        .limit(6)
                         .order("created_at", { ascending: false });
 
                     if (error) throw error;
@@ -43,7 +44,7 @@ export default function HomeClient({ initialProducts }: HomeClientProps) {
         <main className="flex flex-col">
             <Hero
                 title={<>Meet Timeless <br className="hidden md:block" /> Essentials</>}
-                images={products.slice(0, 3).map(p => p.product_images?.[0]?.url || p.main_image || "/placeholder-product.jpg")}
+                images={products.map(p => p.product_images?.[0]?.url || p.main_image || "/placeholder-product.jpg")}
                 ctaText="Shop Now"
                 ctaLink="/shop"
             />

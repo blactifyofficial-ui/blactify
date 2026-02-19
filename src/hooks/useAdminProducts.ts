@@ -9,9 +9,10 @@ interface UseAdminProductsProps {
     page: number;
     pageSize: number;
     searchTerm?: string;
+    showOnHome?: boolean;
 }
 
-export function useAdminProducts({ page, pageSize, searchTerm }: UseAdminProductsProps) {
+export function useAdminProducts({ page, pageSize, searchTerm, showOnHome }: UseAdminProductsProps) {
     const [products, setProducts] = useState<Product[]>([]);
     const [totalCount, setTotalCount] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -32,6 +33,8 @@ export function useAdminProducts({ page, pageSize, searchTerm }: UseAdminProduct
                         name
                     ),
                     product_variants (
+                        id,
+                        size,
                         stock
                     ),
                     product_images (
@@ -42,6 +45,10 @@ export function useAdminProducts({ page, pageSize, searchTerm }: UseAdminProduct
 
             if (searchTerm) {
                 query = query.ilike('name', `%${searchTerm}%`);
+            }
+
+            if (showOnHome) {
+                query = query.eq('show_on_home', true);
             }
 
             const { data, error: supabaseError, count } = await query
@@ -71,14 +78,14 @@ export function useAdminProducts({ page, pageSize, searchTerm }: UseAdminProduct
         } finally {
             setLoading(false);
         }
-    }, [page, pageSize, searchTerm]);
+    }, [page, pageSize, searchTerm, showOnHome]);
 
     useEffect(() => {
         const handler = setTimeout(() => {
             fetchProducts();
         }, searchTerm ? 400 : 0);
         return () => clearTimeout(handler);
-    }, [fetchProducts, searchTerm]);
+    }, [fetchProducts, searchTerm, showOnHome]);
 
     return { products, totalCount, loading, error, refetch: fetchProducts };
 }

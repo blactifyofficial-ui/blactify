@@ -58,6 +58,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
         image2: "",
         image3: "",
         description: "",
+        show_on_home: false,
         variants: [] as ProductVariant[]
     });
 
@@ -236,6 +237,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                 image2: (img2?.url || "") as string,
                 image3: (img3?.url || "") as string,
                 description: (data.description || "") as string,
+                show_on_home: !!data.show_on_home,
                 variants: loadedVariants
             });
         } catch {
@@ -344,7 +346,8 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                 category_id: formData.category_id || null,
                 description: formData.description,
                 variants: formData.variants,
-                images: images
+                images: images,
+                show_on_home: formData.show_on_home
             };
 
             const response = await fetch("/api/admin/products", {
@@ -539,6 +542,33 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                             </div>
                         )}
                     </label>
+
+                    <div className="flex items-center justify-between mt-6 pt-6 border-t border-zinc-50">
+                        <div>
+                            <span className="text-xs font-semibold uppercase tracking-widest text-zinc-900 block italic">Show on Home Screen</span>
+                            <p className="text-[10px] text-zinc-500 mt-1 italic font-medium">Feature this product on the main landing page (Limit: 6)</p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={async () => {
+                                if (!formData.show_on_home) {
+                                    const { count, error } = await supabase
+                                        .from("products")
+                                        .select("*", { count: 'exact', head: true })
+                                        .eq("show_on_home", true);
+
+                                    if (!error && count !== null && count >= 6) {
+                                        toast.error("You reached the limit of showing 6 products on the home screen.");
+                                        return;
+                                    }
+                                }
+                                setFormData(prev => ({ ...prev, show_on_home: !prev.show_on_home }));
+                            }}
+                            className={`w-12 h-6 rounded-full transition-all duration-300 relative ${formData.show_on_home ? 'bg-black' : 'bg-zinc-200'}`}
+                        >
+                            <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all duration-300 ${formData.show_on_home ? 'left-7' : 'left-1'}`} />
+                        </button>
+                    </div>
                 </div>
 
                 {/* 2. Product Information */}

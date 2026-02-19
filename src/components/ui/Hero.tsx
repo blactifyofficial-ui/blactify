@@ -82,7 +82,7 @@ export function Hero({ title, images, ctaText, ctaLink }: HeroProps) {
         <section ref={container} className="relative h-[80vh] w-full overflow-hidden bg-zinc-100">
             {images.map((img, index) => (
                 <div
-                    key={img}
+                    key={`${img}-${index}`}
                     className={cn(
                         "absolute inset-0 transition-opacity",
                         `hero-image-${index}`,

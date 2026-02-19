@@ -33,7 +33,7 @@ export function AdminPageHeader({
                     </p>
                 )}
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
                 {children}
             </div>
         </div>

@@ -5,7 +5,7 @@ import { deleteFromCloudinary } from "@/lib/cloudinary";
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { id, name, handle, price_base, price_offer, category_id, description, variants, images } = body;
+        const { id, name, handle, price_base, price_offer, category_id, description, variants, images, show_on_home } = body;
 
         // 1. Insert Product
         const { error: productError } = await supabaseAdmin
@@ -17,7 +17,8 @@ export async function POST(request: Request) {
                 price_base,
                 price_offer,
                 category_id,
-                description
+                description,
+                show_on_home
             }]);
 
         if (productError) throw productError;
@@ -75,7 +76,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
     try {
         const body = await request.json();
-        const { id, name, handle, price_base, price_offer, category_id, description, variants, images } = body;
+        const { id, name, handle, price_base, price_offer, category_id, description, variants, images, show_on_home } = body;
 
         // 1. Update Product
         const { error: productError } = await supabaseAdmin
@@ -86,7 +87,8 @@ export async function PUT(request: Request) {
                 price_base,
                 price_offer,
                 category_id,
-                description
+                description,
+                show_on_home
             })
             .eq("id", id);
 
