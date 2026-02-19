@@ -17,6 +17,15 @@ import { Tag } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { getStoreSettings } from "@/app/actions/settings";
+import {
+    EMAIL_REGEX,
+    PHONE_REGEX,
+    PINCODE_REGEX,
+    NAME_REGEX,
+    ADDRESS_REGEX,
+    CITY_REGEX
+} from "@/lib/validation";
+
 
 interface CartItem {
     id: string;
@@ -161,35 +170,59 @@ function CheckoutContent() {
         const newErrors: Record<string, string> = {};
 
         // Email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!formData.email.trim()) {
             newErrors.email = "Email is required";
-        } else if (!emailRegex.test(formData.email)) {
+        } else if (!EMAIL_REGEX.test(formData.email)) {
             newErrors.email = "Invalid email address";
         }
 
-        // Phone validation (Indian mobile: 10 digits, starts with 6-9)
-        const phoneRegex = /^[6-9]\d{9}$/;
+        // Phone validation
         if (!formData.phone.trim()) {
             newErrors.phone = "Phone number is required";
-        } else if (!phoneRegex.test(formData.phone)) {
+        } else if (!PHONE_REGEX.test(formData.phone)) {
             newErrors.phone = "Invalid phone number (10 digits starting with 6-9)";
         }
 
-        // PIN Code validation (Indian PIN: 6 digits, starts with 1-9)
-        const pincodeRegex = /^[1-9][0-9]{5}$/;
+        // PIN Code validation
         if (!formData.pincode.trim()) {
             newErrors.pincode = "PIN code is required";
-        } else if (!pincodeRegex.test(formData.pincode)) {
+        } else if (!PINCODE_REGEX.test(formData.pincode)) {
             newErrors.pincode = "Invalid PIN code (6 digits)";
         }
 
-        // Required fields
-        if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
-        if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
-        if (!formData.address.trim()) newErrors.address = "Address is required";
-        if (!formData.district.trim()) newErrors.district = "District is required";
-        if (!formData.city.trim()) newErrors.city = "City is required";
+        // Name validation
+        if (!formData.firstName.trim()) {
+            newErrors.firstName = "First name is required";
+        } else if (!NAME_REGEX.test(formData.firstName)) {
+            newErrors.firstName = "Invalid first name (2-50 characters)";
+        }
+
+        if (!formData.lastName.trim()) {
+            newErrors.lastName = "Last name is required";
+        } else if (!NAME_REGEX.test(formData.lastName)) {
+            newErrors.lastName = "Invalid last name (2-50 characters)";
+        }
+
+        // Address validation
+        if (!formData.address.trim()) {
+            newErrors.address = "Address is required";
+        } else if (!ADDRESS_REGEX.test(formData.address)) {
+            newErrors.address = "Invalid address format or length (5-100 characters)";
+        }
+
+        // City & District validation
+        if (!formData.district.trim()) {
+            newErrors.district = "District is required";
+        } else if (!CITY_REGEX.test(formData.district)) {
+            newErrors.district = "Invalid district name";
+        }
+
+        if (!formData.city.trim()) {
+            newErrors.city = "City is required";
+        } else if (!CITY_REGEX.test(formData.city)) {
+            newErrors.city = "Invalid city name";
+        }
+
         if (!formData.state) newErrors.state = "State is required";
 
         setErrors(newErrors);

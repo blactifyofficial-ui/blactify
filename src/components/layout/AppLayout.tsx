@@ -13,6 +13,13 @@ import { CartDrawer } from "@/components/ui/CartDrawer";
 import { AuthModal } from "@/components/ui/AuthModal";
 import { Toaster } from "sonner";
 import { Suspense } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+if (typeof window !== "undefined") {
+    gsap.registerPlugin(ScrollTrigger);
+}
+
 
 function AppLayoutContent({ children }: { children: React.ReactNode }) {
     const [isCartOpen, setIsCartOpen] = useState(false);

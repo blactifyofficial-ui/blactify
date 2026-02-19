@@ -10,6 +10,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useCartStore } from "@/store/useCartStore";
+import { NAME_REGEX } from "@/lib/validation";
+
 
 export default function SettingsPage() {
     const { user, loading: authLoading } = useAuth();
@@ -65,6 +67,11 @@ export default function SettingsPage() {
     const handleUpdateProfile = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!auth.currentUser) return;
+
+        if (!NAME_REGEX.test(name)) {
+            setStatus({ type: 'error', message: 'Please enter a valid name (2-50 characters)' });
+            return;
+        }
 
         setLoading(true);
         setStatus(null);

@@ -9,6 +9,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { PHONE_REGEX } from "@/lib/validation";
+
 
 interface Order {
     id: string;
@@ -72,6 +74,11 @@ export default function SupportPage() {
 
         if (!formData.phone || !formData.message) {
             toast.error("Please fill in all required fields");
+            return;
+        }
+
+        if (!PHONE_REGEX.test(formData.phone)) {
+            toast.error("Please enter a valid phone number (10 digits starting with 6-9)");
             return;
         }
 

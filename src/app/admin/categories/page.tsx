@@ -18,6 +18,8 @@ import { useAdminCategories } from "@/hooks/useAdminCategories";
 import { Category } from "@/types/database";
 import { AdminLoading, AdminPageHeader, AdminCard } from "@/components/admin/AdminUI";
 import { cn } from "@/lib/utils";
+import { CATEGORY_NAME_REGEX } from "@/lib/validation";
+
 
 export default function AdminCategoriesPage() {
     const [page, setPage] = useState(1);
@@ -42,8 +44,7 @@ export default function AdminCategoriesPage() {
     const totalPages = Math.ceil(totalCount / pageSize);
 
     const validateName = (name: string) => {
-        const regex = /^[A-Za-z0-9\s'&,-]{3,50}$/;
-        return regex.test(name);
+        return CATEGORY_NAME_REGEX.test(name);
     };
 
     const resetForm = () => {

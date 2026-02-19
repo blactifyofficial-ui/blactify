@@ -1,8 +1,10 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
 interface HeroProps {
     title: string | React.ReactNode;
@@ -13,23 +15,40 @@ interface HeroProps {
 
 export function Hero({ title, images, ctaText, ctaLink }: HeroProps) {
     const router = useRouter();
+    const container = useRef<HTMLDivElement>(null);
+    const titleRef = useRef<HTMLHeadingElement>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [showFullText, setShowFullText] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
 
-    useEffect(() => {
+    // Background Image Animation
+    useGSAP(() => {
         if (images.length <= 1) return;
 
         const interval = setInterval(() => {
-            setCurrentImageIndex((prev) => (prev + 1) % images.length);
+            const nextIndex = (currentImageIndex + 1) % images.length;
+
+            // Fade out current, fade in next
+            gsap.to(`.hero-image-${currentImageIndex}`, { opacity: 0, duration: 1.5, ease: "power2.inOut" });
+            gsap.to(`.hero-image-${nextIndex}`, { opacity: 1, duration: 1.5, ease: "power2.inOut" });
+
+            setCurrentImageIndex(nextIndex);
         }, 5000);
 
         return () => clearInterval(interval);
-    }, [images.length]);
+    }, [currentImageIndex, images.length]);
+
+    // Title Entry Animation
+    useGSAP(() => {
+        gsap.fromTo(titleRef.current,
+            { y: 50, opacity: 0 },
+            { y: 0, opacity: 0.85, duration: 1.2, ease: "power3.out", delay: 0.5 }
+        );
+    }, { scope: container });
 
     // Handle toggle for the CTA area (eye vs Shop Now)
-    useEffect(() => {
+    useGSAP(() => {
         const interval = setInterval(() => {
             if (!isHovered && !isAnimating) {
                 setShowFullText((prev) => !prev);
@@ -46,36 +65,28 @@ export function Hero({ title, images, ctaText, ctaLink }: HeroProps) {
         setIsAnimating(true);
 
         if (!showFullText) {
-            // It's the eye icon. Highlight it first, then transition.
+            setShowFullText(true);
             setTimeout(() => {
-                setShowFullText(true);
-                // After transitioning to "Shop Now", wait a bit then navigate
-                setTimeout(() => {
-                    if (ctaLink) {
-                        router.push(ctaLink);
-                    }
-                    setIsAnimating(false);
-                }, 800);
-            }, 400); // Eye highlights for 400ms
-        } else {
-            // It's already "Shop Now". Highlight and then navigate.
-            setTimeout(() => {
-                if (ctaLink) {
-                    router.push(ctaLink);
-                }
+                if (ctaLink) router.push(ctaLink);
                 setIsAnimating(false);
-            }, 400); // "Shop Now" highlights for 400ms
+            }, 800);
+        } else {
+            setTimeout(() => {
+                if (ctaLink) router.push(ctaLink);
+                setIsAnimating(false);
+            }, 400);
         }
     };
 
     return (
-        <section className="relative h-[80vh] w-full overflow-hidden bg-zinc-100">
+        <section ref={container} className="relative h-[80vh] w-full overflow-hidden bg-zinc-100">
             {images.map((img, index) => (
                 <div
                     key={img}
                     className={cn(
-                        "absolute inset-0 transition-opacity duration-1000 ease-in-out",
-                        index === currentImageIndex ? "opacity-100" : "opacity-0"
+                        "absolute inset-0 transition-opacity",
+                        `hero-image-${index}`,
+                        index === 0 ? "opacity-100" : "opacity-0"
                     )}
                 >
                     <Image
@@ -90,7 +101,10 @@ export function Hero({ title, images, ctaText, ctaLink }: HeroProps) {
             ))}
             <div className="absolute inset-0 bg-black/20" />
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-[#333639] z-10">
-                <h1 className="font-empire text-3xl md:text-5xl lg:text-7xl mb-4 md:mb-8 opacity-85 uppercase leading-none tracking-tighter drop-shadow-2xl">
+                <h1
+                    ref={titleRef}
+                    className="font-empire text-3xl md:text-5xl lg:text-7xl mb-4 md:mb-8 opacity-0 uppercase leading-none tracking-tighter drop-shadow-2xl"
+                >
                     {title}
                 </h1>
 

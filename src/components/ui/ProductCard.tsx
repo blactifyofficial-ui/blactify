@@ -6,6 +6,10 @@ import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/useCartStore";
 import { Plus } from "lucide-react";
 import { useAuth } from "@/store/AuthContext";
+import { useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { Magnetic } from "@/components/ui/Magnetic";
 
 import { Product } from "@/types/database";
 
@@ -19,13 +23,31 @@ interface ProductCardProps {
 export function ProductCard({ product, className }: ProductCardProps) {
     const { addItem } = useCartStore();
     const { user } = useAuth();
+    const container = useRef<HTMLDivElement>(null);
+
+    useGSAP(() => {
+        gsap.fromTo(container.current,
+            { y: 50, opacity: 0 },
+            {
+                y: 0,
+                opacity: 1,
+                duration: 0.8,
+                ease: "power2.out",
+                scrollTrigger: {
+                    trigger: container.current,
+                    start: "top bottom-=100px",
+                    toggleActions: "play none none none"
+                }
+            }
+        );
+    }, { scope: container });
 
     // Use price_offer as the primary price if available
     const displayPrice = product.price_offer || product.price_base;
     const hasDiscount = product.price_offer && product.price_offer < product.price_base;
 
     return (
-        <div className={cn("group flex flex-col gap-3", className)}>
+        <div ref={container} className={cn("group flex flex-col gap-3 opacity-0", className)}>
             <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-100">
                 <Link href={`/product/${product.id}`} className="relative block h-full w-full">
                     <Image
@@ -47,19 +69,23 @@ export function ProductCard({ product, className }: ProductCardProps) {
                     </div>
                 )}
                 {(product.product_variants?.some(v => v.stock > 0) ?? (product.stock ?? 0) > 0) && (
-                    <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            if (!user) {
-                                window.dispatchEvent(new CustomEvent("open-auth-modal"));
-                                return;
-                            }
-                            addItem(product);
-                        }}
-                        className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-white text-black shadow-lg opacity-0 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 active:scale-90 z-20"
-                    >
-                        <Plus size={20} />
-                    </button>
+                    <div className="absolute bottom-3 right-3 z-20">
+                        <Magnetic strength={0.3}>
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    if (!user) {
+                                        window.dispatchEvent(new CustomEvent("open-auth-modal"));
+                                        return;
+                                    }
+                                    addItem(product);
+                                }}
+                                className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-black shadow-lg opacity-0 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 active:scale-90"
+                            >
+                                <Plus size={20} />
+                            </button>
+                        </Magnetic>
+                    </div>
                 )}
             </div>
             <div className="flex flex-col gap-1">

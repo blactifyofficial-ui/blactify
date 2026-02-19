@@ -11,6 +11,8 @@ import {
     signInWithPopup
 } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
+import { EMAIL_REGEX, PASSWORD_REGEX, NAME_REGEX } from "@/lib/validation";
+
 
 type AuthMode = "signin" | "signup";
 
@@ -25,6 +27,23 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
+
+        // Regex Validations
+        if (mode === "signup" && !NAME_REGEX.test(name)) {
+            setError("Please enter a valid name (2-50 characters)");
+            return;
+        }
+
+        if (!EMAIL_REGEX.test(email)) {
+            setError("Please enter a valid email address");
+            return;
+        }
+
+        if (mode === "signup" && !PASSWORD_REGEX.test(password)) {
+            setError("Password must be at least 8 characters and include both letters and numbers");
+            return;
+        }
+
         setLoading(true);
 
         try {
