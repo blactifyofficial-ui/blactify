@@ -36,6 +36,7 @@ export const CustomerDetailsSchema = z.object({
     name: z.string().min(2),
     email: z.string().email(),
     phone: z.string().min(10),
+    secondary_phone: z.string().optional(),
 });
 
 export const OrderSyncSchema = z.object({

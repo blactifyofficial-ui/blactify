@@ -23,7 +23,9 @@ interface Order {
 const CATEGORIES = [
     { id: "order_related", label: "Order Related", icon: Package },
     { id: "general", label: "General Inquiry", icon: MessageSquare },
-];
+] as const;
+
+type TicketCategory = typeof CATEGORIES[number]["id"];
 
 export default function SupportPage() {
     const { user, loading: authLoading } = useAuth();
@@ -33,7 +35,12 @@ export default function SupportPage() {
     const [ordersLoading, setOrdersLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
 
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<{
+        category: TicketCategory;
+        orderId: string;
+        phone: string;
+        message: string;
+    }>({
         category: "order_related",
         orderId: "",
         phone: "",
