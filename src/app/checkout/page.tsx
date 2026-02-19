@@ -98,7 +98,7 @@ function CheckoutContent() {
         : getSubtotal();
 
     const shipping = isDirect
-        ? 0 // (subtotal === 0 ? 0 : (subtotal < 2999 ? 59 : 0))
+        ? (subtotal === 0 ? 0 : (subtotal < 2999 ? 59 : 0))
         : getShippingCharge();
 
     const total = isDirect
