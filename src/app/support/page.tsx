@@ -41,9 +41,12 @@ export default function SupportPage() {
                     if (result.orders.length > 0) {
                         setFormData(prev => ({ ...prev, orderId: result.orders![0].id }));
                     }
+                } else if (!result.success) {
+                    toast.error("We couldn't load your recent orders. You can still submit a general inquiry.");
                 }
             } catch (err) {
                 console.error("Error fetching orders:", err);
+                toast.error("There was a problem loading your orders. Please try refreshing.");
             } finally {
                 setOrdersLoading(false);
             }
@@ -80,10 +83,11 @@ export default function SupportPage() {
                 setSubmitted(true);
                 toast.success("Ticket raised successfully!");
             } else {
-                toast.error(result.error || "Failed to raise ticket");
+                // Showing the friendly error from the server action
+                toast.error(result.error || "We couldn't process your request. Please try again.");
             }
         } catch (err) {
-            toast.error("An unexpected error occurred");
+            toast.error("Something went wrong on our end. Please try again later.");
         } finally {
             setLoading(false);
         }

@@ -25,46 +25,62 @@ export async function createTicket(formData: {
                 }
             ]);
 
-        if (error) throw error;
+        if (error) {
+            console.error("Supabase Error creating ticket:", error);
+            return {
+                success: false,
+                error: "We encountered an issue while saving your ticket. Please check your connection and try again."
+            };
+        }
 
         // Send email to Admin
         if (SELLER_CONFIG.resendApiKey) {
-            const resend = new Resend(SELLER_CONFIG.resendApiKey);
+            try {
+                const resend = new Resend(SELLER_CONFIG.resendApiKey);
 
-            // Get user info for email
-            const { data: userData } = await supabaseAdmin
-                .from("profiles")
-                .select("full_name, email")
-                .eq("id", formData.userId)
-                .single();
+                // Get user info for email
+                const { data: userData } = await supabaseAdmin
+                    .from("profiles")
+                    .select("full_name, email")
+                    .eq("id", formData.userId)
+                    .single();
 
-            const adminEmailHtml = `
-                <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                    <h2 style="color: #000; text-transform: uppercase; letter-spacing: 2px;">New Support Ticket</h2>
-                    <p>A new support ticket has been raised by <strong>${userData?.full_name || "a user"}</strong> (${userData?.email || "N/A"}).</p>
-                    <div style="background: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                        <p><strong>Category:</strong> ${formData.category.replace('_', ' ')}</p>
-                        ${formData.orderId ? `<p><strong>Order ID:</strong> #${formData.orderId}</p>` : ""}
-                        <p><strong>Phone:</strong> ${formData.phone}</p>
-                        <p><strong>Message:</strong></p>
-                        <p>${formData.message.replace(/\n/g, '<br>')}</p>
+                const adminEmailHtml = `
+                    <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                        <h2 style="color: #000; text-transform: uppercase; letter-spacing: 2px;">New Support Ticket</h2>
+                        <p>A new support ticket has been raised by <strong>${userData?.full_name || "a user"}</strong> (${userData?.email || "N/A"}).</p>
+                        <div style="background: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                            <p><strong>Category:</strong> ${formData.category.replace('_', ' ')}</p>
+                            ${formData.orderId ? `<p><strong>Order ID:</strong> #${formData.orderId}</p>` : ""}
+                            <p><strong>Phone:</strong> ${formData.phone}</p>
+                            <p><strong>Message:</strong></p>
+                            <p>${formData.message.replace(/\n/g, '<br>')}</p>
+                        </div>
+                        <p>Log in to the admin panel to respond.</p>
                     </div>
-                    <p>Log in to the admin panel to respond.</p>
-                </div>
-            `;
+                `;
 
-            await resend.emails.send({
-                from: SELLER_CONFIG.fromEmail,
-                to: [SELLER_CONFIG.email],
-                subject: `New Support Ticket: ${formData.category.replace('_', ' ')}`,
-                html: adminEmailHtml,
-            });
+                await resend.emails.send({
+                    from: SELLER_CONFIG.fromEmail,
+                    to: [SELLER_CONFIG.email],
+                    subject: `New Support Ticket: ${formData.category.replace('_', ' ')}`,
+                    html: adminEmailHtml,
+                });
+            } catch (emailErr) {
+                console.error("Admin notification email failed:", emailErr);
+                // We don't fail the whole action if just the admin notification fails, 
+                // but we could return success: true with a note if we wanted.
+                // For now, just logging it.
+            }
         }
 
         return { success: true };
     } catch (err: any) {
-        console.error("Error creating ticket:", err);
-        return { success: false, error: err.message };
+        console.error("Critical error creating ticket:", err);
+        return {
+            success: false,
+            error: "An unexpected error occurred. Please try again later."
+        };
     }
 }
 
