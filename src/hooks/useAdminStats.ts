@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/lib/supabase";
+// import { supabase } from "@/lib/supabase"; // Removed
 import { Order } from "@/types/database";
 import { toast } from "sonner";
+import { getAdminStats } from "@/app/actions/stats";
 
 export interface DashboardStats {
     totalRevenue: number;
@@ -34,88 +35,24 @@ export function useAdminStats() {
         setLoading(true);
         setError(null);
         try {
-            // Fetch all orders for revenue calculation
-            const { data: orders, error: ordersError } = await supabase
-                .from("orders")
-                .select("*")
-                .order("created_at", { ascending: false });
+            const result = await getAdminStats();
 
-            if (ordersError) throw ordersError;
-
-            const typedOrders = (orders || []) as Order[];
-            const revenue = typedOrders.reduce((sum, order) => sum + Number(order.amount), 0) || 0;
-
-            // Simple revenue by month calculation (last 6 months)
-            const last6Months = Array.from({ length: 6 }, (_, i) => {
-                const d = new Date();
-                d.setMonth(d.getMonth() - i);
-                return d.toLocaleString('default', { month: 'short' });
-            }).reverse();
-
-            const revByMonth = last6Months.map(month => {
-                const amount = typedOrders
-                    .filter(o => new Date(o.created_at).toLocaleString('default', { month: 'short' }) === month)
-                    .reduce((sum, o) => sum + Number(o.amount), 0);
-                return { month, amount };
-            });
-
-            // Fetch actual users count
-            const { count: usersCount, error: usersError } = await supabase
-                .from("profiles")
-                .select("*", { count: 'exact', head: true });
-
-            if (usersError) throw usersError;
-
-            // Fetch users from last 30 days for growth calculation
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-            let recentUsersCount = 0;
-            try {
-                const { count } = await supabase
-                    .from("profiles")
-                    .select("*", { count: 'exact', head: true })
-                    .gt("created_at", thirtyDaysAgo.toISOString());
-                recentUsersCount = count || 0;
-            } catch {
-                // If there's an error (e.g., 'created_at' column missing or table not existing yet),
-                // we default to 0% growth. No console.warn needed.
+            if (!result.success || !result.stats) {
+                throw new Error(String(result.error) || "Failed to fetch stats");
             }
 
-            const growth = usersCount && usersCount > 0
-                ? `+${Math.round((recentUsersCount / usersCount) * 100)}%`
-                : "0%";
-
-
-            // Top products calculation
-            const productSales: Record<string, { sales: number; revenue: number }> = {};
-            typedOrders.forEach(order => {
-                const items = (order.items || []) as Array<{ name?: string; quantity?: number; price_at_purchase?: number; price_base?: number }>;
-                items.forEach(item => {
-                    const name = item.name || "Unknown Product";
-                    if (!productSales[name]) {
-                        productSales[name] = { sales: 0, revenue: 0 };
-                    }
-                    productSales[name].sales += Number(item.quantity) || 0;
-                    productSales[name].revenue += (Number(item.price_at_purchase) || Number(item.price_base) || 0) * (Number(item.quantity) || 0);
-                });
+            // Map server types to client types if needed
+            setStats({
+                totalRevenue: result.stats.totalRevenue,
+                totalOrders: result.stats.totalOrders,
+                recentOrders: result.stats.recentOrders as Order[],
+                revenueByMonth: result.stats.revenueByMonth,
+                conversionRate: result.stats.conversionRate || "0%",
+                activeUsers: result.stats.activeUsers,
+                userGrowth: result.stats.userGrowth || "0%",
+                topProducts: result.stats.topProducts
             });
 
-            const topProducts = Object.entries(productSales)
-                .map(([name, data]) => ({ name, ...data }))
-                .sort((a, b) => b.sales - a.sales)
-                .slice(0, 4);
-
-            setStats(prev => ({
-                ...prev,
-                totalRevenue: revenue,
-                totalOrders: typedOrders.length,
-                recentOrders: typedOrders.slice(0, 5),
-                revenueByMonth: revByMonth,
-                activeUsers: usersCount || 0,
-                userGrowth: growth,
-                topProducts: topProducts
-            }));
         } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error("Failed to fetch dashboard statistics"));
             toast.error("Intelligence sync failed", {
