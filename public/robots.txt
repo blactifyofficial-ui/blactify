@@ -1,0 +1,14 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Disallow administrative and sensitive paths
+Disallow: /admin/
+Disallow: /api/
+Disallow: /checkout/
+Disallow: /settings/
+Disallow: /checkout/success
+Disallow: /checkout/failure
+
+# Host
+Host: https://blactify.in
