@@ -10,9 +10,12 @@ export function ComingSoon() {
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
-        setMounted(true);
+        const mountedTimer = setTimeout(() => setMounted(true), 0);
         const timer = setTimeout(() => setIsVisible(true), 100);
-        return () => clearTimeout(timer);
+        return () => {
+            clearTimeout(mountedTimer);
+            clearTimeout(timer);
+        };
     }, []);
 
     if (!mounted) return null;

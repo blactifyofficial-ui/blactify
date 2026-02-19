@@ -10,7 +10,7 @@ export interface Category {
     slug: string;
     size_config?: string[]; // Deprecated, keep for type compatibility during migration if needed
     category_measurements?: {
-        measurement_type: MeasurementType;
+        measurement_types: MeasurementType;
     }[];
     created_at?: string;
 }
@@ -59,11 +59,14 @@ export interface Product {
     tag?: string;
 
     // Normalized relationships
-    product_images?: ProductImage[];
+    product_images?: {
+        url: string;
+        position: number;
+    }[];
     product_variants?: ProductVariant[];
 
     // Legacy support (allow both for smoother transition)
-    main_image?: string;
+    main_image?: string | null;
     image1?: string;
     image2?: string;
     image3?: string;
@@ -95,14 +98,45 @@ export interface Order {
     user_id?: string;
     amount: number;
     currency: string;
-    items: any[]; // Standardized JSONB items
+    items: OrderJsonItem[]; // Standardized JSONB items
     status: 'paid' | 'processing' | 'shipped' | 'delivered' | 'failed';
     shipping_address: ShippingAddress;
     customer_details: CustomerDetails;
-    payment_details?: any;
+    payment_details?: Record<string, unknown>;
     tracking_id?: string;
     created_at: string;
     order_items?: OrderItem[];
+}
+
+export interface OrderJsonItem {
+    id: string;
+    name: string;
+    quantity: number;
+    price?: number;
+    price_base: number;
+    price_offer?: number;
+    size?: string;
+    main_image?: string;
+    imageUrl?: string; // Support for different naming in JSONB
+    product_images?: { url: string; position: number }[];
+    measurements?: Record<string, string>;
+}
+
+export interface Ticket {
+    id: string;
+    user_id: string;
+    order_id?: string;
+    category: string;
+    phone: string;
+    message: string;
+    status: 'open' | 'responded' | 'closed';
+    admin_response?: string;
+    responded_at?: string;
+    created_at: string;
+    profiles?: {
+        email: string;
+        full_name: string;
+    };
 }
 
 export interface OrderItem {

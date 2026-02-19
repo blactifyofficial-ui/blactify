@@ -13,6 +13,7 @@ export interface DashboardStats {
     conversionRate: string;
     activeUsers: number;
     userGrowth: string;
+    topProducts: { name: string; sales: number; revenue: number }[];
 }
 
 export function useAdminStats() {
@@ -23,7 +24,8 @@ export function useAdminStats() {
         revenueByMonth: [],
         conversionRate: "0%",
         activeUsers: 0,
-        userGrowth: "0%"
+        userGrowth: "0%",
+        topProducts: []
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
@@ -75,14 +77,34 @@ export function useAdminStats() {
                     .select("*", { count: 'exact', head: true })
                     .gt("created_at", thirtyDaysAgo.toISOString());
                 recentUsersCount = count || 0;
-            } catch (err) {
-                console.warn("Failed to fetch growth stats: created_at column might be missing. Proceeding with 0% growth.");
+            } catch {
+                // If there's an error (e.g., 'created_at' column missing or table not existing yet),
+                // we default to 0% growth. No console.warn needed.
             }
 
             const growth = usersCount && usersCount > 0
                 ? `+${Math.round((recentUsersCount / usersCount) * 100)}%`
                 : "0%";
 
+
+            // Top products calculation
+            const productSales: Record<string, { sales: number; revenue: number }> = {};
+            typedOrders.forEach(order => {
+                const items = (order.items || []) as Array<{ name?: string; quantity?: number; price_at_purchase?: number; price_base?: number }>;
+                items.forEach(item => {
+                    const name = item.name || "Unknown Product";
+                    if (!productSales[name]) {
+                        productSales[name] = { sales: 0, revenue: 0 };
+                    }
+                    productSales[name].sales += Number(item.quantity) || 0;
+                    productSales[name].revenue += (Number(item.price_at_purchase) || Number(item.price_base) || 0) * (Number(item.quantity) || 0);
+                });
+            });
+
+            const topProducts = Object.entries(productSales)
+                .map(([name, data]) => ({ name, ...data }))
+                .sort((a, b) => b.sales - a.sales)
+                .slice(0, 4);
 
             setStats(prev => ({
                 ...prev,
@@ -91,11 +113,11 @@ export function useAdminStats() {
                 recentOrders: typedOrders.slice(0, 5),
                 revenueByMonth: revByMonth,
                 activeUsers: usersCount || 0,
-                userGrowth: growth
+                userGrowth: growth,
+                topProducts: topProducts
             }));
-        } catch (err: any) {
-            console.error("Fetch dashboard stats error:", err);
-            setError(err);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err : new Error("Failed to fetch dashboard statistics"));
             toast.error("Intelligence sync failed", {
                 description: "Unable to reconcile global performance metrics.",
             });

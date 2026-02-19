@@ -4,21 +4,18 @@ import { useState, useEffect } from "react";
 import { getTickets } from "@/actions/support";
 import {
     Search,
-    Filter,
-    Clock,
-    CheckCircle2,
-    MessageSquare,
     ChevronRight,
     User,
-    Phone,
-    Package
+    MessageSquare,
+    Package,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { Ticket } from "@/types/database";
 
 export default function AdminSupportPage() {
-    const [tickets, setTickets] = useState<any[]>([]);
+    const [tickets, setTickets] = useState<Ticket[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("all");
     const [searchQuery, setSearchQuery] = useState("");
@@ -35,11 +32,11 @@ export default function AdminSupportPage() {
         fetchTickets();
     }, []);
 
-    const filteredTickets = tickets.filter(ticket => {
+    const filteredTickets = tickets.filter((ticket) => {
         const matchesFilter = filter === "all" || ticket.status === filter;
         const matchesSearch =
-            ticket.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            ticket.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (ticket.message || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (ticket.profiles?.full_name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
             ticket.id.includes(searchQuery);
         return matchesFilter && matchesSearch;
     });
@@ -111,7 +108,7 @@ export default function AdminSupportPage() {
 
                                 <div className="mb-6">
                                     <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-2 truncate">
-                                        {ticket.category.replace('_', ' ')}
+                                        {(ticket.category || "").replace('_', ' ')}
                                     </h3>
                                     <p className="text-sm font-medium leading-relaxed line-clamp-3 text-zinc-600">
                                         &quot;{ticket.message}&quot;

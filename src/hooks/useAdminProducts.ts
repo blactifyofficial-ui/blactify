@@ -52,20 +52,19 @@ export function useAdminProducts({ page, pageSize, searchTerm }: UseAdminProduct
 
             const processedData = (data || []).map(product => {
                 const images = product.product_images || [];
-                const mainImg = images.find((img: any) => img.position === 0) || images[0];
+                const mainImg = images.find((img: { position: number; url: string }) => img.position === 0) || images[0];
 
                 return {
                     ...product,
-                    stock: product.product_variants?.reduce((sum: number, v: any) => sum + (v.stock || 0), 0) || 0,
+                    stock: ((product as unknown) as { product_variants?: { stock: number }[] }).product_variants?.reduce((sum: number, v: { stock: number }) => sum + (v.stock || 0), 0) || 0,
                     main_image: mainImg?.url || null
                 };
             });
 
-            setProducts(processedData as any[]);
+            setProducts(processedData as Product[]);
             setTotalCount(count || 0);
-        } catch (err: any) {
-            console.error("Fetch products error:", err);
-            setError(err);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err : new Error("Failed to fetch products"));
             toast.error("Inventory sync failed", {
                 description: "Unable to reconcile product registry.",
             });

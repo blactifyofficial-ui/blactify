@@ -2,12 +2,6 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 // Helper to verify admin status (optional but recommended)
-async function verifyAdmin(request: Request) {
-    // In a real app, you'd check a session cookie or header here. 
-    // For now, since this is called from the admin dashboard which is guarded,
-    // we rely on the guard, but server-side verification is best.
-    return true;
-}
 
 export async function POST(request: Request) {
     try {
@@ -51,9 +45,43 @@ export async function POST(request: Request) {
         }
 
         return NextResponse.json(categoryData);
-    } catch (err: any) {
-        console.error("Category creation error:", err);
-        return NextResponse.json({ error: err.message }, { status: 500 });
+    } catch {
+        return NextResponse.json({ error: "Failed to create category" }, { status: 500 });
+    }
+}
+
+export async function GET() {
+    try {
+        const { data: categories, error } = await supabaseAdmin
+            .from("categories")
+            .select(`
+                *,
+                category_measurements (
+                    measurement_types (
+                        name
+                    )
+                )
+            `);
+
+        if (error) throw error;
+
+        // Define a type for the nested structure to avoid 'any'
+        type CategoryMeasurement = {
+            measurement_types: {
+                name: string;
+            };
+        };
+
+        // Flatten the structure for easier consumption
+        const formattedCategories = categories.map(category => ({
+            ...category,
+            size_config: (category.category_measurements as CategoryMeasurement[]).map(cm => cm.measurement_types.name)
+        }));
+
+        return NextResponse.json(formattedCategories);
+    } catch (error) {
+        console.error("Error fetching categories:", error);
+        return NextResponse.json({ error: "Failed to fetch categories" }, { status: 500 });
     }
 }
 
@@ -102,9 +130,8 @@ export async function PUT(request: Request) {
         }
 
         return NextResponse.json(categoryData);
-    } catch (err: any) {
-        console.error("Category update error:", err);
-        return NextResponse.json({ error: err.message }, { status: 500 });
+    } catch {
+        return NextResponse.json({ error: "Failed to update category" }, { status: 500 });
     }
 }
 
@@ -126,8 +153,7 @@ export async function DELETE(request: Request) {
         if (error) throw error;
 
         return NextResponse.json({ success: true });
-    } catch (err: any) {
-        console.error("Category deletion error:", err);
-        return NextResponse.json({ error: err.message }, { status: 500 });
+    } catch {
+        return NextResponse.json({ error: "Failed to delete category" }, { status: 500 });
     }
 }

@@ -27,7 +27,6 @@ export async function getAdminOrders({ page, pageSize, searchTerm }: GetAdminOrd
             .range(from, to);
 
         if (error) {
-            console.error("getAdminOrders database error:", error);
             throw new Error(error.message);
         }
 
@@ -36,13 +35,12 @@ export async function getAdminOrders({ page, pageSize, searchTerm }: GetAdminOrd
             totalCount: count || 0,
             success: true
         };
-    } catch (error: any) {
-        console.error("getAdminOrders unexpected error:", error);
+    } catch (error: unknown) {
         return {
             orders: [],
             totalCount: 0,
             success: false,
-            error: error.message
+            error: error instanceof Error ? error.message : "An unexpected error occurred"
         };
     }
 }
@@ -56,7 +54,6 @@ export async function getAdminOrderById(id: string) {
             .single();
 
         if (error) {
-            console.error("getAdminOrderById database error:", error);
             throw new Error(error.message);
         }
 
@@ -64,17 +61,16 @@ export async function getAdminOrderById(id: string) {
             order: data,
             success: true
         };
-    } catch (error: any) {
-        console.error("getAdminOrderById unexpected error:", error);
+    } catch (error: unknown) {
         return {
             order: null,
             success: false,
-            error: error.message
+            error: error instanceof Error ? error.message : "An unexpected error occurred"
         };
     }
 }
 
-export async function updateAdminOrder(id: string, updates: any) {
+export async function updateAdminOrder(id: string, updates: Record<string, unknown>) {
     try {
         const { data, error } = await supabaseAdmin
             .from("orders")
@@ -84,7 +80,6 @@ export async function updateAdminOrder(id: string, updates: any) {
             .single();
 
         if (error) {
-            console.error("updateAdminOrder database error:", error);
             throw new Error(error.message);
         }
 
@@ -92,12 +87,7 @@ export async function updateAdminOrder(id: string, updates: any) {
             order: data,
             success: true
         };
-    } catch (error: any) {
-        console.error("updateAdminOrder unexpected error:", error);
-        return {
-            order: null,
-            success: false,
-            error: error.message
-        };
+    } catch (error: unknown) {
+        return { success: false, error: error instanceof Error ? error.message : "Update Failed" };
     }
 }

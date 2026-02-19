@@ -19,8 +19,7 @@ export async function fetchReviews(productId: string) {
             return [];
         }
         return data || [];
-    } catch (err) {
-
+    } catch {
         return [];
     }
 }
@@ -48,7 +47,6 @@ export async function postReview(reviewData: {
         }
         return { success: true };
     } catch (err) {
-
-        return { success: false, error: err };
+        return { success: false, error: err instanceof Error ? err.message : String(err) };
     }
 }

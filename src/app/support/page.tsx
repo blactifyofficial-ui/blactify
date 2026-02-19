@@ -10,6 +10,13 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+interface Order {
+    id: string;
+    amount: number;
+    created_at: string;
+    status: string;
+}
+
 const CATEGORIES = [
     { id: "order_related", label: "Order Related", icon: Package },
     { id: "general", label: "General Inquiry", icon: MessageSquare },
@@ -18,7 +25,7 @@ const CATEGORIES = [
 export default function SupportPage() {
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
-    const [orders, setOrders] = useState<any[]>([]);
+    const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(false);
     const [ordersLoading, setOrdersLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
@@ -44,8 +51,7 @@ export default function SupportPage() {
                 } else if (!result.success) {
                     toast.error("We couldn't load your recent orders. You can still submit a general inquiry.");
                 }
-            } catch (err) {
-                console.error("Error fetching orders:", err);
+            } catch {
                 toast.error("There was a problem loading your orders. Please try refreshing.");
             } finally {
                 setOrdersLoading(false);
@@ -84,9 +90,10 @@ export default function SupportPage() {
                 toast.success("Ticket raised successfully!");
             } else {
                 // Showing the friendly error from the server action
-                toast.error(result.error || "We couldn't process your request. Please try again.");
+                const errorMessage = typeof result.error === 'object' ? result.error.message : result.error;
+                toast.error(errorMessage || "We couldn't process your request. Please try again.");
             }
-        } catch (err) {
+        } catch {
             toast.error("Something went wrong on our end. Please try again later.");
         } finally {
             setLoading(false);

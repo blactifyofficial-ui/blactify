@@ -29,7 +29,7 @@ export async function POST(req: Request) {
         if (profile?.avatar_url) {
             try {
                 await deleteFromCloudinary(profile.avatar_url);
-            } catch (clError) {
+            } catch {
                 // Continue even if Cloudinary fails
             }
         }

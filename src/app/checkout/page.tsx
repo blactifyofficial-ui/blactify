@@ -18,19 +18,48 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { getStoreSettings } from "@/app/actions/settings";
 
-// Helper component for robust image fallbacks
-function SafeImage({ src, alt, ...props }: any) {
-    const [imgSrc, setImgSrc] = useState(src || "/hero-placeholder.jpg");
+interface CartItem {
+    id: string;
+    cartId: string;
+    name: string;
+    price_base: number;
+    price_offer?: number;
+    quantity: number;
+    size?: string;
+    product_images?: { url: string }[];
+    main_image: string | null; // For direct checkout items
+}
 
-    useEffect(() => {
-        setImgSrc(src || "/hero-placeholder.jpg");
-    }, [src]);
+interface ProductVariant {
+    size: string;
+    stock: number;
+}
+
+interface ProductWithVariants {
+    id: string;
+    name: string;
+    product_variants: ProductVariant[];
+}
+
+interface RazorpaySuccessResponse {
+    razorpay_payment_id: string;
+    razorpay_order_id: string;
+    razorpay_signature: string;
+}
+
+// Helper component for robust image fallbacks
+function SafeImage({ src, alt, className }: { src: string | null; alt: string; className?: string; fill?: boolean }) {
+    const [imgSrc, setImgSrc] = useState<string | null>(null);
+    const displaySrc = imgSrc || src || "/hero-placeholder.jpg";
 
     return (
         <Image
-            {...props}
-            src={imgSrc}
+            key={src || "fallback"}
+            src={displaySrc}
             alt={alt}
+            fill
+            className={cn("object-cover", className)}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             onError={() => setImgSrc("/hero-placeholder.jpg")}
         />
     );
@@ -50,7 +79,7 @@ function CheckoutContent() {
 
     const searchParams = useSearchParams();
     const isDirect = searchParams.get("direct") === "true";
-    const [directItem, setDirectItem] = useState<any>(null);
+    const [directItem, setDirectItem] = useState<CartItem | null>(null);
 
     useEffect(() => {
         if (isDirect) {
@@ -61,11 +90,11 @@ function CheckoutContent() {
         }
     }, [isDirect]);
 
-    const activeItems = isDirect ? (directItem ? [directItem] : []) : items;
+    const activeItems = (isDirect ? (directItem ? [directItem] : []) : items) as CartItem[];
 
     // Derived values
     const subtotal = isDirect
-        ? activeItems.reduce((acc: number, item: any) => acc + (item.price_offer || item.price_base) * item.quantity, 0)
+        ? activeItems.reduce((acc: number, item: CartItem) => acc + (item.price_offer || item.price_base) * item.quantity, 0)
         : getSubtotal();
 
     const shipping = isDirect
@@ -181,17 +210,17 @@ function CheckoutContent() {
             let hasErrors = false;
 
             activeItems.forEach(item => {
-                const currentProduct = currentProducts?.find((p: any) => p.id === item.id);
+                const currentProduct = currentProducts?.find((p: ProductWithVariants) => p.id === item.id);
                 if (!currentProduct) {
                     newStockErrors[item.cartId] = "Product no longer available";
                     hasErrors = true;
                 } else {
                     let availableStock = 0;
                     if (item.size) {
-                        const variant = currentProduct.product_variants?.find((v: any) => v.size === item.size);
+                        const variant = currentProduct.product_variants?.find((v: ProductVariant) => v.size === item.size);
                         availableStock = variant?.stock ?? 0;
                     } else {
-                        availableStock = currentProduct.product_variants?.reduce((acc: number, v: any) => acc + v.stock, 0) || 0;
+                        availableStock = currentProduct.product_variants?.reduce((acc: number, v: ProductVariant) => acc + v.stock, 0) || 0;
                     }
 
                     if (availableStock < item.quantity) {
@@ -205,8 +234,8 @@ function CheckoutContent() {
 
             setStockErrors(newStockErrors);
             return !hasErrors;
-        } catch (error) {
-
+        } catch {
+            toast.error("System Error", { description: "Network connection disrupted." });
             return true; // Proceed if error occurs, but log it
         }
     };
@@ -226,6 +255,7 @@ function CheckoutContent() {
         // 2. Validate Stock again right before payment
         const isStockValid = await validateCartStock();
         if (!isStockValid) {
+            toast.error("Stock Verification Error", { description: "Failed to confirm availability." });
             toast.error("Some items in your bag are no longer available in the requested quantity.");
             return;
         }
@@ -264,14 +294,13 @@ function CheckoutContent() {
                 name: "Blactify",
                 description: "Purchase from Blactify",
                 order_id: order.id,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                handler: async function (response: any) {
+                handler: async function (razorpayResponse: RazorpaySuccessResponse) {
                     // Payment Success
                     try {
                         // Save order to Supabase
                         const saveResult = await saveOrder({
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_order_id: razorpayResponse.razorpay_order_id,
+                            razorpay_payment_id: razorpayResponse.razorpay_payment_id,
                             user_id: user?.uid || "guest",
                             amount: total,
                             currency: "INR",
@@ -285,9 +314,9 @@ function CheckoutContent() {
                                 secondary_phone: formData.secondaryPhone
                             },
                             payment_details: {
-                                razorpay_order_id: response.razorpay_order_id,
-                                razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_signature: response.razorpay_signature,
+                                razorpay_order_id: razorpayResponse.razorpay_order_id,
+                                razorpay_payment_id: razorpayResponse.razorpay_payment_id,
+                                razorpay_signature: razorpayResponse.razorpay_signature,
                                 method: "Razorpay",
                                 timestamp: new Date().toISOString()
                             }
@@ -305,18 +334,18 @@ function CheckoutContent() {
                             }
 
                             removeDiscount();
-                            router.push(`/checkout/success?order_id=${response.razorpay_order_id}`);
+                            router.push(`/checkout/success?order_id=${razorpayResponse.razorpay_order_id}`);
                         } else {
 
-                            const errorObj = saveResult.error as any;
+                            const errorObj = saveResult.error as { message?: string; technical?: string };
                             const errorMessage = errorObj?.message || "Something went wrong while saving your order.";
                             toast.error(errorMessage, {
                                 duration: 6000,
                                 description: errorObj?.technical ? "Technical detail: " + errorObj.technical : undefined
                             });
                         }
-                    } catch (error) {
-
+                    } catch {
+                        toast.error("Internal Server Error", { description: "Order confirmed, but redirect failed." });
                     }
                 },
                 prefill: {
@@ -337,19 +366,18 @@ function CheckoutContent() {
             const paymentObject = new window.Razorpay(options);
             paymentObject.open();
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            paymentObject.on("payment.failed", function (response: any) {
+            paymentObject.on("payment.failed", function () {
 
                 // Attempt to close the modal programmatically
                 try {
                     paymentObject.close();
-                } catch (e) {
-
+                } catch {
+                    // Ignore error if modal is already closed or cannot be closed
                 }
                 router.push("/checkout/failure");
             });
 
-        } catch (error) {
+        } catch {
 
             setIsProcessing(false);
             toast.error("Checkout failed. Please try again.");

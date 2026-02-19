@@ -1,12 +1,17 @@
 import { google } from 'googleapis';
 
-export async function appendOrderToSheet(orderData: any) {
+export async function appendOrderToSheet(orderData: {
+    id: string;
+    items: { name: string; size?: string; quantity: number }[];
+    customer_details: { name: string; email: string; phone: string };
+    amount: number;
+    status: string;
+}) {
     try {
         const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
         const credentialsBase64 = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
 
         if (!spreadsheetId || !credentialsBase64) {
-            console.error('Google Sheets credentials missing in environment variables.');
             return;
         }
 
@@ -21,7 +26,7 @@ export async function appendOrderToSheet(orderData: any) {
         const sheets = google.sheets({ version: 'v4', auth });
 
         // Format the items into a string
-        const itemsList = orderData.items.map((item: any) =>
+        const itemsList = orderData.items.map((item) =>
             `${item.name} (${item.size || 'N/A'}) x${item.quantity}`
         ).join(', ');
 
@@ -47,8 +52,7 @@ export async function appendOrderToSheet(orderData: any) {
             },
         });
 
-        console.log(`Order ${orderData.id} synced to Google Sheets successfully.`);
-    } catch (error) {
-        console.error('Error syncing order to Google Sheets:', error);
+    } catch {
+        // Silent fail for sheets sync
     }
 }

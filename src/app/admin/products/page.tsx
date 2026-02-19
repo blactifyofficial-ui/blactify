@@ -10,15 +10,13 @@ import {
     Trash2,
     Package,
     Box,
-    ChevronRight,
 } from "lucide-react";
 import { DeleteModal } from "@/components/ui/DeleteModal";
 import { Pagination } from "@/components/ui/Pagination";
 import { useAdminProducts } from "@/hooks/useAdminProducts";
 import { AdminLoading, AdminPageHeader, AdminCard } from "@/components/admin/AdminUI";
-import { cn } from "@/lib/utils";
-import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { Product } from "@/types/database";
 
 export default function AdminProductsPage() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -53,8 +51,8 @@ export default function AdminProductsPage() {
             toast.success("Product deleted successfully");
             refetch();
             setDeleteModalOpen(false);
-        } catch (err: any) {
-            toast.error("Could not delete product.");
+        } catch (err: unknown) {
+            toast.error(err instanceof Error ? err.message : "Delete Failed");
         } finally {
             setIsDeleting(false);
         }
@@ -101,12 +99,12 @@ export default function AdminProductsPage() {
                 <div className="space-y-12">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                         {products.length > 0 ? (
-                            products.map((product) => (
+                            products.map((product: Product) => (
                                 <div key={product.id} className="group bg-white rounded-[2.5rem] border border-zinc-100 overflow-hidden shadow-sm hover:shadow-2xl hover:border-black/5 transition-all duration-700 relative flex flex-col">
                                     <div className="aspect-[4/5] bg-zinc-50 relative overflow-hidden">
-                                        {(product as any).main_image ? (
+                                        {product.product_images?.[0]?.url ? (
                                             <Image
-                                                src={(product as any).main_image}
+                                                src={product.product_images[0].url}
                                                 alt={product.name}
                                                 fill
                                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
@@ -139,7 +137,7 @@ export default function AdminProductsPage() {
 
                                         <div className="absolute bottom-5 left-5 z-20">
                                             <span className="bg-black/80 backdrop-blur-md text-white px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.2em] shadow-2xl border border-white/10">
-                                                {(product as any).categories?.name || "Uncategorized"}
+                                                {product.categories?.name || "Uncategorized"}
                                             </span>
                                         </div>
 
@@ -162,12 +160,13 @@ export default function AdminProductsPage() {
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] mb-1">STOCK</p>
-                                                <p className={cn(
-                                                    "text-xs font-black uppercase tracking-widest",
-                                                    (product as any).stock < 10 ? 'text-red-500 animate-pulse' : 'text-zinc-900'
-                                                )}>
-                                                    {(product as any).stock} UNITS
-                                                </p>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {(product.product_variants || []).map((v) => (
+                                                        <span key={v.id} className="px-2 py-0.5 bg-zinc-100 rounded-md text-[9px] font-bold text-zinc-600">
+                                                            {v.size}
+                                                        </span>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

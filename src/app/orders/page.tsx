@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/store/AuthContext";
 import { Package, ChevronLeft } from "lucide-react";
+import { toast } from "sonner";
 import { getUserOrders } from "@/lib/order-sync";
 import Link from "next/link";
-import Image from "next/image";
 import OrderCard from "./OrderCard";
 
 interface OrderItem {
@@ -41,17 +41,16 @@ export default function OrdersPage() {
             setLoading(true);
 
             try {
-                console.log("Initiating order fetch for UID:", user.uid);
                 const result = await getUserOrders(user.uid);
 
                 if (result.success) {
-                    console.log(`Orders fetched successfully: ${result.orders?.length || 0} items`);
                     setOrders((result.orders as Order[]) || []);
                 } else {
-                    console.error("Failed to fetch orders via server action:", result.error);
+                    toast.error(result.error || "Failed to fetch orders.");
                 }
-            } catch (err) {
-                console.error("Error in fetchOrders sequence:", err);
+            } catch {
+                toast.error("Failed to fetch orders.");
+                // or handled by UI state
             } finally {
                 setLoading(false);
             }

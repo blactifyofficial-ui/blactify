@@ -19,15 +19,12 @@ export async function syncUserProfile(user: User): Promise<boolean> {
         });
 
         if (!response.ok) {
-            const error = await response.json();
-            console.error("Profile sync API error:", error);
             return false;
         }
 
         const data = await response.json();
         return data.isAdmin || false;
-    } catch (err) {
-        console.error("Failed to sync profile:", err);
+    } catch {
         return false;
     }
 }
@@ -42,8 +39,7 @@ export async function getWelcomeDiscountStatus(userId: string) {
 
         if (error) return true; // Default to true (used) on error for safety
         return data?.welcome_discount_used ?? false;
-    } catch (err) {
-
+    } catch {
         return true;
     }
 }
@@ -54,7 +50,7 @@ export async function markWelcomeDiscountUsed(userId: string) {
             .from("profiles")
             .update({ welcome_discount_used: true })
             .eq("id", userId);
-    } catch (err) {
-
+    } catch {
+        // Silent fail
     }
 }

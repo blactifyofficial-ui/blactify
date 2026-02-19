@@ -18,22 +18,23 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isAuthOpen, setIsAuthOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
-    const [toastPosition, setToastPosition] = useState<"top-center" | "top-right" | "bottom-center">("top-center");
     const pathname = usePathname();
     const router = useRouter();
     const searchParams = useSearchParams();
     const isAdmin = pathname?.startsWith('/admin');
-    const isCheckoutStatus = pathname === '/checkout/success' || pathname === '/checkout/failure';
 
     // Handle opening cart via query param
     useEffect(() => {
         if (searchParams?.get('openCart') === 'true') {
-            setIsCartOpen(true);
-            // Clean up the URL
-            const params = new URLSearchParams(searchParams.toString());
-            params.delete('openCart');
-            const newPath = pathname + (params.toString() ? `?${params.toString()}` : '');
-            router.replace(newPath);
+            const timer = setTimeout(() => {
+                setIsCartOpen(true);
+                // Clean up the URL
+                const params = new URLSearchParams(searchParams.toString());
+                params.delete('openCart');
+                const newPath = pathname + (params.toString() ? `?${params.toString()}` : '');
+                router.replace(newPath);
+            }, 0);
+            return () => clearTimeout(timer);
         }
     }, [searchParams, pathname, router]);
 
@@ -41,7 +42,6 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
         const handleResize = () => {
             const mobile = window.innerWidth < 768;
             setIsMobile(mobile);
-            setToastPosition("top-center");
         };
         handleResize();
         window.addEventListener("resize", handleResize);

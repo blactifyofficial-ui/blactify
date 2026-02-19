@@ -3,21 +3,19 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import {
-    IndianRupee,
-    TrendingUp,
-    Calendar,
     Download,
-    PieChart,
-    BarChart,
+    TrendingUp,
     Zap,
     Target,
-    Activity
+    Activity,
+    BarChart,
+    Calendar
 } from "lucide-react";
 import { AdminLoading, AdminPageHeader, AdminCard } from "@/components/admin/AdminUI";
 import { cn } from "@/lib/utils";
 
 export default function AdminReportsPage() {
-    const [orders, setOrders] = useState<any[]>([]);
+    const [orders, setOrders] = useState<Record<string, unknown>[]>([]);
     const [loading, setLoading] = useState(true);
     const [filterType, setFilterType] = useState<'daily' | 'monthly' | 'yearly'>('monthly');
 
@@ -30,7 +28,8 @@ export default function AdminReportsPage() {
                     .order("created_at", { ascending: false });
                 if (error) throw error;
                 setOrders(data || []);
-            } catch (err) {
+            } catch {
+                // error handled
             } finally {
                 setLoading(false);
             }
@@ -41,8 +40,8 @@ export default function AdminReportsPage() {
     const totalRevenue = orders.reduce((sum, o) => sum + Number(o.amount), 0);
     const averageOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
 
-    const chartData = orders.reduce((acc: any, o) => {
-        const date = new Date(o.created_at);
+    const chartData = orders.reduce((acc: Record<string, number>, o) => {
+        const date = new Date(o.created_at as string);
         let key = '';
         if (filterType === 'daily') {
             key = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
@@ -56,22 +55,21 @@ export default function AdminReportsPage() {
     }, {});
 
     // Calculate Top Performing Assets from actual orders
-    const productSales = orders.reduce((acc: any, order) => {
-        const items = order.items || [];
-        items.forEach((item: any) => {
-            const name = item.name || "Unknown Product";
+    const productSales = orders.reduce((acc: Record<string, number>, order: Record<string, unknown>) => {
+        (order.items as Record<string, unknown>[] || []).forEach((item: Record<string, unknown>) => {
+            const name = (item.name as string) || "Unknown Product";
             acc[name] = (acc[name] || 0) + (Number(item.quantity) || 1);
         });
         return acc;
     }, {});
 
     const topPerformingProducts = Object.entries(productSales)
-        .map(([name, sales]: [string, any]) => ({ name, sales }))
+        .map(([name, sales]) => ({ name, sales }))
         .sort((a, b) => b.sales - a.sales)
         .slice(0, 3);
 
     // Calculate growth trend (simple placeholder for now as we don't have historical comparisons yet)
-    const getTrend = (name: string) => "+0%"; // Logic for real trend would require comparing date ranges
+    const getTrend = () => "+0%"; // Logic for real trend would require comparing date ranges
 
     if (loading) return <AdminLoading message="Generating reports..." />;
 
@@ -148,7 +146,7 @@ export default function AdminReportsPage() {
                         className="h-full"
                     >
                         <div className="space-y-8 max-h-[500px] overflow-y-auto pr-4 custom-scrollbar">
-                            {Object.entries(chartData).map(([label, amount]: [string, any], idx) => (
+                            {Object.entries(chartData).map(([label, amount], idx) => (
                                 <div key={label} className="space-y-3 group/row">
                                     <div className="flex justify-between items-end">
                                         <span className="text-[10px] font-black text-black uppercase tracking-[0.2em] italic">{label}</span>
@@ -192,9 +190,9 @@ export default function AdminReportsPage() {
                                         </div>
                                         <div className={cn(
                                             "text-[9px] font-black px-2.5 py-1 rounded-full border shadow-sm",
-                                            getTrend(product.name).startsWith("+") ? "bg-green-50 text-green-700 border-green-100" : "bg-red-50 text-red-700 border-red-100"
+                                            getTrend().startsWith("+") ? "bg-green-50 text-green-700 border-green-100" : "bg-red-50 text-red-700 border-red-100"
                                         )}>
-                                            {getTrend(product.name)}
+                                            {getTrend()}
                                         </div>
                                     </div>
                                 ))

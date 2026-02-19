@@ -1,11 +1,11 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { useCartStore } from "@/store/useCartStore";
-import { ChevronRight, ChevronLeft, Star, ShoppingBag, ShieldCheck, Truck, RotateCcw, Send, X, ArrowRight } from "lucide-react";
+import { ChevronRight, ChevronLeft, Star, ShoppingBag, ShieldCheck, Truck, Send, X, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/store/AuthContext";
 import { fetchReviews, postReview } from "@/lib/review-sync";
@@ -45,7 +45,6 @@ export default function ProductDetailPage() {
     const [touchStart, setTouchStart] = useState<number | null>(null);
     const [touchEnd, setTouchEnd] = useState<number | null>(null);
     const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
-    const [sizeGuideActiveSize, setSizeGuideActiveSize] = useState<string | null>(null);
     const [storeEnabled, setStoreEnabled] = useState(true);
 
     useEffect(() => {
@@ -59,15 +58,20 @@ export default function ProductDetailPage() {
     // Minimum swipe distance (in px)
     const minSwipeDistance = 50;
 
-    const productVariants = product?.product_variants || [];
-    const sizes = productVariants.length > 0
-        ? productVariants.map(v => v.size)
-        : (product?.size_variants && product.size_variants.length > 0 ? product.size_variants : ["S", "M", "L", "XL"]);
+    const productVariants = useMemo(() => product?.product_variants || [], [product]);
 
-    const isNoSize = sizes.length === 1 && (sizes[0].toUpperCase() === "NO SIZE" || sizes[0].toLowerCase() === "no size");
+    const sizes = useMemo(() => {
+        return productVariants.length > 0
+            ? productVariants.map(v => v.size)
+            : (product?.size_variants && product.size_variants.length > 0 ? product.size_variants : ["S", "M", "L", "XL"]);
+    }, [product, productVariants]);
+
+    const isNoSize = useMemo(() =>
+        sizes.length === 1 && (sizes[0].toUpperCase() === "NO SIZE" || sizes[0].toLowerCase() === "no size"),
+        [sizes]);
 
     useEffect(() => {
-        if (isNoSize && !selectedSize) {
+        if (isNoSize && !selectedSize && sizes.length > 0) {
             setSelectedSize(sizes[0]);
         }
     }, [isNoSize, sizes, selectedSize]);
@@ -84,8 +88,8 @@ export default function ProductDetailPage() {
 
                 if (error) throw error;
                 setProduct(data);
-            } catch (err) {
-
+            } catch {
+                toast.error("Process Failure");
             } finally {
                 setLoading(false);
             }

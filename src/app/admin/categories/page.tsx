@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import {
     Tag,
@@ -16,6 +15,7 @@ import {
 import { DeleteModal } from "@/components/ui/DeleteModal";
 import { Pagination } from "@/components/ui/Pagination";
 import { useAdminCategories } from "@/hooks/useAdminCategories";
+import { Category } from "@/types/database";
 import { AdminLoading, AdminPageHeader, AdminCard } from "@/components/admin/AdminUI";
 import { cn } from "@/lib/utils";
 
@@ -54,7 +54,7 @@ export default function AdminCategoriesPage() {
         setCurrentField("");
     };
 
-    const handleEdit = (category: any) => {
+    const handleEdit = (category: Category) => {
         setEditingId(category.id);
         setNewCategoryName(category.name);
         setNewSizeFields(category.size_config || []);
@@ -97,9 +97,10 @@ export default function AdminCategoriesPage() {
             });
             resetForm();
             refetch();
-        } catch (err: any) {
-            let message = err.message || "Failed to save category.";
-            if (err.message?.includes('23505') || err.message?.includes('unique constraint')) {
+        } catch (err: unknown) {
+            const error = err instanceof Error ? err : new Error(String(err));
+            let message = error.message || "Failed to save category.";
+            if (error.message?.includes('23505') || error.message?.includes('unique constraint')) {
                 message = "This category already exists.";
             }
             toast.error(message);
@@ -124,7 +125,7 @@ export default function AdminCategoriesPage() {
             toast.success("Category deleted");
             refetch();
             setDeleteModalOpen(false);
-        } catch (err: any) {
+        } catch {
             toast.error("Could not delete category.");
         } finally {
             setIsDeleting(false);
@@ -267,12 +268,12 @@ export default function AdminCategoriesPage() {
                                             <div>
                                                 <p className="font-black text-lg text-black tracking-tight group-hover:translate-x-1 transition-transform duration-500">{cat.name}</p>
                                                 <div className="flex gap-2 mt-1">
-                                                    {(cat as any).size_config?.map((s: string) => (
+                                                    {cat.size_config?.map((s: string) => (
                                                         <span key={s} className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest border border-zinc-100 px-2 py-0.5 rounded-full">
                                                             {s}
                                                         </span>
                                                     ))}
-                                                    {(!(cat as any).size_config || (cat as any).size_config.length === 0) && (
+                                                    {(!cat.size_config || cat.size_config.length === 0) && (
                                                         <span className="text-[8px] font-bold text-zinc-300 uppercase tracking-widest italic">No sizes set</span>
                                                     )}
                                                 </div>

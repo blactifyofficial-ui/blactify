@@ -6,10 +6,8 @@ import { X, Minus, Plus, ShoppingBag } from "lucide-react";
 import { useCartStore } from "@/store/useCartStore";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-import { loadRazorpay } from "@/lib/razorpay";
 import { useAuth } from "@/store/AuthContext";
 import { useState } from "react";
-import { saveOrder } from "@/lib/order-sync";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -25,7 +23,7 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
     onClose: () => void;
     onAuthRequired: () => void;
 }) {
-    const { items, removeItem, updateQuantity, getTotalPrice, clearCart } = useCartStore();
+    const { items, removeItem, updateQuantity, getTotalPrice } = useCartStore();
     const { user } = useAuth();
     const router = useRouter();
     const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -61,12 +59,12 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
 
                 let availableStock = 0;
                 if (item.size) {
-                    const variant = dbProduct.product_variants?.find((v: any) => v.size === item.size);
+                    const variant = dbProduct.product_variants?.find((v: { size: string; stock: number }) => v.size === item.size);
                     availableStock = variant?.stock ?? 0;
                 } else {
                     // Fallback to sum of variants if no size selected
                     if (dbProduct.product_variants && dbProduct.product_variants.length > 0) {
-                        availableStock = dbProduct.product_variants.reduce((acc: number, v: any) => acc + v.stock, 0);
+                        availableStock = dbProduct.product_variants.reduce((acc: number, v: { stock: number }) => acc + v.stock, 0);
                     } else {
                         availableStock = 0;
                     }
@@ -83,7 +81,7 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
 
             onClose();
             router.push("/checkout");
-        } catch (err) {
+        } catch {
 
             toast.error("Failed to verify stock. Please try again.");
         } finally {

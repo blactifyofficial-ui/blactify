@@ -34,7 +34,6 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
                     table: 'orders',
                 },
                 (payload) => {
-                    console.log('New order received:', payload);
                     setHasNewOrder(true);
 
                     // Small toast notification

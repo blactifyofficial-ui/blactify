@@ -1,19 +1,17 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 interface HeroProps {
     title: string | React.ReactNode;
-    subtitle?: string;
     images: string[];
     ctaText?: string;
     ctaLink?: string;
 }
 
-export function Hero({ title, subtitle, images, ctaText, ctaLink }: HeroProps) {
+export function Hero({ title, images, ctaText, ctaLink }: HeroProps) {
     const router = useRouter();
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [showFullText, setShowFullText] = useState(false);

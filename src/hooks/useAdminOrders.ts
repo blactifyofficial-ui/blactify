@@ -28,14 +28,13 @@ export function useAdminOrders({ page, pageSize, searchTerm }: UseAdminOrdersPro
             });
 
             if (result.success) {
-                setOrders(result.orders as any[]);
+                setOrders(result.orders as unknown[] as Order[]);
                 setTotalCount(result.totalCount);
             } else {
                 throw new Error(result.error || "Failed to synchronise order data");
             }
-        } catch (err: any) {
-            console.error("Fetch orders error:", err);
-            setError(err);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err : new Error("Failed to fetch orders"));
             toast.error("Network synchronization failed", {
                 description: "Unable to retrieve latest order intelligence.",
             });

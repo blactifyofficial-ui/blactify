@@ -31,7 +31,6 @@ export async function deleteFromCloudinary(url: string) {
             return result;
         }
     } catch (error) {
-        console.error('Error deleting image from Cloudinary:', error);
         throw error;
     }
 }

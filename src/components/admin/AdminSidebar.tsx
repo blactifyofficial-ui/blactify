@@ -97,7 +97,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                 </div>
 
                 <nav className="flex-1 px-6 py-8 space-y-2 overflow-y-auto custom-scrollbar">
-                    {NAV_ITEMS.map((item: any) => {
+                    {NAV_ITEMS.map((item) => {
                         const Icon = item.icon;
                         const isActive = pathname === item.href;
                         const showsBadge = item.showBadge && hasNewOrder;

@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { AdminLoading } from "@/components/admin/AdminUI";
 
+const SESSION_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hours
+
 export function AdminGuard({ children }: { children: React.ReactNode }) {
     const { user, isAdmin, loading } = useAuth();
     const router = useRouter();
-
-    const SESSION_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hours
 
     useEffect(() => {
         if (!loading) {

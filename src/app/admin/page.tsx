@@ -45,6 +45,7 @@ export default function AdminDashboardPage() {
         } else {
             // Enable directly
             setIsUpdatingSettings(true);
+            await fetch("/api/admin/revalidate", { method: "POST" });
             const result = await togglePurchaseStatus(true);
             setIsUpdatingSettings(false);
             if (result.success) {
@@ -60,16 +61,21 @@ export default function AdminDashboardPage() {
         if (confirmationText !== "STOP BUYING") return;
 
         setIsUpdatingSettings(true);
-        const result = await togglePurchaseStatus(false);
-        setIsUpdatingSettings(false);
-
-        if (result.success) {
-            setPurchasesEnabled(false);
-            setShowDisableModal(false);
-            setConfirmationText("");
-            toast.success("Store purchases disabled successfully");
-        } else {
-            toast.error("Failed to disable purchases");
+        try {
+            await fetch("/api/admin/revalidate", { method: "POST" });
+            const result = await togglePurchaseStatus(false);
+            if (result.success) {
+                setPurchasesEnabled(false);
+                setShowDisableModal(false);
+                setConfirmationText("");
+                toast.success("Store purchases disabled successfully");
+            } else {
+                toast.error("Failed to disable purchases");
+            }
+        } catch {
+            toast.error("Cloud synchronization failed");
+        } finally {
+            setIsUpdatingSettings(false);
         }
     };
 
@@ -130,7 +136,7 @@ export default function AdminDashboardPage() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {statCards.map((stat, idx) => (
+                {statCards.map((stat) => (
                     <AdminCard key={stat.name} className="group relative overflow-hidden backdrop-blur-sm">
                         <div className="flex items-center justify-between mb-8">
                             <div className="w-14 h-14 bg-zinc-50 rounded-2xl flex items-center justify-center group-hover:bg-black group-hover:text-white transition-all duration-700 shadow-inner group-hover:shadow-black/20">
@@ -163,7 +169,7 @@ export default function AdminDashboardPage() {
                     >
                         <div className="space-y-6">
                             {stats.recentOrders.length > 0 ? (
-                                stats.recentOrders.map((order, idx) => (
+                                stats.recentOrders.map((order: { id: string; customer_details: { name: string }; amount: number; status: string; created_at: string }) => (
                                     <Link
                                         key={order.id}
                                         href={`/admin/orders/${order.id}`}
@@ -205,8 +211,42 @@ export default function AdminDashboardPage() {
                     </AdminCard>
                 </div>
 
-                {/* Performance Analytics (Chart) */}
+                {/* Top Products */}
                 <div className="lg:col-span-2">
+                    <AdminCard
+                        title="Top Products"
+                        subtitle="Best selling items this period"
+                        icon={<ShoppingBag size={18} />}
+                    >
+                        <div className="space-y-4">
+                            {stats.topProducts.length > 0 ? (
+                                stats.topProducts.map((product: { name: string; sales: number; revenue: number }) => (
+                                    <div key={product.name} className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100/50 hover:bg-white hover:shadow-lg transition-all duration-300 group/item">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center text-[10px] font-black group-hover/item:scale-110 transition-transform">
+                                                {product.name[0]}
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-black text-black leading-tight">{product.name}</p>
+                                                <p className="text-[8px] text-zinc-400 font-black uppercase tracking-widest">{product.sales} Sales</p>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[10px] font-black text-black tracking-tight">₹{product.revenue.toLocaleString()}</p>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="py-20 text-center">
+                                    <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest italic">No Data</p>
+                                </div>
+                            )}
+                        </div>
+                    </AdminCard>
+                </div>
+
+                {/* Performance Analytics (Chart) */}
+                <div className="lg:col-span-3">
                     <div className="bg-black p-10 rounded-[3rem] shadow-2xl shadow-black/20 h-full flex flex-col justify-between group relative overflow-hidden border border-white/5">
                         <div className="relative z-10">
                             <div className="flex items-center justify-between mb-3">

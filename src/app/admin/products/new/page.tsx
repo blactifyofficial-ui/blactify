@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -16,16 +16,13 @@ import {
     IndianRupee,
     Hash,
     AlignLeft,
-    Link as LinkIcon,
     ChevronDown,
     Loader2,
-    Sparkles,
     Plus,
     Trash2,
     Crop
 } from "lucide-react";
 import ImageCropper from "@/components/admin/ImageCropper";
-
 interface ProductVariant {
     id?: string;
     size: string;
@@ -40,7 +37,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
 
     const [loading, setLoading] = useState(isEditing);
     const [saving, setSaving] = useState(false);
-    const [categories, setCategories] = useState<any[]>([]);
+    const [categories, setCategories] = useState<Record<string, unknown>[]>([]);
 
     // Main Form Data
     const [formData, setFormData] = useState({
@@ -55,7 +52,6 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
         image2: "",
         image3: "",
         description: "",
-        // Variants state (replaces simple size_variants array)
         variants: [] as ProductVariant[]
     });
 
@@ -68,7 +64,6 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
     const [showQuickAdd, setShowQuickAdd] = useState(false);
     const [newCatName, setNewCatName] = useState("");
     const [newCatSizeFields, setNewCatSizeFields] = useState<string[]>([]);
-    const [currentCatField, setCurrentCatField] = useState("");
     const [addingCat, setAddingCat] = useState(false);
 
     // Validation state
@@ -79,16 +74,8 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
     const [croppingField, setCroppingField] = useState<string | null>(null);
     const [uploading, setUploading] = useState<string | null>(null); // Field name currently uploading
 
-    useEffect(() => {
-        fetchCategories();
-        if (isEditing && productId) {
-            fetchProduct();
-        } else if (!isEditing) {
-            generateNextId();
-        }
-    }, [isEditing, productId]);
 
-    async function fetchCategories() {
+    const fetchCategories = useCallback(async () => {
         const { data } = await supabase
             .from("categories")
             .select(`
@@ -102,7 +89,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
             `)
             .order("name");
         setCategories(data || []);
-    }
+    }, []);
 
     const handleQuickAddCategory = async () => {
         if (!newCatName.trim()) return;
@@ -171,13 +158,15 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
             setNewCatName("");
             setNewCatSizeFields([]);
             setShowQuickAdd(false);
-        } catch (err: any) {
+        } catch (err: unknown) {
 
             let message = "Failed to add category.";
-            if (err.code === '23505') {
-                message = "A category with this name already exists.";
-            } else {
-                message = err.message || message;
+            if (err instanceof Error) {
+                if ('code' in err && err.code === '23505') {
+                    message = "A category with this name already exists.";
+                } else {
+                    message = err.message || message;
+                }
             }
             toast.error(message);
         } finally {
@@ -185,7 +174,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
         }
     };
 
-    async function fetchProduct() {
+    const fetchProduct = useCallback(async () => {
         try {
             // Fetch product and its variants & images
             const { data, error } = await supabase
@@ -213,45 +202,44 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
 
             // Map variants from DB
             const loadedVariants: ProductVariant[] = data.product_variants && data.product_variants.length > 0
-                ? data.product_variants.map((v: any) => ({
+                ? (data.product_variants as Record<string, unknown>[]).map((v) => ({
                     id: v.id,
                     size: v.size,
                     stock: v.stock,
-                    measurements: v.variant_measurements?.reduce((acc: any, m: any) => {
-                        acc[m.measurement_type_id] = m.value;
+                    measurements: (v.variant_measurements as Record<string, unknown>[] || []).reduce((acc: Record<string, string>, m: Record<string, unknown>) => {
+                        acc[String((m as Record<string, unknown>).measurement_type_id)] = String((m as Record<string, unknown>).value);
                         return acc;
                     }, {}) || {}
                 }))
                 : (data.size_variants || []).map((s: string) => ({ size: s, stock: 0, measurements: {} }));
 
             // Map images from DB
-            const images = data.product_images || [];
-            const mainImg = images.find((img: any) => img.position === 0);
-            const img1 = images.find((img: any) => img.position === 1);
-            const img2 = images.find((img: any) => img.position === 2);
-            const img3 = images.find((img: any) => img.position === 3);
+            const images = (data.product_images as Record<string, unknown>[]) || [];
+            const mainImg = images.find((img) => img.position === 0);
+            const img1 = images.find((img: Record<string, unknown>) => (img.position as number) === 1);
+            const img2 = images.find((img: Record<string, unknown>) => (img.position as number) === 2);
+            const img3 = images.find((img: Record<string, unknown>) => (img.position as number) === 3);
 
             setFormData({
-                id: data.id || "",
-                name: data.name || "",
-                handle: data.handle || "",
-                price_base: data.price_base || "",
-                price_offer: data.price_offer || "",
-                category_id: data.category_id || "",
-                main_image: mainImg?.url || "",
-                image1: img1?.url || "",
-                image2: img2?.url || "",
-                image3: img3?.url || "",
-                description: data.description || "",
+                id: (data.id || "") as string,
+                name: (data.name || "") as string,
+                handle: (data.handle || "") as string,
+                price_base: (data.price_base || "") as string | number,
+                price_offer: (data.price_offer || "") as string | number,
+                category_id: (data.category_id || "") as string,
+                main_image: (mainImg?.url || "") as string,
+                image1: (img1?.url || "") as string,
+                image2: (img2?.url || "") as string,
+                image3: (img3?.url || "") as string,
+                description: (data.description || "") as string,
                 variants: loadedVariants
             });
-        } catch (err) {
-
+        } catch {
             toast.error("Failed to fetch product data");
         } finally {
             setLoading(false);
         }
-    }
+    }, [productId]);
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
         const file = e.target.files?.[0];
@@ -292,7 +280,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
             } else {
                 throw new Error(data.error || "Upload failed");
             }
-        } catch (err) {
+        } catch {
 
             toast.error("Failed to upload image. Please try again.");
         } finally {
@@ -371,13 +359,13 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
             toast.success(isEditing ? "Product updated successfully!" : "Product created successfully!");
             router.push("/admin/products");
             router.refresh();
-        } catch (err: any) {
-            toast.error(err.message || "Failed to save product. Please try again.");
+        } catch (err: unknown) {
+            toast.error(err instanceof Error ? err.message : "Failed to save product. Please try again.");
         } finally {
             setSaving(false);
         }
     };
-    const generateNextId = async () => {
+    const generateNextId = useCallback(async () => {
         try {
             const { data, error } = await supabase
                 .from("products")
@@ -400,11 +388,19 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
             const newId = `p-${String(nextNumber).padStart(3, '0')}`;
             setFormData(prev => ({ ...prev, id: newId }));
             if (errors.id) setErrors(prev => ({ ...prev, id: "" }));
-        } catch (err) {
-
+        } catch {
             toast.error("Failed to generate ID");
         }
-    };
+    }, [errors.id]);
+
+    useEffect(() => {
+        fetchCategories();
+        if (isEditing && productId) {
+            fetchProduct();
+        } else if (!isEditing) {
+            generateNextId();
+        }
+    }, [isEditing, productId, fetchCategories, fetchProduct, generateNextId]);
 
     const addVariant = () => {
         if (!newVariantSize.trim()) return;
@@ -532,8 +528,8 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                     className={`w-full pl-12 pr-10 py-4 bg-zinc-50 border ${errors.category_id ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all cursor-pointer font-medium appearance-none`}
                                 >
                                     <option value="">Select Category</option>
-                                    {categories.map((cat) => (
-                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                    {categories.map((cat: Record<string, unknown>) => (
+                                        <option key={cat.id as string} value={cat.id as string}>{cat.name as string}</option>
                                     ))}
                                 </select>
                                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-300 pointer-events-none" size={16} />
@@ -671,9 +667,9 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                             <th className="px-4 py-3">Size</th>
                                             <th className="px-4 py-3">Stock</th>
                                             {/* Dynamic Measurement Headers */}
-                                            {categories.find(c => c.id === formData.category_id)?.category_measurements?.map((cm: any) => (
-                                                <th key={cm.measurement_types.id} className="px-4 py-3 whitespace-nowrap">
-                                                    {cm.measurement_types.name}
+                                            {((categories.find(c => String(c.id) === formData.category_id)?.category_measurements as Record<string, unknown>[]) || []).map((cm: Record<string, unknown>) => (
+                                                <th key={(cm.measurement_types as Record<string, unknown>).id as string} className="px-4 py-3 whitespace-nowrap">
+                                                    {(cm.measurement_types as Record<string, unknown>).name as string}
                                                 </th>
                                             ))}
                                             <th className="px-4 py-3 text-right">Actions</th>
@@ -693,12 +689,12 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                                     />
                                                 </td>
                                                 {/* Dynamic Measurement Inputs */}
-                                                {categories.find(c => c.id === formData.category_id)?.category_measurements?.map((cm: any) => (
-                                                    <td key={cm.measurement_types.id} className="px-4 py-3">
+                                                {((categories.find(c => String(c.id) === formData.category_id)?.category_measurements as Record<string, unknown>[]) || []).map((cm: Record<string, unknown>) => (
+                                                    <td key={(cm.measurement_types as Record<string, unknown>).id as string} className="px-4 py-3">
                                                         <input
                                                             type="text"
-                                                            value={variant.measurements[cm.measurement_types.id] || ""}
-                                                            onChange={(e) => updateVariantMeasurement(index, cm.measurement_types.id, e.target.value)}
+                                                            value={variant.measurements[(cm.measurement_types as Record<string, unknown>).id as string] || ""}
+                                                            onChange={(e) => updateVariantMeasurement(index, (cm.measurement_types as Record<string, unknown>).id as string, e.target.value)}
                                                             className="w-20 px-3 py-1 bg-white border border-zinc-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-black/5 outline-none transition-all"
                                                         />
                                                     </td>
@@ -752,18 +748,18 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                             </div>
 
                             {/* Dynamic Measurement Inputs for New Variant */}
-                            {categories.find(c => c.id === formData.category_id)?.category_measurements?.length > 0 && (
+                            {((categories.find(c => String(c.id) === formData.category_id)?.category_measurements as Record<string, unknown>[]) || []).length > 0 && (
                                 <div className="pt-2">
                                     <h4 className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest pl-1 mb-2">Measurements</h4>
                                     <div className="flex flex-wrap gap-4">
-                                        {categories.find(c => c.id === formData.category_id)?.category_measurements.map((cm: any) => (
-                                            <div key={cm.measurement_types.id} className="space-y-1 w-full sm:w-32">
-                                                <span className="text-[10px] font-bold uppercase text-zinc-500 tracking-widest pl-1">{cm.measurement_types.name}</span>
+                                        {((categories.find(c => String(c.id) === formData.category_id)?.category_measurements as Record<string, unknown>[]) || []).map((cm: Record<string, unknown>) => (
+                                            <div key={(cm.measurement_types as Record<string, unknown>).id as string} className="space-y-1 w-full sm:w-32">
+                                                <span className="text-[10px] font-bold uppercase text-zinc-500 tracking-widest pl-1">{(cm.measurement_types as Record<string, unknown>).name as string}</span>
                                                 <input
                                                     type="text"
                                                     placeholder="Val"
-                                                    value={newVariantMeasurements[cm.measurement_types.id] || ""}
-                                                    onChange={(e) => setNewVariantMeasurements({ ...newVariantMeasurements, [cm.measurement_types.id]: e.target.value })}
+                                                    value={newVariantMeasurements[(cm.measurement_types as Record<string, unknown>).id as string] || ""}
+                                                    onChange={(e) => setNewVariantMeasurements({ ...newVariantMeasurements, [(cm.measurement_types as Record<string, unknown>).id as string]: e.target.value })}
                                                     className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-medium"
                                                 />
                                             </div>
@@ -873,6 +869,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                         </div>
                     </div>
                 </div>
+
 
                 <div className="flex gap-4">
                     <button

@@ -9,6 +9,7 @@ interface CartItem extends Product {
     quantity: number;
     size?: string;
     cartId: string;
+    stock?: number;
 }
 
 interface CartStore {
@@ -54,18 +55,8 @@ export const useCartStore = create<CartStore>()(
                     if (variantData) {
                         currentStock = variantData.stock;
                     } else {
-                        // If variant doesn't exist in DB yet, check if size is in product's size_variants
-                        // and fallback to product's main stock (for legacy/transition)
-                        const { data: mainProduct } = await supabase
-                            .from("products")
-                            .select("size_variants")
-                            .eq("id", product.id)
-                            .single();
-
-                        const hasSize = mainProduct?.size_variants?.includes(size);
-                        // If size is in size_variants but NO variant exists in product_variants table,
-                        // it means normalization is incomplete for this product. 
-                        // Returning 0 is safe as it will show "out of stock" rather than crashing.
+                        // If variant doesn't exist in DB yet, return 0 stock
+                        // It's safe to return 0 as it will show "out of stock" rather than crashing.
                         currentStock = 0;
                     }
                 } else {
@@ -77,7 +68,7 @@ export const useCartStore = create<CartStore>()(
                         .single();
 
                     if (latestProduct?.product_variants && latestProduct.product_variants.length > 0) {
-                        currentStock = latestProduct.product_variants.reduce((acc: number, v: any) => acc + v.stock, 0);
+                        currentStock = latestProduct.product_variants.reduce((acc: number, v: { stock: number }) => acc + v.stock, 0);
                     } else {
                         currentStock = 0;
                     }

@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import Image from "next/image";
 import Link from "next/link";
 import { Printer, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface OrderDetail {
     id: string;
@@ -62,7 +62,7 @@ export default function InvoicePage() {
 
                 if (error) throw error;
                 setOrder(data);
-            } catch (err) {
+            } catch {
 
             } finally {
                 setLoading(false);

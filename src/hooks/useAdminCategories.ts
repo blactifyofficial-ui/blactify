@@ -38,18 +38,28 @@ export function useAdminCategories({ page, pageSize }: UseAdminCategoriesProps) 
 
             if (supabaseError) throw supabaseError;
 
-            const formattedData = (data || []).map((cat: any) => ({
-                ...cat,
-                size_config: cat.category_measurements?.map((cm: any) => cm.measurement_types?.name).filter(Boolean) || cat.size_config || []
+            interface CategoryWithMeasurements extends Omit<Category, 'category_measurements'> {
+                category_measurements?: {
+                    measurement_types: {
+                        name: string;
+                    };
+                }[];
+            }
+
+            const formattedData = (data as unknown as CategoryWithMeasurements[] || []).map((cat): Category => ({
+                id: cat.id,
+                name: cat.name,
+                slug: cat.slug,
+                created_at: cat.created_at,
+                size_config: cat.category_measurements?.map(cm => cm.measurement_types?.name).filter(Boolean) || cat.size_config || []
             }));
 
             setCategories(formattedData);
             setTotalCount(count || 0);
-        } catch (err: any) {
-            console.error("Fetch categories error:", err);
-            setError(err);
-            toast.error("Taxonomy sync failed", {
-                description: "Unable to reconcile categorical data.",
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err : new Error("Failed to fetch categories"));
+            toast.error("Network synchronization failed", {
+                description: "Unable to retrieve latest category intelligence.",
             });
         } finally {
             setLoading(false);

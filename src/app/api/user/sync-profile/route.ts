@@ -25,7 +25,6 @@ export async function POST(request: Request) {
             .single();
 
         if (error) {
-            console.error("Profile sync error details:", error);
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
@@ -33,8 +32,7 @@ export async function POST(request: Request) {
             success: true,
             isAdmin: data?.is_admin || false
         });
-    } catch (err) {
-        console.error("Critical error in sync-profile route:", err);
+    } catch {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

@@ -1,5 +1,4 @@
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
 
 export function AdminLoading({ message = "Loading..." }: { message?: string }) {
     return (

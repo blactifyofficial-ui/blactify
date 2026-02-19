@@ -1,25 +1,25 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
 import { getAdminOrderById, updateAdminOrder } from "@/app/actions/orders";
+import { Order } from "@/types/database";
 import {
-    ChevronLeft,
-    Calendar,
-    User,
-    Phone,
-    Mail,
-    MapPin,
-    Package,
-    Truck,
-    CheckCircle2,
+    ArrowLeft,
     Clock,
+    Package,
+    User,
+    Mail,
+    Phone,
+    MapPin,
+    AlertCircle,
+    CheckCircle2,
+    Truck,
+    Calendar,
     CreditCard,
     Box,
     Activity,
-    Shield
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -46,12 +46,11 @@ const getAvailableStatuses = (currentStatus: string) => {
 
 export default function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
-    const router = useRouter();
-    const [order, setOrder] = useState<any>(null);
+    const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
-    const [updating, setUpdating] = useState(false);
+    const [statusUpdating, setStatusUpdating] = useState<boolean>(false);
     const [trackingId, setTrackingId] = useState("");
-    const [itemMeasurements, setItemMeasurements] = useState<Record<string, any>>({});
+    const [itemMeasurements, setItemMeasurements] = useState<Record<string, Array<{ value: string; measurement_types: { name: string } }>>>({});
 
     useEffect(() => {
         async function fetchOrder() {
@@ -63,7 +62,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                 } else {
                     throw new Error(result.error || "Order not found");
                 }
-            } catch (err) {
+            } catch {
                 toast.error("Protocol Error", { description: "Failure to retrieve mission parameters." });
             } finally {
                 setLoading(false);
@@ -79,7 +78,8 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
             // For now, attempting to keep it simple as the main issue was orders access.
             try {
                 const { supabase } = await import("@/lib/supabase");
-                const measurementsMap: Record<string, any> = {};
+                const measurementsMap: Record<string, Array<{ value: string; measurement_types: { name: string } }>> = {};
+                if (!order?.items) return;
                 for (const item of order.items) {
                     if (!item.id || !item.size) continue;
                     const key = `${item.id}-${item.size}`;
@@ -99,17 +99,21 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                         .eq('size', item.size)
                         .maybeSingle();
                     if (variant?.variant_measurements) {
-                        measurementsMap[key] = variant.variant_measurements;
+                        measurementsMap[key] = (variant.variant_measurements as unknown as { value: string; measurement_types: { name: string } | { name: string }[] }[]).map(m => ({
+                            value: String(m.value),
+                            measurement_types: (Array.isArray(m.measurement_types) ? m.measurement_types[0] : m.measurement_types) as { name: string }
+                        }));
                     }
                 }
                 setItemMeasurements(measurementsMap);
-            } catch (err) { }
+            } catch { }
         }
         fetchMeasurements();
     }, [order]);
 
     const handleUpdateStatus = async (newStatus: string) => {
-        setUpdating(true);
+        if (!order) return;
+        setStatusUpdating(true);
         const normalizedStatus = newStatus.toLowerCase();
         try {
             const result = await updateAdminOrder(id, { status: normalizedStatus });
@@ -118,36 +122,37 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
             toast.success("Status Synchronized", {
                 description: `Vector updated to ${normalizedStatus.toUpperCase()}`,
             });
-            setOrder({ ...order, status: normalizedStatus });
-        } catch (err: any) {
+            setOrder({ ...order, status: normalizedStatus as Order['status'] });
+        } catch {
             toast.error("Transmission Failed");
         } finally {
-            setUpdating(false);
+            setStatusUpdating(false);
         }
     };
 
     const handleUpdateTracking = async () => {
-        if (!trackingId.trim() && !order.tracking_id) return;
-        setUpdating(true);
+        if (!order || (!trackingId.trim() && !order.tracking_id)) return;
+        setStatusUpdating(true);
         try {
             const result = await updateAdminOrder(id, { tracking_id: trackingId });
             if (!result.success) throw new Error(result.error);
 
             toast.success("Logistics Updated", { description: "Tracking sequence finalized." });
-            setOrder({ ...order, tracking_id: trackingId });
-        } catch (err) {
-            toast.error("Update Failure");
+            setOrder({ ...order, tracking_id: trackingId } as Order);
+        } catch {
+            toast.error("Process Failure");
         } finally {
-            setUpdating(false);
+            setStatusUpdating(false);
         }
     };
 
-    const getStatusIcon = (status: string) => {
+    const getStatusIcon = (status: string | undefined) => {
         switch (status?.toLowerCase()) {
             case 'paid': return CreditCard;
             case 'processing': return Clock;
             case 'shipped': return Truck;
             case 'delivered': return CheckCircle2;
+            case 'failed': return Activity;
             default: return Package;
         }
     };
@@ -157,20 +162,21 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
     if (!order) {
         return (
             <div className="text-center py-32 font-inter">
-                <Shield className="mx-auto text-zinc-100 mb-6" size={64} />
+                <AlertCircle className="mx-auto text-zinc-100 mb-6" size={64} />
                 <h2 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-4">Registry Null</h2>
-                <Link href="/admin/orders" className="text-[10px] font-black text-black uppercase tracking-[0.2em] border-b-2 border-black pb-1 hover:blur-[0.5px] transition-all">
-                    RETURN TO MISSION CONTROL
+                <Link href="/admin/orders" className="flex items-center gap-2 text-zinc-400 hover:text-black transition-colors mb-6 text-xs font-bold uppercase tracking-widest">
+                    <ArrowLeft size={16} />
+                    Back to Orders
                 </Link>
             </div>
         );
     }
 
     const StatusIcon = getStatusIcon(order.status);
-    const itemsSubtotal = order.items?.reduce((acc: number, item: any) => {
-        const price = item.price || item.price_offer || item.price_base || 0;
-        return acc + (price * item.quantity);
-    }, 0) || 0;
+    const itemsSubtotal = (order.items || []).reduce((acc: number, item) => {
+        const price = (Number(item.price) || Number(item.price_offer) || Number(item.price_base) || 0);
+        return acc + (price * Number(item.quantity));
+    }, 0);
     const shippingCharge = order.amount - itemsSubtotal;
 
     return (
@@ -183,7 +189,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                     <div className="relative group">
                         <select
                             value={order.status?.toLowerCase() || ""}
-                            disabled={updating}
+                            disabled={statusUpdating}
                             onChange={(e) => handleUpdateStatus(e.target.value)}
                             className="appearance-none pl-12 pr-10 py-3 bg-white border border-zinc-100 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:outline-none focus:ring-4 focus:ring-black/5 focus:border-black/10 transition-all disabled:opacity-50 cursor-pointer shadow-sm min-w-[200px]"
                         >
@@ -205,13 +211,13 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                 <div className="lg:col-span-2 space-y-10">
                     <AdminCard title="Logistics Manifest" icon={<Package size={18} />} subtitle={`Total Assets: ${order.items?.length || 0}`}>
                         <div className="divide-y divide-zinc-50 -mx-8 -mb-8">
-                            {order.items?.map((item: any, index: number) => (
-                                <div key={index} className="px-8 py-8 flex items-center justify-between group hover:bg-zinc-50 transition-colors duration-500">
+                            {(order.items || []).map((item, idx: number) => (
+                                <div key={idx} className="px-8 py-8 flex items-center justify-between group hover:bg-zinc-50 transition-colors duration-500">
                                     <div className="flex items-center gap-6">
                                         <div className="w-20 h-20 bg-zinc-50 rounded-[2rem] overflow-hidden flex-shrink-0 relative shadow-inner">
                                             {(item.main_image || item.imageUrl) ? (
                                                 <Image
-                                                    src={item.main_image || item.imageUrl}
+                                                    src={item.main_image || item.imageUrl || ""}
                                                     alt={item.name}
                                                     fill
                                                     sizes="80px"
@@ -233,7 +239,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                                             </div>
                                             {item.size && itemMeasurements[`${item.id}-${item.size}`] && (
                                                 <div className="flex flex-wrap gap-2 pt-2">
-                                                    {itemMeasurements[`${item.id}-${item.size}`].map((m: any, i: number) => (
+                                                    {(itemMeasurements[`${item.id}-${item.size}`] || []).map((m, i) => (
                                                         <div key={i} className="px-2 py-1 bg-zinc-50 border border-black/5 rounded-lg flex flex-col items-start min-w-[70px] shadow-sm">
                                                             <span className="text-[7px] font-black uppercase tracking-[0.2em] text-zinc-400">{m.measurement_types?.name}</span>
                                                             <span className="text-[10px] font-black text-black">{m.value}</span>
@@ -307,14 +313,14 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                                         />
                                         <button
                                             onClick={handleUpdateTracking}
-                                            disabled={updating || trackingId === (order.tracking_id || "")}
+                                            disabled={statusUpdating || trackingId === (order.tracking_id || "")}
                                             className="px-6 py-3 bg-black text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-zinc-800 transition-all disabled:opacity-50 shadow-xl shadow-black/10"
                                         >
                                             SYNC
                                         </button>
                                     </div>
                                     <p className="text-[8px] text-zinc-300 font-black uppercase tracking-widest leading-tight">
-                                        This ID will be broadcasted to the customer's secure interface upon reconciliation.
+                                        This ID will be broadcasted to the customer&apos;s secure interface upon reconciliation.
                                     </p>
                                 </div>
                             </div>

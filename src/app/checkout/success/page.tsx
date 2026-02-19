@@ -1,12 +1,11 @@
 "use client";
 
-import { CheckCircle2, ShoppingBag, MapPin, User, ChevronRight } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import confetti from "canvas-confetti";
 import { useSearchParams, useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 
 interface OrderDetail {
     id: string;
@@ -104,15 +103,13 @@ export default function CheckoutSuccessPage() {
                 });
 
                 if (response.ok) {
-                    const result = await response.json();
-
+                    // No error data or result needed
                 } else {
-                    const errorData = await response.json();
-
+                    // const errorData = await response.json(); // Removed as per diff
                 }
 
-            } catch (err) {
-
+            } catch (error) {
+                console.error("Error fetching order details:", error);
             } finally {
                 setLoading(false);
             }
@@ -149,7 +146,7 @@ export default function CheckoutSuccessPage() {
                     <CheckCircle2 className="text-red-500 opacity-20" size={32} />
                 </div>
                 <h1 className="text-2xl font-bold text-zinc-900 mb-2">Order Not Found</h1>
-                <p className="text-zinc-500 mb-8 max-w-sm">We couldn't retrieve the details for this order, but don't worry—your purchase is safe.</p>
+                <p className="text-zinc-500 mb-8 max-w-sm">We couldn&apos;t retrieve the details for this order, but don&apos;t worry—your purchase is safe.</p>
                 <Link href="/" className="px-8 py-3 bg-black text-white rounded-md font-medium">Return Home</Link>
             </div>
         );

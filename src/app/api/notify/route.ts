@@ -19,10 +19,11 @@ export async function POST(req: Request) {
 
         const resend = new Resend(SELLER_CONFIG.resendApiKey);
 
-        // Calculate details for email
-        const subtotal = order.items.reduce((acc: number, item: any) => {
-            const price = item.price_offer || item.price_base || 0;
-            return acc + price * item.quantity;
+        // Calculate details for Email Items
+        const emailItems = ((order.items as Record<string, unknown>[]) || []);
+        const subtotal = emailItems.reduce((acc: number, item: Record<string, unknown>) => {
+            const price = (item.price_offer || item.price_base || 0) as number;
+            return acc + (price * (item.quantity as number));
         }, 0);
 
         const calculatedShipping = subtotal < 2999 ? 59 : 0;
@@ -53,11 +54,10 @@ export async function POST(req: Request) {
                         <h3 style="margin: 0 0 20px 0; font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; color: #999999;">Order Summary</h3>
                         
                         <table style="width: 100%; border-collapse: collapse;">
-                            ${order.items.map((item: any) => {
-            const price = item.price_offer || item.price_base || 0;
-            const itemTotal = price * item.quantity;
-            const imageUrl = item.product_images?.[0]?.url || item.main_image || "https://blactify.com/placeholder.jpg";
-
+                            ${emailItems.map((item: Record<string, unknown>) => {
+            const price = (item.price_offer || item.price_base || 0) as number;
+            const itemTotal = price * (item.quantity as number);
+            const imageUrl = ((item.product_images as Record<string, unknown>[])?.[0]?.url || item.main_image || "https://blactify.com/placeholder.jpg") as string;
             return `
                                     <tr>
                                         <td style="padding-bottom: 20px; width: 80px;">
@@ -68,12 +68,16 @@ export async function POST(req: Request) {
                                         <td style="padding: 0 15px 20px 15px; vertical-align: middle;">
                                             <div style="font-weight: 700; color: #111111; font-size: 14px; text-transform: uppercase; margin-bottom: 4px;">${item.name}</div>
                                             <div style="font-size: 12px; color: #888888;">
-                                                ${item.size ? `Size: ${item.size.toUpperCase()} &nbsp;•&nbsp; ` : ""}
+                                                ${(item.measurements && Object.keys(item.measurements as Record<string, unknown>).length > 0) ?
+                    Object.entries(item.measurements as Record<string, unknown>).map(([key, val]) =>
+                        `${String(key).charAt(0).toUpperCase() + String(key).slice(1)}: ${String(val)} &nbsp;•&nbsp; `
+                    ).join('') : ""
+                }
                                                 Qty: ${item.quantity}
                                             </div>
                                         </td>
                                         <td style="padding-bottom: 20px; text-align: right; vertical-align: middle; font-weight: 700; color: #111111; font-size: 14px;">
-                                            ₹${itemTotal.toLocaleString('en-IN')}
+                                            ₹${Number(itemTotal).toLocaleString('en-IN')}
                                         </td>
                                     </tr>
                                 `;
@@ -153,12 +157,13 @@ export async function POST(req: Request) {
             } else {
                 results.push({ type: 'seller', ...sellerResult });
             }
-        } catch (sellerError) {
-            const errorObj = sellerError as any;
+        } catch (dbErr: unknown) {
+            const error = dbErr instanceof Error ? dbErr : new Error(String(dbErr));
+            console.error("Seller Email Send Failure:", error);
             results.push({
                 type: 'seller',
-                error: errorObj.message || "Unknown error",
-                details: errorObj.response?.data || errorObj
+                error: error.message || "Unknown error during seller email send",
+                details: error
             });
         }
 
@@ -166,9 +171,9 @@ export async function POST(req: Request) {
             success: true,
             results
         });
-    } catch (error) {
-
-        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+    } catch (err: unknown) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        console.error("Payment Sync Failure:", error);
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }
-

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { ProductCard, type Product } from "@/components/ui/ProductCard";
-import { Search, Filter, SlidersHorizontal, Menu, X as CloseIcon } from "lucide-react";
+import { Search, Filter, Menu, X as CloseIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollToTop } from "@/components/ui/ScrollToTop";
 
@@ -26,8 +26,8 @@ export default function ShopPage() {
 
                 if (error) throw error;
                 setProducts(data || []);
-            } catch (err) {
-
+            } catch (error) {
+                console.error("Error fetching products:", error);
             } finally {
                 setLoading(false);
             }

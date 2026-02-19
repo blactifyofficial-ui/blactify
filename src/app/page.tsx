@@ -21,8 +21,8 @@ export default function Home() {
 
         if (error) throw error;
         setProducts(data || []);
-      } catch (err) {
-        console.error("Fetch products error:", err);
+      } catch {
+        // Silent fail
       } finally {
         setLoading(false);
       }

@@ -54,15 +54,8 @@ export default function SettingsPage() {
 
             toast.success("Account deleted successfully");
             router.push('/');
-        } catch (err: unknown) {
-
-            const error = err as { code?: string; message?: string };
-            if (error.code === 'auth/requires-recent-login') {
-                toast.error("Please sign out and sign back in to delete your account for security.");
-            } else {
-                toast.error(error.message || "Failed to delete account. Please try again.");
-            }
-            setIsDeleteModalOpen(false);
+        } catch {
+            toast.error("Process Failure");
         } finally {
             setIsDeleting(false);
             setConfirmText("");
@@ -86,7 +79,7 @@ export default function SettingsPage() {
             await syncUserProfile(auth.currentUser);
 
             setStatus({ type: 'success', message: 'Profile updated successfully!' });
-        } catch (err) {
+        } catch {
 
             setStatus({ type: 'error', message: 'Failed to update profile. Please try again.' });
         } finally {

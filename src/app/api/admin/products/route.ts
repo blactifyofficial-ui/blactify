@@ -42,7 +42,7 @@ export async function POST(request: Request) {
                     await supabaseAdmin.from("variant_measurements").delete().eq("variant_id", vData.id);
 
                     const measToInsert = Object.entries(variant.measurements)
-                        .filter(([_, value]) => value !== "")
+                        .filter(([, value]) => value !== "")
                         .map(([typeId, value]) => ({
                             variant_id: vData.id,
                             measurement_type_id: typeId,
@@ -62,14 +62,13 @@ export async function POST(request: Request) {
             await supabaseAdmin.from("product_images").delete().eq("product_id", id);
             const { error: imageError } = await supabaseAdmin
                 .from("product_images")
-                .insert(images.map((img: any) => ({ ...img, product_id: id })));
+                .insert(images.map((img: { url: string; position: number }) => ({ ...img, product_id: id })));
             if (imageError) throw imageError;
         }
 
         return NextResponse.json({ success: true });
-    } catch (err: any) {
-        console.error("Product creation error:", err);
-        return NextResponse.json({ error: err.message }, { status: 500 });
+    } catch (dbErr: unknown) {
+        return NextResponse.json({ error: dbErr instanceof Error ? dbErr.message : "Failed to create product" }, { status: 500 });
     }
 }
 
@@ -102,7 +101,7 @@ export async function PUT(request: Request) {
                 .eq("product_id", id);
 
             if (existingVariants) {
-                const sizesToKeep = variants.map((v: any) => v.size);
+                const sizesToKeep = variants.map((v: { size: string }) => v.size);
                 const variantsToDelete = existingVariants.filter(ev => !sizesToKeep.includes(ev.size));
                 if (variantsToDelete.length > 0) {
                     await supabaseAdmin.from("product_variants").delete().in("id", variantsToDelete.map(v => v.id));
@@ -127,7 +126,7 @@ export async function PUT(request: Request) {
 
                 if (variant.measurements) {
                     const measToInsert = Object.entries(variant.measurements)
-                        .filter(([_, value]) => value !== "")
+                        .filter(([, value]) => value !== "")
                         .map(([typeId, value]) => ({
                             variant_id: vData.id,
                             measurement_type_id: typeId,
@@ -144,21 +143,37 @@ export async function PUT(request: Request) {
 
         // 3. Handle Images
         if (images) {
-            // Before deleting images from DB, we should technically handle Cloudinary deletion for removed images.
-            // For now, let's focus on the absolute deletion of a product.
+            // Fetch existing images to identify removals for Cloudinary cleanup
+            const { data: existingImages } = await supabaseAdmin
+                .from("product_images")
+                .select("url")
+                .eq("product_id", id);
+
+            if (existingImages && existingImages.length > 0) {
+                const newUrls = images.map((img: { url: string }) => img.url);
+                const urlsToDelete = existingImages
+                    .filter(ei => !newUrls.includes(ei.url))
+                    .map(ei => ei.url);
+
+                if (urlsToDelete.length > 0) {
+                    // Parallely delete removed images from Cloudinary
+                    await Promise.allSettled(urlsToDelete.map(url => deleteFromCloudinary(url)));
+                }
+            }
+
+            // Update database
             await supabaseAdmin.from("product_images").delete().eq("product_id", id);
             if (images.length > 0) {
                 const { error: imageError } = await supabaseAdmin
                     .from("product_images")
-                    .insert(images.map((img: any) => ({ ...img, product_id: id })));
+                    .insert(images.map((img: { url: string; position: number }) => ({ ...img, product_id: id })));
                 if (imageError) throw imageError;
             }
         }
 
         return NextResponse.json({ success: true });
-    } catch (err: any) {
-        console.error("Product update error:", err);
-        return NextResponse.json({ error: err.message }, { status: 500 });
+    } catch (dbErr: unknown) {
+        return NextResponse.json({ error: dbErr instanceof Error ? dbErr.message : "Failed to update product" }, { status: 500 });
     }
 }
 
@@ -185,8 +200,7 @@ export async function DELETE(request: Request) {
         if (error) throw error;
 
         return NextResponse.json({ success: true });
-    } catch (err: any) {
-        console.error("Product deletion error:", err);
-        return NextResponse.json({ error: err.message }, { status: 500 });
+    } catch (dbErr: unknown) {
+        return NextResponse.json({ error: dbErr instanceof Error ? dbErr.message : "Failed to delete product" }, { status: 500 });
     }
 }

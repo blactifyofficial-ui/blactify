@@ -24,14 +24,12 @@ export async function getStoreSettings() {
             .single();
 
         if (error) {
-            console.error("Error fetching store settings:", error);
             // Return default if error (e.g. table doesn't exist yet)
             return { purchases_enabled: true };
         }
 
         return data;
-    } catch (error) {
-        console.error("Unexpected error fetching store settings:", error);
+    } catch {
         return { purchases_enabled: true };
     }
 }
@@ -43,7 +41,6 @@ export async function togglePurchaseStatus(status: boolean) {
             .upsert({ id: true, purchases_enabled: status });
 
         if (error) {
-            console.error("Error updating store settings:", error);
             return { success: false, error: error.message };
         }
 
@@ -95,8 +92,8 @@ export async function togglePurchaseStatus(status: boolean) {
                     subject: `[ALERT] Store Purchases ${statusText}`,
                     html: html,
                 });
-            } catch (emailErr) {
-                console.error("Failed to send status notification email:", emailErr);
+            } catch {
+                // Ignore email errors
             }
         }
 
@@ -106,8 +103,7 @@ export async function togglePurchaseStatus(status: boolean) {
         revalidatePath("/shop"); // Just in case we add indicators there
 
         return { success: true };
-    } catch (error) {
-        console.error("Unexpected error updating store settings:", error);
+    } catch {
         return { success: false, error: "Failed to update settings" };
     }
 }

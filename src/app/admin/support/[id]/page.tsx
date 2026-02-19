@@ -20,10 +20,29 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
+interface Ticket {
+    id: string;
+    status: string;
+    created_at: string;
+    message: string;
+    category: string;
+    phone: string;
+    order_id?: string;
+    admin_response?: string;
+    responded_at?: string;
+    profiles?: {
+        full_name?: string;
+        email?: string;
+    };
+    orders?: {
+        status?: string;
+    };
+}
+
 export default function AdminTicketDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const router = useRouter();
-    const [ticket, setTicket] = useState<any>(null);
+    const [ticket, setTicket] = useState<Ticket | null>(null);
     const [loading, setLoading] = useState(true);
     const [response, setResponse] = useState("");
     const [isSending, setIsSending] = useState(false);
@@ -54,7 +73,7 @@ export default function AdminTicketDetailPage({ params }: { params: Promise<{ id
 
         setIsSending(true);
         try {
-            const result = await respondToTicket(id, response, ticket.profiles?.email, ticket.order_id);
+            const result = await respondToTicket(id, response, ticket?.profiles?.email || "", ticket?.order_id || "");
             if (result.success) {
                 toast.success("Response sent successfully!");
                 // Refresh ticket status
@@ -63,8 +82,8 @@ export default function AdminTicketDetailPage({ params }: { params: Promise<{ id
             } else {
                 toast.error(result.error || "Failed to send response");
             }
-        } catch (err) {
-            toast.error("An unexpected error occurred");
+        } catch {
+            toast.error("Process Failure");
         } finally {
             setIsSending(false);
         }
@@ -122,7 +141,7 @@ export default function AdminTicketDetailPage({ params }: { params: Promise<{ id
                                     <MessageSquare size={16} />
                                 </div>
                                 <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">
-                                    Category: {ticket.category.replace('_', ' ')}
+                                    Category: {(ticket.category || "").replace('_', ' ')}
                                 </span>
                             </div>
                         </section>

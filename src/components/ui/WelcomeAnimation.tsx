@@ -17,12 +17,12 @@ export default function WelcomeAnimation() {
         const forceWelcome = urlParams.get("force-welcome") === "true";
 
         if (hasShown && !forceWelcome) {
-            setIsVisible(false);
-            return;
+            const timer = setTimeout(() => setIsVisible(false), 0);
+            return () => clearTimeout(timer);
         }
 
         // If not seen or forced, make it visible
-        setIsVisible(true);
+        const timerVisible = setTimeout(() => setIsVisible(true), 0);
 
         // Start the opening animation after a short delay
         const openingTimer = setTimeout(() => {
@@ -46,6 +46,7 @@ export default function WelcomeAnimation() {
         }, 7000);
 
         return () => {
+            clearTimeout(timerVisible);
             clearTimeout(openingTimer);
             clearTimeout(revealTimer);
             clearTimeout(fadeOutTimer);

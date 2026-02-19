@@ -3,7 +3,8 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
     try {
-        const { image } = await req.json();
+        const body = await req.json() as { image?: string };
+        const image = body.image;
 
         if (!image) {
             return NextResponse.json({ error: 'No image data provided' }, { status: 400 });
@@ -18,7 +19,7 @@ export async function POST(req: Request) {
             url: result.secure_url,
             public_id: result.public_id,
         });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message || 'Upload failed' }, { status: 500 });
+    } catch (err: unknown) {
+        return NextResponse.json({ error: err instanceof Error ? err.message : 'Upload failed' }, { status: 500 });
     }
 }

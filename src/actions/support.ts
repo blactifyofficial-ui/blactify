@@ -26,7 +26,6 @@ export async function createTicket(formData: {
             ]);
 
         if (error) {
-            console.error("Supabase Error creating ticket:", error);
             return {
                 success: false,
                 error: "We encountered an issue while saving your ticket. Please check your connection and try again."
@@ -66,20 +65,20 @@ export async function createTicket(formData: {
                     subject: `New Support Ticket: ${formData.category.replace('_', ' ')}`,
                     html: adminEmailHtml,
                 });
-            } catch (emailErr) {
-                console.error("Admin notification email failed:", emailErr);
-                // We don't fail the whole action if just the admin notification fails, 
-                // but we could return success: true with a note if we wanted.
-                // For now, just logging it.
+            } catch {
+                // Email failure is non-critical
             }
         }
 
         return { success: true };
-    } catch (err: any) {
-        console.error("Critical error creating ticket:", err);
+    } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred.";
         return {
             success: false,
-            error: "An unexpected error occurred. Please try again later."
+            error: {
+                message: "An unexpected error occurred. Please contact support if the amount was deducted.",
+                technical: errorMessage
+            }
         };
     }
 }
@@ -124,9 +123,9 @@ export async function respondToTicket(ticketId: string, response: string, userEm
         }
 
         return { success: true };
-    } catch (err: any) {
-        console.error("Error responding to ticket:", err);
-        return { success: false, error: err.message };
+    } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred.";
+        return { success: false, error: errorMessage };
     }
 }
 
@@ -139,8 +138,8 @@ export async function getTickets() {
 
         if (error) throw error;
         return { success: true, tickets: data };
-    } catch (err: any) {
-        return { success: false, error: err.message };
+    } catch (err: unknown) {
+        return { success: false, error: err instanceof Error ? err.message : "Fetch Failed" };
     }
 }
 
@@ -154,7 +153,7 @@ export async function getTicketById(id: string) {
 
         if (error) throw error;
         return { success: true, ticket: data };
-    } catch (err: any) {
-        return { success: false, error: err.message };
+    } catch (err: unknown) {
+        return { success: false, error: err instanceof Error ? err.message : "Fetch Failed" };
     }
 }
