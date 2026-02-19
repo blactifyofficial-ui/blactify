@@ -12,6 +12,7 @@ import {
 } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 import { EMAIL_REGEX, PASSWORD_REGEX, NAME_REGEX } from "@/lib/validation";
+import { getFriendlyErrorMessage } from "@/lib/error-messages";
 
 
 type AuthMode = "signin" | "signup";
@@ -57,8 +58,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
             }
             onClose();
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : "An error occurred";
-            setError(message);
+            setError(getFriendlyErrorMessage(err));
         } finally {
             setLoading(false);
         }
@@ -72,8 +72,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
             toast.success("Welcome to Blactify");
             onClose();
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : "Google sign-in failed";
-            setError(message);
+            setError(getFriendlyErrorMessage(err));
         } finally {
             setLoading(false);
         }

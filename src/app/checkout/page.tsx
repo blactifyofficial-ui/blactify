@@ -25,6 +25,7 @@ import {
     ADDRESS_REGEX,
     CITY_REGEX
 } from "@/lib/validation";
+import { getFriendlyErrorMessage } from "@/lib/error-messages";
 
 
 interface CartItem {
@@ -267,8 +268,8 @@ function CheckoutContent() {
 
             setStockErrors(newStockErrors);
             return !hasErrors;
-        } catch {
-            toast.error("System Error", { description: "Network connection disrupted." });
+        } catch (err: unknown) {
+            toast.error("Stock Verification Error", { description: getFriendlyErrorMessage(err) });
             return true; // Proceed if error occurs, but log it
         }
     };
@@ -310,7 +311,7 @@ function CheckoutContent() {
             const order = await response.json();
 
             if (!order.id) {
-                throw new Error("Order creation failed");
+                throw new Error("order-creation-failed");
             }
 
             // 2. Load Razorpay script
@@ -377,8 +378,8 @@ function CheckoutContent() {
                                 description: errorObj?.technical ? "Technical detail: " + errorObj.technical : undefined
                             });
                         }
-                    } catch {
-                        toast.error("Internal Server Error", { description: "Order confirmed, but redirect failed." });
+                    } catch (err: unknown) {
+                        toast.error("Order process error", { description: getFriendlyErrorMessage(err) });
                     }
                 },
                 prefill: {
@@ -410,10 +411,10 @@ function CheckoutContent() {
                 router.push("/checkout/failure");
             });
 
-        } catch {
+        } catch (err: unknown) {
 
             setIsProcessing(false);
-            toast.error("Checkout failed. Please try again.");
+            toast.error(getFriendlyErrorMessage(err));
         }
     };
 
