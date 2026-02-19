@@ -4,15 +4,16 @@ import ProductClientPage from "@/components/product/ProductClientPage";
 import { notFound } from "next/navigation";
 
 interface Props {
-    params: { id: string };
-    searchParams: { [key: string]: string | string[] | undefined };
+    params: Promise<{ id: string }>;
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export async function generateMetadata(
     { params }: Props,
     parent: ResolvingMetadata
 ): Promise<Metadata> {
-    const product = await getProduct(params.id);
+    const { id } = await params;
+    const product = await getProduct(id);
 
     if (!product) {
         return {
@@ -29,7 +30,7 @@ export async function generateMetadata(
         openGraph: {
             title: `${product.name} | Blactify`,
             description: product.description || "Meets Timeless Essentials.",
-            url: `https://blactify.com/product/${params.id}`,
+            url: `https://blactify.com/product/${id}`,
             images: mainImage ? [mainImage, ...previousImages] : previousImages,
             type: "article",
         },
@@ -43,7 +44,8 @@ export async function generateMetadata(
 }
 
 export default async function Page({ params }: Props) {
-    const product = await getProduct(params.id);
+    const { id } = await params;
+    const product = await getProduct(id);
 
     if (!product) {
         notFound();
@@ -58,7 +60,7 @@ export default async function Page({ params }: Props) {
         "sku": product.id,
         "offers": {
             "@type": "Offer",
-            "url": `https://blactify.com/product/${params.id}`,
+            "url": `https://blactify.com/product/${id}`,
             "priceCurrency": "INR",
             "price": product.price_offer || product.price_base,
             "availability": (product.stock ?? 0) > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",

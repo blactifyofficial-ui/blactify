@@ -334,7 +334,7 @@ export default function ProductClientPage({ initialProduct }: ProductClientPageP
                             <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                                 {product.categories?.name || product.category || "General"}
                             </span>
-                            <h1 className="text-3xl font-medium text-black leading-tight uppercase">{product.name}</h1>
+                            <h2 className="text-3xl font-medium text-black leading-tight uppercase">{product.name}</h2>
                             <div className="flex items-center gap-4 mt-1">
                                 <div className="flex items-center gap-3">
                                     {hasDiscount ? (
