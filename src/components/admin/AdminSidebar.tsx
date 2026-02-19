@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { X, LogOut, LayoutDashboard, ShoppingBag, Box, Tag, BarChart3, Eye } from "lucide-react";
+import { X, LogOut, LayoutDashboard, ShoppingBag, Box, Tag, BarChart3, Eye, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -14,6 +14,7 @@ const NAV_ITEMS = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { name: "Orders", href: "/admin/orders", icon: ShoppingBag, showBadge: true },
     { name: "Products", href: "/admin/products", icon: Box },
+    { name: "Support", href: "/admin/support", icon: MessageSquare },
     { name: "Categories", href: "/admin/categories", icon: Tag },
     { name: "Reports", href: "/admin/reports", icon: BarChart3 },
 ];
