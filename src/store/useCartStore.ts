@@ -148,9 +148,10 @@ export const useCartStore = create<CartStore>()(
                 return total + shipping;
             },
             getShippingCharge: () => {
-                const subtotal = get().getSubtotal();
-                if (subtotal === 0) return 0;
-                return subtotal < 2999 ? 59 : 0;
+                // const subtotal = get().getSubtotal();
+                // if (subtotal === 0) return 0;
+                // return subtotal < 2999 ? 59 : 0;
+                return 0; // Removed delivery charge for testing
             },
             discountCode: null,
             applyDiscount: (code) => {
