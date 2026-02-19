@@ -223,6 +223,7 @@ export default function SettingsPage() {
                                 placeholder="Type 'bye bactify' to confirm"
                                 value={confirmText}
                                 onChange={(e) => setConfirmText(e.target.value.toLowerCase())}
+                                onPaste={(e) => e.preventDefault()}
                                 className="w-full border-b border-zinc-200 py-4 text-sm focus:border-red-600 outline-none transition-colors bg-transparent placeholder:text-zinc-300"
                             />
 

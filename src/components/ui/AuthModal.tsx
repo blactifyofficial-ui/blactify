@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Mail, Lock, User, ArrowRight } from "lucide-react";
+import { X, Mail, Lock, User, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
@@ -28,6 +28,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState<"details" | "otp">("details");
     const [otp, setOtp] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -156,13 +157,20 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                                     <div className="relative">
                                         <Lock className="absolute left-3 top-3 text-zinc-400" size={18} />
                                         <input
-                                            type="password"
+                                            type={showPassword ? "text" : "password"}
                                             required
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                            className="w-full border-b border-zinc-200 py-3 pl-10 text-sm focus:border-black outline-none transition-colors"
+                                            className="w-full border-b border-zinc-200 py-3 pl-10 pr-10 text-sm focus:border-black outline-none transition-colors"
                                             placeholder="••••••••"
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-3 text-zinc-400 hover:text-black transition-colors"
+                                        >
+                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
                                     </div>
                                 </div>
                             </>
@@ -203,13 +211,20 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                                     <div className="relative">
                                         <Lock className="absolute left-3 top-3 text-zinc-400" size={18} />
                                         <input
-                                            type="password"
+                                            type={showPassword ? "text" : "password"}
                                             required
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                            className="w-full border-b border-zinc-200 py-3 pl-10 text-sm focus:border-black outline-none transition-colors"
+                                            className="w-full border-b border-zinc-200 py-3 pl-10 pr-10 text-sm focus:border-black outline-none transition-colors"
                                             placeholder="••••••••"
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-3 text-zinc-400 hover:text-black transition-colors"
+                                        >
+                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
                                     </div>
                                 </div>
                             </>

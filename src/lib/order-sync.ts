@@ -2,36 +2,39 @@
 
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { appendOrderToSheet } from "./google-sheets";
+import { OrderSyncSchema } from "./schemas";
+import { z } from "zod";
 
-export async function saveOrder(orderData: {
-    user_id: string;
-    items: unknown;
-    amount: number;
-    currency: string;
-    shipping_address: unknown;
-    customer_details: unknown;
-    status: string;
-    razorpay_order_id?: string;
-    razorpay_payment_id?: string;
-    payment_details?: unknown;
-}) {
+export async function saveOrder(orderData: z.infer<typeof OrderSyncSchema>) {
+    const validatedData = OrderSyncSchema.safeParse(orderData);
+    if (!validatedData.success) {
+        return {
+            success: false,
+            error: {
+                message: validatedData.error.issues[0].message,
+                technical: JSON.stringify(validatedData.error.format())
+            }
+        };
+    }
+    const data = validatedData.data;
+
     try {
-        const orderIdToSave = orderData.razorpay_order_id || `order_${Date.now()}`;
+        const orderIdToSave = data.razorpay_order_id || `order_${Date.now()}`;
 
-        const { data, error } = await supabaseAdmin.rpc('create_order_v2', {
+        const { data: rpcData, error } = await supabaseAdmin.rpc('create_order_v2', {
             p_order_id: orderIdToSave,
-            p_user_id: orderData.user_id,
-            p_amount: orderData.amount,
-            p_currency: orderData.currency,
-            p_status: orderData.status,
-            p_shipping_address: orderData.shipping_address,
-            p_customer_details: orderData.customer_details,
-            p_payment_details: orderData.payment_details || {},
-            p_items: orderData.items
+            p_user_id: data.user_id,
+            p_amount: data.amount,
+            p_currency: data.currency,
+            p_status: data.status,
+            p_shipping_address: data.shipping_address,
+            p_customer_details: data.customer_details,
+            p_payment_details: data.payment_details || {},
+            p_items: data.items
         });
 
-        if (error || !data?.success) {
-            const techMessage = error?.message || data?.error || "Unknown error during order creation";
+        if (error || !rpcData?.success) {
+            const techMessage = error?.message || rpcData?.error || "Unknown error during order creation";
 
             let userMessage = "Failed to complete your purchase. Please try again.";
             if (techMessage.includes("Insufficient stock")) {
@@ -47,10 +50,10 @@ export async function saveOrder(orderData: {
         // 3. Sync to Google Sheets (Non-blocking)
         appendOrderToSheet({
             id: orderIdToSave,
-            items: orderData.items as { name: string; size?: string; quantity: number }[],
-            customer_details: orderData.customer_details as { name: string; email: string; phone: string },
-            amount: orderData.amount,
-            status: orderData.status
+            items: data.items,
+            customer_details: data.customer_details,
+            amount: data.amount,
+            status: data.status
         }).catch(() => { });
 
         return { success: true };

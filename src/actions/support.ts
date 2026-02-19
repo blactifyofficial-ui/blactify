@@ -3,24 +3,29 @@
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { Resend } from "resend";
 import { SELLER_CONFIG } from "@/lib/config";
+import { SupportTicketSchema } from "@/lib/schemas";
+import { z } from "zod";
 
-export async function createTicket(formData: {
-    userId: string;
-    orderId?: string;
-    category: string;
-    phone: string;
-    message: string;
-}) {
+export async function createTicket(formData: z.infer<typeof SupportTicketSchema>) {
     try {
+        const validatedData = SupportTicketSchema.safeParse(formData);
+        if (!validatedData.success) {
+            return {
+                success: false,
+                error: validatedData.error.issues[0].message
+            };
+        }
+        const data = validatedData.data;
+
         const { error } = await supabaseAdmin
             .from("support_tickets")
             .insert([
                 {
-                    user_id: formData.userId,
-                    order_id: formData.orderId || null,
-                    category: formData.category,
-                    phone: formData.phone,
-                    message: formData.message,
+                    user_id: data.userId,
+                    order_id: data.orderId || null,
+                    category: data.category,
+                    phone: data.phone,
+                    message: data.message,
                     status: "open",
                 }
             ]);
@@ -41,7 +46,7 @@ export async function createTicket(formData: {
                 const { data: userData } = await supabaseAdmin
                     .from("profiles")
                     .select("full_name, email")
-                    .eq("id", formData.userId)
+                    .eq("id", data.userId)
                     .single();
 
                 const adminEmailHtml = `
@@ -49,11 +54,11 @@ export async function createTicket(formData: {
                         <h2 style="color: #000; text-transform: uppercase; letter-spacing: 2px;">New Support Ticket</h2>
                         <p>A new support ticket has been raised by <strong>${userData?.full_name || "a user"}</strong> (${userData?.email || "N/A"}).</p>
                         <div style="background: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                            <p><strong>Category:</strong> ${formData.category.replace('_', ' ')}</p>
-                            ${formData.orderId ? `<p><strong>Order ID:</strong> #${formData.orderId}</p>` : ""}
-                            <p><strong>Phone:</strong> ${formData.phone}</p>
+                            <p><strong>Category:</strong> ${data.category.replace('_', ' ')}</p>
+                            ${data.orderId ? `<p><strong>Order ID:</strong> #${data.orderId}</p>` : ""}
+                            <p><strong>Phone:</strong> ${data.phone}</p>
                             <p><strong>Message:</strong></p>
-                            <p>${formData.message.replace(/\n/g, '<br>')}</p>
+                            <p>${data.message.replace(/\n/g, '<br>')}</p>
                         </div>
                         <p>Log in to the admin panel to respond.</p>
                     </div>
@@ -62,7 +67,7 @@ export async function createTicket(formData: {
                 await resend.emails.send({
                     from: SELLER_CONFIG.fromEmail,
                     to: [SELLER_CONFIG.email],
-                    subject: `New Support Ticket: ${formData.category.replace('_', ' ')}`,
+                    subject: `New Support Ticket: ${data.category.replace('_', ' ')}`,
                     html: adminEmailHtml,
                 });
             } catch {
@@ -85,6 +90,9 @@ export async function createTicket(formData: {
 
 export async function respondToTicket(ticketId: string, response: string, userEmail: string, orderId?: string) {
     try {
+        if (!ticketId || !response || !userEmail) throw new Error("Missing required fields");
+        if (response.length < 5) throw new Error("Response is too short");
+
         // 1. Update ticket in database
         const { error: updateError } = await supabaseAdmin
             .from("support_tickets")

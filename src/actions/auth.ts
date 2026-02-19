@@ -3,7 +3,8 @@
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { Resend } from "resend";
 import { SELLER_CONFIG } from "@/lib/config";
-import { OTP_REGEX } from "@/lib/validation";
+import { EMAIL_REGEX, PASSWORD_REGEX, NAME_REGEX } from "@/lib/validation";
+import { EmailSchema, OTPSchema } from "@/lib/schemas";
 
 // Helper to generate a 6-character alphanumeric OTP
 function generateOTP(): string {
@@ -17,13 +18,17 @@ function generateOTP(): string {
 
 export async function sendSignupOTP(email: string) {
     try {
-        if (!email) throw new Error("Email is required");
+        const validatedEmail = EmailSchema.safeParse(email);
+        if (!validatedEmail.success) {
+            return { success: false, error: validatedEmail.error.issues[0].message };
+        }
+        const emailToProcess = validatedEmail.data;
 
         // Check if user already exists
         const { data: existingUser, error: checkError } = await supabaseAdmin
             .from("profiles")
             .select("id")
-            .eq("email", email)
+            .eq("email", emailToProcess)
             .maybeSingle();
 
         if (checkError) {
@@ -42,7 +47,7 @@ export async function sendSignupOTP(email: string) {
             .from("signup_otps")
             .insert([
                 {
-                    email,
+                    email: emailToProcess,
                     otp_hash: otp, // Storing as plain text for simplicity in this demo, usually should be hashed
                     expires_at: expiresAt.toISOString(),
                 }
@@ -76,7 +81,7 @@ export async function sendSignupOTP(email: string) {
 
             await resend.emails.send({
                 from: SELLER_CONFIG.fromEmail,
-                to: [email],
+                to: [emailToProcess],
                 subject: `${otp} is your verification code`,
                 html: emailHtml,
             });
@@ -91,15 +96,21 @@ export async function sendSignupOTP(email: string) {
 
 export async function verifySignupOTP(email: string, otp: string) {
     try {
-        if (!email || !otp) throw new Error("Email and OTP are required");
-        if (!OTP_REGEX.test(otp)) throw new Error("Invalid OTP format");
+        const validatedEmail = EmailSchema.safeParse(email);
+        const validatedOTP = OTPSchema.safeParse(otp);
+
+        if (!validatedEmail.success) return { success: false, error: validatedEmail.error.issues[0].message };
+        if (!validatedOTP.success) return { success: false, error: validatedOTP.error.issues[0].message };
+
+        const emailToProcess = validatedEmail.data;
+        const otpToProcess = validatedOTP.data;
 
         // Fetch OTP from Supabase
         const { data, error: dbError } = await supabaseAdmin
             .from("signup_otps")
             .select("*")
-            .eq("email", email)
-            .eq("otp_hash", otp.toUpperCase()) // Case-insensitive match if stored as upper
+            .eq("email", emailToProcess)
+            .eq("otp_hash", otpToProcess.toUpperCase()) // Case-insensitive match if stored as upper
             .gt("expires_at", new Date().toISOString())
             .order("created_at", { ascending: false })
             .limit(1)
@@ -113,7 +124,7 @@ export async function verifySignupOTP(email: string, otp: string) {
         await supabaseAdmin
             .from("signup_otps")
             .delete()
-            .eq("email", email);
+            .eq("email", emailToProcess);
 
         return { success: true };
     } catch (err: unknown) {
