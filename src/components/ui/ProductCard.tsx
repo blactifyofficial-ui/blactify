@@ -49,7 +49,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
     return (
         <div ref={container} className={cn("group flex flex-col gap-3 opacity-0", className)}>
             <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-100">
-                <Link href={`/product/${product.id}`} className="relative block h-full w-full">
+                <Link href={`/product/${product.handle || product.id}`} className="relative block h-full w-full">
                     <Image
                         src={product.product_images?.[0]?.url || product.main_image || ""}
                         alt={product.name}
@@ -89,7 +89,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                 )}
             </div>
             <div className="flex flex-col gap-1">
-                <Link href={`/product/${product.id}`}>
+                <Link href={`/product/${product.handle || product.id}`}>
                     <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-zinc-300 mb-1 block">
                         {product.categories?.name || product.category || "General"}
                     </span>
