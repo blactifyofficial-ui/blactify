@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useCartStore } from "@/store/useCartStore";
 import { NAME_REGEX } from "@/lib/validation";
+import { getFriendlyErrorMessage } from "@/lib/error-messages";
 
 
 export default function SettingsPage() {
@@ -56,8 +57,8 @@ export default function SettingsPage() {
 
             toast.success("Account deleted successfully");
             router.push('/');
-        } catch {
-            toast.error("Process Failure");
+        } catch (err: unknown) {
+            toast.error(getFriendlyErrorMessage(err));
         } finally {
             setIsDeleting(false);
             setConfirmText("");
@@ -86,9 +87,8 @@ export default function SettingsPage() {
             await syncUserProfile(auth.currentUser);
 
             setStatus({ type: 'success', message: 'Profile updated successfully!' });
-        } catch {
-
-            setStatus({ type: 'error', message: 'Failed to update profile. Please try again.' });
+        } catch (err: unknown) {
+            setStatus({ type: 'error', message: getFriendlyErrorMessage(err) });
         } finally {
             setLoading(false);
         }

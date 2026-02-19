@@ -42,5 +42,9 @@ export const Magnetic = ({ children, strength = 0.5 }: MagneticProps) => {
         };
     }, { scope: container });
 
-    return React.cloneElement(children as React.ReactElement<any>, { ref: container });
+    return (
+        <div ref={container} className="inline-block">
+            {children}
+        </div>
+    );
 };

@@ -9,10 +9,12 @@ import { ChevronRight, ChevronLeft, Star, ShoppingBag, ShieldCheck, Truck, Send,
 import Link from "next/link";
 import { useAuth } from "@/store/AuthContext";
 import { fetchReviews, postReview } from "@/lib/review-sync";
+import { getUserOrders } from "@/lib/order-sync";
 import { type Product } from "@/components/ui/ProductCard";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { getStoreSettings } from "@/app/actions/settings";
+import { getFriendlyErrorMessage } from "@/lib/error-messages";
 
 interface Review {
     id: string;
@@ -46,12 +48,17 @@ export default function ProductDetailPage() {
     const [touchEnd, setTouchEnd] = useState<number | null>(null);
     const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
     const [storeEnabled, setStoreEnabled] = useState(true);
+    const [isCheckingStore, setIsCheckingStore] = useState(true);
+    const [hasPurchased, setHasPurchased] = useState(false);
+    const [isCheckingPurchase, setIsCheckingPurchase] = useState(false);
 
     useEffect(() => {
+        setIsCheckingStore(true);
         getStoreSettings().then(settings => {
             if (settings) {
                 setStoreEnabled(settings.purchases_enabled);
             }
+            setIsCheckingStore(false);
         });
     }, []);
 
@@ -88,8 +95,8 @@ export default function ProductDetailPage() {
 
                 if (error) throw error;
                 setProduct(data);
-            } catch {
-                toast.error("Process Failure");
+            } catch (err: unknown) {
+                toast.error("Process Failure", { description: getFriendlyErrorMessage(err) });
             } finally {
                 setLoading(false);
             }
@@ -106,6 +113,32 @@ export default function ProductDetailPage() {
     useEffect(() => {
         loadReviews();
     }, [loadReviews]);
+
+    useEffect(() => {
+        async function checkPurchase() {
+            if (!user || !product) {
+                setHasPurchased(false);
+                return;
+            }
+
+            setIsCheckingPurchase(true);
+            try {
+                const result = await getUserOrders(user.uid);
+                if (result.success && result.orders) {
+                    // Check if any order contains this product
+                    const purchased = result.orders.some((order: { items?: { id: string }[] }) =>
+                        order.items?.some((item: { id: string }) => item.id === product.id)
+                    );
+                    setHasPurchased(purchased);
+                }
+            } catch (err) {
+                console.error("Purchase verification failed:", err);
+            } finally {
+                setIsCheckingPurchase(false);
+            }
+        }
+        checkPurchase();
+    }, [user, product]);
 
     const handlePostReview = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -125,13 +158,43 @@ export default function ProductDetailPage() {
         if (result.success) {
             setNewComment("");
             setIsReviewModalOpen(false);
-            toast.success("Review posted successfully!");
+            toast.success("Great! Your review has been posted.");
             await loadReviews();
         } else {
-            toast.error("Failed to post review. Please try again.");
+            toast.error("Rating Error", { description: getFriendlyErrorMessage(result.error) });
         }
         setIsSubmitting(false);
     };
+
+    const averageRating = useMemo(() => {
+        if (reviews.length === 0) return 0;
+        const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
+        return (sum / reviews.length).toFixed(1);
+    }, [reviews]);
+
+    const handleDirectBuy = useCallback(() => {
+        if (!user) {
+            window.dispatchEvent(new CustomEvent("open-auth-modal"));
+            return;
+        }
+        if (!isNoSize && !selectedSize) {
+            toast.error("Please select a size first");
+            // Scroll to size selection
+            const sizeSection = document.querySelector('span[class*="text-zinc-400"]:contains("Select Size")')?.parentElement;
+            sizeSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+
+        const directItem = {
+            ...product,
+            quantity: 1,
+            size: selectedSize || undefined,
+            cartId: `direct-${product!.id}-${selectedSize || 'no-size'}`
+        };
+
+        sessionStorage.setItem("direct-checkout-item", JSON.stringify(directItem));
+        router.push("/checkout?direct=true");
+    }, [user, product, isNoSize, selectedSize, router]);
 
     if (loading) {
         return (
@@ -303,11 +366,18 @@ export default function ProductDetailPage() {
                                     )}
                                 </div>
                                 <div className="h-4 w-[1px] bg-zinc-100" />
-                                <div className="flex items-center gap-1.5 text-black">
-                                    <Star size={14} fill="currentColor" />
-                                    <span className="text-[13px] font-bold">4.8</span>
-                                    <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest ml-1">({reviews.length})</span>
-                                </div>
+                                {reviews.length > 0 ? (
+                                    <div className="flex items-center gap-1.5 text-black">
+                                        <Star size={14} fill="currentColor" className="text-black" />
+                                        <span className="text-[13px] font-bold">{averageRating}</span>
+                                        <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest ml-1">({reviews.length})</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-1.5 w-1.5 bg-black rounded-full animate-pulse" />
+                                        <span className="text-[10px] font-bold text-black uppercase tracking-[0.2em]">New Arrival</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -372,73 +442,57 @@ export default function ProductDetailPage() {
                         )}
 
                         <div className="relative flex flex-col gap-3 mt-8 lg:mt-0">
-                            {storeEnabled && (
-                                <button
-                                    onClick={async () => {
-                                        if (!user) {
-                                            window.dispatchEvent(new CustomEvent("open-auth-modal"));
-                                            return;
-                                        }
-                                        if (!isNoSize && !selectedSize) {
-                                            toast.error("Please select a size first");
-                                            return;
-                                        }
-                                        await addItem(product, selectedSize || undefined);
-                                    }}
-                                    disabled={currentStock <= 0}
-                                    className={cn(
-                                        "w-full h-16 rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all",
-                                        currentStock <= 0
-                                            ? "bg-zinc-100 text-zinc-400 cursor-not-allowed"
-                                            : "bg-black text-white shadow-2xl shadow-black/10"
-                                    )}
-                                >
-                                    <ShoppingBag size={18} />
-                                    {currentStock <= 0 ? "Unavailable" : "Add to Bag"}
-                                </button>
-                            )}
+                            {isCheckingStore ? (
+                                <div className="w-full h-16 rounded-full bg-zinc-50 animate-pulse flex items-center justify-center">
+                                    <div className="h-4 w-32 bg-zinc-100 rounded-full" />
+                                </div>
+                            ) : storeEnabled ? (
+                                <>
+                                    <button
+                                        onClick={async () => {
+                                            if (!user) {
+                                                window.dispatchEvent(new CustomEvent("open-auth-modal"));
+                                                return;
+                                            }
+                                            if (!isNoSize && !selectedSize) {
+                                                toast.error("Please select a size first");
+                                                return;
+                                            }
+                                            await addItem(product!, selectedSize || undefined);
+                                        }}
+                                        disabled={currentStock <= 0}
+                                        className={cn(
+                                            "w-full h-16 rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all",
+                                            currentStock <= 0
+                                                ? "bg-zinc-100 text-zinc-400 cursor-not-allowed"
+                                                : "bg-black text-white shadow-2xl shadow-black/10"
+                                        )}
+                                    >
+                                        <ShoppingBag size={18} />
+                                        {currentStock <= 0 ? "Unavailable" : "Add to Bag"}
+                                    </button>
 
-                            {!storeEnabled ? (
+                                    <button
+                                        onClick={handleDirectBuy}
+                                        disabled={currentStock <= 0}
+                                        className={cn(
+                                            "w-full h-16 rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all",
+                                            currentStock <= 0
+                                                ? "hidden"
+                                                : "bg-white text-black border border-zinc-200"
+                                        )}
+                                    >
+                                        Buy Now
+                                        <ArrowRight size={18} />
+                                    </button>
+                                </>
+                            ) : (
                                 <div className="w-full h-16 rounded-full bg-zinc-100 flex flex-col items-center justify-center text-center px-4">
                                     <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-2">
                                         <ShieldCheck size={14} />
                                         Store is currently paused
                                     </span>
                                 </div>
-                            ) : (
-                                <button
-                                    onClick={async () => {
-                                        if (!user) {
-                                            window.dispatchEvent(new CustomEvent("open-auth-modal"));
-                                            return;
-                                        }
-                                        if (!isNoSize && !selectedSize) {
-                                            toast.error("Please select a size first");
-                                            return;
-                                        }
-
-                                        // Direct Checkout Flow: Store in sessionStorage and redirect
-                                        const directItem = {
-                                            ...product,
-                                            quantity: 1,
-                                            size: selectedSize || undefined,
-                                            cartId: `direct-${product.id}-${selectedSize || 'no-size'}`
-                                        };
-
-                                        sessionStorage.setItem("direct-checkout-item", JSON.stringify(directItem));
-                                        router.push("/checkout?direct=true");
-                                    }}
-                                    disabled={currentStock <= 0}
-                                    className={cn(
-                                        "w-full h-16 rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all",
-                                        currentStock <= 0
-                                            ? "hidden"
-                                            : "bg-white text-black border border-zinc-200"
-                                    )}
-                                >
-                                    Buy Now
-                                    <ArrowRight size={18} />
-                                </button>
                             )}
                         </div>
 
@@ -479,10 +533,14 @@ export default function ProductDetailPage() {
                 <section className="mt-16 pt-16 border-t border-zinc-50 px-6">
                     <div className="flex items-center justify-between mb-10">
                         <h2 className="text-2xl font-medium text-black uppercase">Customer Reviews</h2>
-                        <div className="flex items-center gap-1.5 text-black">
-                            <Star size={18} fill="currentColor" />
-                            <span className="text-2xl font-bold">4.8</span>
-                        </div>
+                        {reviews.length > 0 ? (
+                            <div className="flex items-center gap-1.5 text-black">
+                                <Star size={18} fill="currentColor" className="text-black" />
+                                <span className="text-2xl font-bold">{averageRating}</span>
+                            </div>
+                        ) : (
+                            <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-[0.25em]">No Ratings Yet</span>
+                        )}
                     </div>
 
                     <div className="flex flex-col gap-10">
@@ -527,13 +585,61 @@ export default function ProductDetailPage() {
                     {/* Write Review Trigger */}
                     <div className="mt-12 p-10 bg-black rounded-[40px] text-center text-white">
                         <h3 className="text-xl font-medium mb-2 uppercase">Share Your Thoughts</h3>
-                        <p className="text-xs text-zinc-400 font-sans mb-8">Have you purchased this item? We value your feedback.</p>
-                        <button
-                            onClick={() => setIsReviewModalOpen(true)}
-                            className="px-10 py-4 bg-white text-black rounded-full text-[10px] font-bold uppercase tracking-widest shadow-xl shadow-white/5 active:scale-95 transition-all"
-                        >
-                            Write a Review
-                        </button>
+
+                        {!user ? (
+                            <div className="space-y-6">
+                                <p className="text-xs text-zinc-400 font-sans">Please sign in to write a review.</p>
+                                <button
+                                    onClick={() => window.dispatchEvent(new CustomEvent('open-auth-modal'))}
+                                    className="px-10 py-4 bg-white text-black rounded-full text-[10px] font-bold uppercase tracking-widest shadow-xl shadow-white/5 active:scale-95 transition-all"
+                                >
+                                    Log In / Sign Up
+                                </button>
+                            </div>
+                        ) : isCheckingPurchase ? (
+                            <div className="flex flex-col items-center gap-4">
+                                <div className="h-5 w-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Verifying Purchase...</p>
+                            </div>
+                        ) : hasPurchased ? (
+                            <div className="space-y-6">
+                                <p className="text-xs text-zinc-400 font-sans italic">Verified Buyer. We value your feedback.</p>
+                                <button
+                                    onClick={() => setIsReviewModalOpen(true)}
+                                    className="px-10 py-4 bg-white text-black rounded-full text-[10px] font-bold uppercase tracking-widest shadow-xl shadow-white/5 active:scale-95 transition-all"
+                                >
+                                    Write a Review
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/10 mb-2">
+                                    <ShieldCheck size={14} className="text-zinc-500" />
+                                    <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-[0.2em]">Verified Purchase Only</span>
+                                </div>
+                                <p className="text-xs text-zinc-400 font-sans max-w-xs mx-auto leading-relaxed">
+                                    To maintain the highest standards of authenticity, only shoppers who have experienced this product can leave a review.
+                                </p>
+                                {isCheckingStore ? (
+                                    <div className="flex flex-col items-center gap-2 pt-2">
+                                        <div className="h-4 w-24 bg-white/5 animate-pulse rounded-full" />
+                                    </div>
+                                ) : storeEnabled ? (
+                                    <button
+                                        onClick={handleDirectBuy}
+                                        className="text-[10px] font-bold text-white uppercase tracking-[0.3em] underline underline-offset-[12px] hover:text-zinc-300 transition-all active:scale-95 py-2"
+                                    >
+                                        Purchase this Item
+                                    </button>
+                                ) : (
+                                    <div className="flex flex-col items-center gap-2 pt-2">
+                                        <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
+                                            Purchases currently unavailable
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </section>
 
@@ -541,7 +647,7 @@ export default function ProductDetailPage() {
                 {isReviewModalOpen && (
                     <>
                         <div
-                            className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm transition-opacity"
+                            className="fixed inset-0 z-[100] bg-black/40 transition-opacity"
                             onClick={() => setIsReviewModalOpen(false)}
                         />
                         <div className="fixed inset-x-0 bottom-0 z-[110] mx-auto w-full max-w-md bg-white rounded-t-[40px] p-10 shadow-2xl animate-in slide-in-from-bottom duration-500">

@@ -10,6 +10,7 @@ import { useAuth } from "@/store/AuthContext";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { getFriendlyErrorMessage } from "@/lib/error-messages";
 
 declare global {
     interface Window {
@@ -81,9 +82,8 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
 
             onClose();
             router.push("/checkout");
-        } catch {
-
-            toast.error("Failed to verify stock. Please try again.");
+        } catch (err: unknown) {
+            toast.error(getFriendlyErrorMessage(err));
         } finally {
             setIsCheckingOut(false);
         }

@@ -11,8 +11,10 @@ import {
     signInWithPopup
 } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
-import { EMAIL_REGEX, PASSWORD_REGEX, NAME_REGEX } from "@/lib/validation";
+import { EMAIL_REGEX, PASSWORD_REGEX, NAME_REGEX, OTP_REGEX } from "@/lib/validation";
 import { getFriendlyErrorMessage } from "@/lib/error-messages";
+import { OTPInput } from "./OTPInput";
+import { sendSignupOTP, verifySignupOTP } from "@/actions/auth";
 
 
 type AuthMode = "signin" | "signup";
@@ -24,6 +26,8 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
     const [name, setName] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [step, setStep] = useState<"details" | "otp">("details");
+    const [otp, setOtp] = useState("");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -46,17 +50,42 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
         }
 
         setLoading(true);
-
         try {
             if (mode === "signin") {
                 await signInWithEmailAndPassword(auth, email, password);
                 toast.success("Welcome to Blactify");
+                onClose();
             } else {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                await updateProfile(userCredential.user, { displayName: name });
-                toast.success("Account created successfully!");
+                if (step === "details") {
+                    const result = await sendSignupOTP(email);
+                    if (result.success) {
+                        setStep("otp");
+                        toast.success("Verification code sent to your email");
+                    } else {
+                        setError(result.error || "Failed to send verification code");
+                    }
+                } else {
+                    // Verify OTP first
+                    if (!OTP_REGEX.test(otp)) {
+                        setError("Please enter a valid 6-character code");
+                        setLoading(false);
+                        return;
+                    }
+
+                    const verification = await verifySignupOTP(email, otp);
+                    if (!verification.success) {
+                        setError(verification.error || "Invalid verification code");
+                        setLoading(false);
+                        return;
+                    }
+
+                    // OTP Verified, create account
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    await updateProfile(userCredential.user, { displayName: name });
+                    toast.success("Account created successfully!");
+                    onClose();
+                }
             }
-            onClose();
         } catch (err: unknown) {
             setError(getFriendlyErrorMessage(err));
         } finally {
@@ -72,6 +101,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
             toast.success("Welcome to Blactify");
             onClose();
         } catch (err: unknown) {
+            setLoading(false); // Clear loading immediately
             setError(getFriendlyErrorMessage(err));
         } finally {
             setLoading(false);
@@ -82,14 +112,14 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
         <>
             <div
                 className={cn(
-                    "fixed inset-0 z-[70] bg-black/40 transition-opacity",
+                    "fixed inset-0 z-[150] bg-black/60 transition-opacity",
                     isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
                 )}
                 onClick={onClose}
             />
             <div
                 className={cn(
-                    "fixed inset-x-0 bottom-0 z-[80] mx-auto w-full max-w-md bg-white rounded-t-3xl shadow-xl transition-transform duration-500 ease-in-out",
+                    "fixed inset-x-0 bottom-0 z-[160] mx-auto w-full max-w-md bg-white rounded-t-[40px] shadow-[0_-20px_50px_rgba(0,0,0,0.2)] transition-transform duration-500 ease-in-out",
                     isOpen ? "translate-y-0" : "translate-y-full"
                 )}
             >
@@ -104,60 +134,122 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6 font-sans">
-                        {mode === "signup" && (
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold uppercase tracking-widest text-zinc-400">Full Name</label>
-                                <div className="relative">
-                                    <User className="absolute left-3 top-3 text-zinc-400" size={18} />
-                                    <input
-                                        type="text"
-                                        required
-                                        value={name}
-                                        onChange={(e) => setName(e.target.value)}
-                                        className="w-full border-b border-zinc-200 py-3 pl-10 text-sm focus:border-black outline-none transition-colors"
-                                        placeholder="John Doe"
+                        {mode === "signin" ? (
+                            <>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold uppercase tracking-widest text-zinc-400">Email Address</label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-3 top-3 text-zinc-400" size={18} />
+                                        <input
+                                            type="email"
+                                            required
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            className="w-full border-b border-zinc-200 py-3 pl-10 text-sm focus:border-black outline-none transition-colors"
+                                            placeholder="name@example.com"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold uppercase tracking-widest text-zinc-400">Password</label>
+                                    <div className="relative">
+                                        <Lock className="absolute left-3 top-3 text-zinc-400" size={18} />
+                                        <input
+                                            type="password"
+                                            required
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="w-full border-b border-zinc-200 py-3 pl-10 text-sm focus:border-black outline-none transition-colors"
+                                            placeholder="••••••••"
+                                        />
+                                    </div>
+                                </div>
+                            </>
+                        ) : step === "details" ? (
+                            <>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold uppercase tracking-widest text-zinc-400">Full Name</label>
+                                    <div className="relative">
+                                        <User className="absolute left-3 top-3 text-zinc-400" size={18} />
+                                        <input
+                                            type="text"
+                                            required
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                            className="w-full border-b border-zinc-200 py-3 pl-10 text-sm focus:border-black outline-none transition-colors"
+                                            placeholder="John Doe"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold uppercase tracking-widest text-zinc-400">Email Address</label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-3 top-3 text-zinc-400" size={18} />
+                                        <input
+                                            type="email"
+                                            required
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            className="w-full border-b border-zinc-200 py-3 pl-10 text-sm focus:border-black outline-none transition-colors"
+                                            placeholder="name@example.com"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold uppercase tracking-widest text-zinc-400">Password</label>
+                                    <div className="relative">
+                                        <Lock className="absolute left-3 top-3 text-zinc-400" size={18} />
+                                        <input
+                                            type="password"
+                                            required
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="w-full border-b border-zinc-200 py-3 pl-10 text-sm focus:border-black outline-none transition-colors"
+                                            placeholder="••••••••"
+                                        />
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="space-y-6 pt-4">
+                                <div className="text-center space-y-2">
+                                    <p className="text-sm text-zinc-500 font-medium">Verify your email</p>
+                                    <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Sent to {email}</p>
+                                </div>
+                                <div className="py-4">
+                                    <OTPInput
+                                        length={6}
+                                        disabled={loading}
+                                        onComplete={(code) => setOtp(code)}
                                     />
                                 </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setStep("details")}
+                                    className="w-full text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-black transition-colors"
+                                >
+                                    Edit details
+                                </button>
                             </div>
                         )}
 
-                        <div className="space-y-2">
-                            <label className="text-xs font-bold uppercase tracking-widest text-zinc-400">Email Address</label>
-                            <div className="relative">
-                                <Mail className="absolute left-3 top-3 text-zinc-400" size={18} />
-                                <input
-                                    type="email"
-                                    required
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full border-b border-zinc-200 py-3 pl-10 text-sm focus:border-black outline-none transition-colors"
-                                    placeholder="name@example.com"
-                                />
+                        {error && (
+                            <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-100 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-300">
+                                <div className="shrink-0 h-1.5 w-1.5 bg-red-500 rounded-full" />
+                                <p className="text-[10px] font-bold text-red-600 uppercase tracking-widest leading-relaxed">
+                                    {error}
+                                </p>
                             </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-xs font-bold uppercase tracking-widest text-zinc-400">Password</label>
-                            <div className="relative">
-                                <Lock className="absolute left-3 top-3 text-zinc-400" size={18} />
-                                <input
-                                    type="password"
-                                    required
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full border-b border-zinc-200 py-3 pl-10 text-sm focus:border-black outline-none transition-colors"
-                                    placeholder="••••••••"
-                                />
-                            </div>
-                        </div>
-
-                        {error && <p className="text-xs font-bold text-red-500 uppercase tracking-widest">{error}</p>}
+                        )}
 
                         <button
-                            disabled={loading}
+                            disabled={loading || (mode === "signup" && step === "otp" && otp.length < 6)}
                             className="w-full flex items-center justify-center gap-2 rounded-full bg-black py-4 text-xs font-bold uppercase tracking-widest text-white active:scale-[0.98] transition-all disabled:opacity-50"
                         >
-                            {loading ? "Processing..." : mode === "signin" ? "Login" : "Join Now"}
+                            {loading ? "Processing..." : mode === "signin" ? "Login" : step === "details" ? "Join Now" : "Verify & Join"}
                             {!loading && <ArrowRight size={16} />}
                         </button>
 

@@ -6,23 +6,63 @@ import { ProductCard, type Product } from "@/components/ui/ProductCard";
 import { Search, Filter, Menu, X as CloseIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollToTop } from "@/components/ui/ScrollToTop";
+import { useDebounce } from "@/hooks/useDebounce";
 
 export default function ShopPage() {
     const [products, setProducts] = useState<Product[]>([]);
+    const [dbCategories, setDbCategories] = useState<string[]>(["All"]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
+    const debouncedSearchQuery = useDebounce(searchQuery, 500);
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [sortBy, setSortBy] = useState("newest");
     const [isSortOpen, setIsSortOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     useEffect(() => {
-        async function fetchProducts() {
+        async function fetchCategories() {
             try {
                 const { data, error } = await supabase
+                    .from("categories")
+                    .select("name")
+                    .order("name");
+                if (error) throw error;
+                if (data) {
+                    setDbCategories(["All", ...data.map((c: { name: string }) => c.name)]);
+                }
+            } catch (error) {
+                console.error("Error fetching categories:", error);
+            }
+        }
+        fetchCategories();
+    }, []);
+
+    useEffect(() => {
+        async function fetchProducts() {
+            setLoading(true);
+            try {
+                let query = supabase
                     .from("products")
-                    .select("*, categories(name), product_images(*), product_variants(*)")
-                    .order("created_at", { ascending: false });
+                    .select("*, categories!inner(name), product_images(*), product_variants(*)");
+
+                if (debouncedSearchQuery) {
+                    query = query.ilike('name', `%${debouncedSearchQuery}%`);
+                }
+
+                if (selectedCategory !== "All") {
+                    query = query.eq('categories.name', selectedCategory);
+                }
+
+                // Sorting
+                if (sortBy === "price-low") {
+                    query = query.order('price_base', { ascending: true });
+                } else if (sortBy === "price-high") {
+                    query = query.order('price_base', { ascending: false });
+                } else {
+                    query = query.order('created_at', { ascending: false });
+                }
+
+                const { data, error } = await query;
 
                 if (error) throw error;
                 setProducts(data || []);
@@ -33,26 +73,11 @@ export default function ShopPage() {
             }
         }
         fetchProducts();
-    }, []);
+    }, [debouncedSearchQuery, selectedCategory, sortBy]);
 
-    const categories = ["All", ...new Set(products.map(p => p.categories?.name || p.category || "General"))];
+    const categories = dbCategories;
 
-    const filteredProducts = products
-        .filter(p => {
-            const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesCategory = selectedCategory === "All" || (p.categories?.name || p.category || "General") === selectedCategory;
-            return matchesSearch && matchesCategory;
-        })
-        .sort((a, b) => {
-            if (sortBy === "price-low") {
-                return (a.price_offer || a.price_base) - (b.price_offer || b.price_base);
-            }
-            if (sortBy === "price-high") {
-                return (b.price_offer || b.price_base) - (a.price_offer || a.price_base);
-            }
-            // Default: newest
-            return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
-        });
+    const filteredProducts = products;
 
     return (
         <main className="min-h-screen bg-white pb-20 pt-8">
@@ -139,7 +164,7 @@ export default function ShopPage() {
                             </div>
                         ))
                     ) : (
-                        filteredProducts.map((product) => (
+                        filteredProducts.map((product: Product) => (
                             <ProductCard key={product.id} product={product} />
                         ))
                     )}
@@ -182,7 +207,7 @@ export default function ShopPage() {
 
                     <div className="flex-1 overflow-y-auto py-6 px-4">
                         <div className="space-y-1">
-                            {categories.map((cat) => (
+                            {categories.map((cat: string) => (
                                 <button
                                     key={cat}
                                     onClick={() => {

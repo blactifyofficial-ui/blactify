@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { getUserOrders } from "@/lib/order-sync";
 import Link from "next/link";
 import OrderCard from "./OrderCard";
+import { getFriendlyErrorMessage } from "@/lib/error-messages";
 
 interface OrderItem {
     name: string;
@@ -46,11 +47,10 @@ export default function OrdersPage() {
                 if (result.success) {
                     setOrders((result.orders as Order[]) || []);
                 } else {
-                    toast.error(result.error || "Failed to fetch orders.");
+                    toast.error(getFriendlyErrorMessage(result.error));
                 }
-            } catch {
-                toast.error("Failed to fetch orders.");
-                // or handled by UI state
+            } catch (err: unknown) {
+                toast.error(getFriendlyErrorMessage(err));
             } finally {
                 setLoading(false);
             }

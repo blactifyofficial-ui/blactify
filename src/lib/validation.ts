@@ -31,3 +31,6 @@ export const CITY_REGEX = /^[A-Za-z\s]{2,50}$/;
 
 // Category Name: 3-50 characters (alphanumeric and ' & - ,)
 export const CATEGORY_NAME_REGEX = /^[A-Za-z0-9\s'&,-]{3,50}$/;
+
+// OTP: 6 characters alphanumeric
+export const OTP_REGEX = /^[A-Za-z0-9]{6}$/;

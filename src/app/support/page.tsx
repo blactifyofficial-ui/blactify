@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PHONE_REGEX } from "@/lib/validation";
+import { getFriendlyErrorMessage } from "@/lib/error-messages";
 
 
 interface Order {
@@ -51,10 +52,10 @@ export default function SupportPage() {
                         setFormData(prev => ({ ...prev, orderId: result.orders![0].id }));
                     }
                 } else if (!result.success) {
-                    toast.error("We couldn't load your recent orders. You can still submit a general inquiry.");
+                    toast.error(getFriendlyErrorMessage(result.error));
                 }
-            } catch {
-                toast.error("There was a problem loading your orders. Please try refreshing.");
+            } catch (err: unknown) {
+                toast.error(getFriendlyErrorMessage(err));
             } finally {
                 setOrdersLoading(false);
             }
@@ -96,12 +97,10 @@ export default function SupportPage() {
                 setSubmitted(true);
                 toast.success("Ticket raised successfully!");
             } else {
-                // Showing the friendly error from the server action
-                const errorMessage = typeof result.error === 'object' ? result.error.message : result.error;
-                toast.error(errorMessage || "We couldn't process your request. Please try again.");
+                toast.error(getFriendlyErrorMessage(result.error));
             }
-        } catch {
-            toast.error("Something went wrong on our end. Please try again later.");
+        } catch (err: unknown) {
+            toast.error(getFriendlyErrorMessage(err));
         } finally {
             setLoading(false);
         }
