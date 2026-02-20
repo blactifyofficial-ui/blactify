@@ -24,11 +24,18 @@ export default function ShopPage() {
             try {
                 const { data, error } = await supabase
                     .from("categories")
-                    .select("name")
-                    .order("name");
+                    .select("name, products(id)");
                 if (error) throw error;
                 if (data) {
-                    setDbCategories(["All", ...data.map((c: { name: string }) => c.name)]);
+                    const categoriesWithCounts = data.map((c: any) => ({
+                        name: c.name,
+                        count: c.products?.length || 0
+                    }));
+
+                    // Sort by count descending
+                    categoriesWithCounts.sort((a: any, b: any) => b.count - a.count);
+
+                    setDbCategories(["All", ...categoriesWithCounts.map((c: any) => c.name)]);
                 }
             } catch (error) {
                 console.error("Error fetching categories:", error);

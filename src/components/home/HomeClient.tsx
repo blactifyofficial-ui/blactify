@@ -24,9 +24,9 @@ export default function HomeClient({ initialProducts }: HomeClientProps) {
                     const { data, error } = await supabase
                         .from("products")
                         .select("*, product_images(*), product_variants(*)")
-                        .eq("show_on_home", true)
+                        .not("home_order", "is", null)
                         .limit(6)
-                        .order("created_at", { ascending: false });
+                        .order("home_order", { ascending: true });
 
                     if (error) throw error;
                     setProducts(data || []);

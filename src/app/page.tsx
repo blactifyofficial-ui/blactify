@@ -2,6 +2,8 @@ import { Metadata } from "next";
 import { supabase } from "@/lib/supabase";
 import HomeClient from "@/components/home/HomeClient";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Blactify | Meets Timeless Essentials",
   description: "Modern e-commerce platform for high-aesthetic meets timeless essentials. Discover curated premium apparel and accessories.",

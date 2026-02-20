@@ -37,10 +37,11 @@ export default function HomeProductsPage() {
         try {
             const res = await fetch("/api/admin/home-products");
             const data = await res.json();
-            if (res.ok) {
+            if (res.ok && Array.isArray(data)) {
                 setFeaturedProducts(data);
             } else {
                 toast.error("Failed to load featured products");
+                setFeaturedProducts([]);
             }
         } catch {
             toast.error("Failed to load featured products");
@@ -67,9 +68,10 @@ export default function HomeProductsPage() {
                 .limit(5);
 
             if (error) throw error;
-            setSearchResults(data as HomeProduct[]);
+            setSearchResults((data as HomeProduct[]) || []);
         } catch {
             toast.error("Search failed");
+            setSearchResults([]);
         } finally {
             setSearching(false);
         }
