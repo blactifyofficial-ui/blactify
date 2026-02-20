@@ -44,7 +44,7 @@ export default function AdminLoginPage() {
                 <div className="absolute top-0 left-0 w-full h-1 bg-black"></div>
 
                 <div className="mb-10">
-                    <h1 className="text-2xl font-heading text-black uppercase leading-none tracking-tight mb-3">BLACTIFY</h1>
+                    <h2 className="text-2xl font-heading text-black uppercase leading-none tracking-tight mb-3">BLACTIFY</h2>
                     <div className="flex items-center justify-center gap-2">
                         <div className="h-px w-4 bg-zinc-200"></div>
                         <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em]">Admin Access</p>

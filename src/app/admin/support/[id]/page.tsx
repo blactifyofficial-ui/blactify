@@ -109,7 +109,7 @@ export default function AdminTicketDetailPage({ params }: { params: Promise<{ id
                     </Link>
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
-                            <h1 className="font-empire text-5xl mb-2">Ticket #{id.slice(0, 8)}</h1>
+                            <h2 className="font-empire text-5xl mb-2">Ticket #{id.slice(0, 8)}</h2>
                             <div className="flex items-center gap-3">
                                 <span className={cn(
                                     "px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest",

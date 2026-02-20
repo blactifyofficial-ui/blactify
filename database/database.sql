@@ -33,6 +33,7 @@ CREATE TABLE products (
     category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
     show_on_home BOOLEAN DEFAULT FALSE,
     featured_at TIMESTAMPTZ,
+    home_order INTEGER,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -586,3 +587,6 @@ CREATE POLICY "Public Manage Product Variants" ON product_variants FOR ALL USING
 DROP POLICY IF EXISTS "Public read reviews" ON reviews;
 DROP POLICY IF EXISTS "Authenticated users can post reviews" ON reviews;
 CREATE POLICY "Public Manage Reviews" ON reviews FOR ALL USING (true) WITH CHECK (true);
+
+-- Add home_order to products for curated home screen ordering
+ALTER TABLE products ADD COLUMN IF NOT EXISTS home_order INTEGER;

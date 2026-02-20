@@ -58,7 +58,6 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
         image2: "",
         image3: "",
         description: "",
-        show_on_home: false,
         variants: [] as ProductVariant[]
     });
 
@@ -237,7 +236,6 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                 image2: (img2?.url || "") as string,
                 image3: (img3?.url || "") as string,
                 description: (data.description || "") as string,
-                show_on_home: !!data.show_on_home,
                 variants: loadedVariants
             });
         } catch {
@@ -346,8 +344,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                 category_id: formData.category_id || null,
                 description: formData.description,
                 variants: formData.variants,
-                images: images,
-                show_on_home: formData.show_on_home
+                images: images
             };
 
             const response = await fetch("/api/admin/products", {
@@ -543,21 +540,6 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                         )}
                     </label>
 
-                    <div className="flex items-center justify-between mt-6 pt-6 border-t border-zinc-50">
-                        <div>
-                            <span className="text-xs font-semibold uppercase tracking-widest text-zinc-900 block italic">Show on Home Screen</span>
-                            <p className="text-[10px] text-zinc-500 mt-1 italic font-medium">Feature this product on the main landing page. If you exceed 6 products, the oldest one will be removed.</p>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setFormData(prev => ({ ...prev, show_on_home: !prev.show_on_home }));
-                            }}
-                            className={`w-12 h-6 rounded-full transition-all duration-300 relative ${formData.show_on_home ? 'bg-black' : 'bg-zinc-200'}`}
-                        >
-                            <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all duration-300 ${formData.show_on_home ? 'left-7' : 'left-1'}`} />
-                        </button>
-                    </div>
                 </div>
 
                 {/* 2. Product Information */}

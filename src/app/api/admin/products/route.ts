@@ -2,26 +2,11 @@ import { NextResponse } from "next/server";
 import { deleteFromCloudinary } from "@/lib/cloudinary";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
-async function handleFeaturedLimit() {
-    const { data: featuredProducts } = await supabaseAdmin
-        .from("products")
-        .select("id")
-        .eq("show_on_home", true)
-        .order("featured_at", { ascending: true });
-
-    if (featuredProducts && featuredProducts.length > 6) {
-        const toRemove = featuredProducts.slice(0, featuredProducts.length - 6);
-        await supabaseAdmin
-            .from("products")
-            .update({ show_on_home: false })
-            .in("id", toRemove.map(p => p.id));
-    }
-}
 
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { id, name, handle, price_base, price_offer, category_id, description, variants, images, show_on_home } = body;
+        const { id, name, handle, price_base, price_offer, category_id, description, variants, images } = body;
 
         // 1. Insert Product
         const { error: productError } = await supabaseAdmin
@@ -33,16 +18,10 @@ export async function POST(request: Request) {
                 price_base,
                 price_offer,
                 category_id,
-                description,
-                show_on_home,
-                featured_at: show_on_home ? new Date().toISOString() : null
+                description
             }]);
 
         if (productError) throw productError;
-
-        if (show_on_home) {
-            await handleFeaturedLimit();
-        }
 
         // 2. Handle Variants
         if (variants && variants.length > 0) {
@@ -97,7 +76,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
     try {
         const body = await request.json();
-        const { id, name, handle, price_base, price_offer, category_id, description, variants, images, show_on_home } = body;
+        const { id, name, handle, price_base, price_offer, category_id, description, variants, images } = body;
 
         // 1. Update Product
         const { error: productError } = await supabaseAdmin
@@ -108,17 +87,11 @@ export async function PUT(request: Request) {
                 price_base,
                 price_offer,
                 category_id,
-                description,
-                show_on_home,
-                featured_at: show_on_home ? new Date().toISOString() : null
+                description
             })
             .eq("id", id);
 
         if (productError) throw productError;
-
-        if (show_on_home) {
-            await handleFeaturedLimit();
-        }
 
         // 2. Handle Variants (Sync)
         if (variants) {

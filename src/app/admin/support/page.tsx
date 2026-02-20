@@ -46,7 +46,7 @@ export default function AdminSupportPage() {
             <div className="px-6 max-w-7xl mx-auto">
                 <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
-                        <h1 className="font-empire text-5xl mb-2">Support</h1>
+                        <h2 className="font-empire text-5xl mb-2">Support</h2>
                         <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em]">Manage customer inquiries and tickets</p>
                     </div>
 

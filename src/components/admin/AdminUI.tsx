@@ -26,7 +26,7 @@ export function AdminPageHeader({
     return (
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
             <div className="space-y-1">
-                <h1 className="text-2xl sm:text-3xl font-heading tracking-tight text-black uppercase">{title}</h1>
+                <h2 className="text-2xl sm:text-3xl font-heading tracking-tight text-black uppercase">{title}</h2>
                 {subtitle && (
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-zinc-500 italic">
                         {subtitle}
