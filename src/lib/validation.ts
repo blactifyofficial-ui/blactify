@@ -24,10 +24,10 @@ export const HANDLE_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 export const PRODUCT_ID_REGEX = /^p-[0-9]+$/i;
 
 // Address: 5-100 characters, allows most common characters
-export const ADDRESS_REGEX = /^[A-Za-z0-9\s.,'#\-\/]{5,100}$/;
+export const ADDRESS_REGEX = /^[A-Za-z0-9\s.,'#\-\/()]{5,150}$/;
 
-// Generic City/District: 2-50 characters, letters and spaces
-export const CITY_REGEX = /^[A-Za-z\s]{2,50}$/;
+// Generic City/District: 2-50 characters, letters, numbers and spaces
+export const CITY_REGEX = /^[A-Za-z0-9\s]{2,50}$/;
 
 // Category Name: 3-50 characters (alphanumeric and ' & - ,)
 export const CATEGORY_NAME_REGEX = /^[A-Za-z0-9\s'&,-]{3,50}$/;

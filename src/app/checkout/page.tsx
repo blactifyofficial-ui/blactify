@@ -145,6 +145,17 @@ function CheckoutContent() {
             setFormData(prev => ({ ...prev, email: user.email! }));
         }
 
+        // Load saved form data
+        const savedData = sessionStorage.getItem("checkout-form-data");
+        if (savedData) {
+            try {
+                const parsed = JSON.parse(savedData);
+                setFormData(prev => ({ ...prev, ...parsed }));
+            } catch (err) {
+                console.error("Failed to parse saved form data", err);
+            }
+        }
+
         // Check store status
         getStoreSettings().then(settings => {
             if (settings) {
@@ -375,6 +386,7 @@ function CheckoutContent() {
                             }
 
                             removeDiscount();
+                            sessionStorage.removeItem("checkout-form-data");
                             router.push(`/checkout/success?order_id=${razorpayResponse.razorpay_order_id}`);
                         } else {
 
@@ -400,6 +412,9 @@ function CheckoutContent() {
                 modal: {
                     ondismiss: function () {
                         setIsProcessing(false);
+                        const failureUrl = isDirect ? "/checkout/failure?direct=true" : "/checkout/failure";
+                        sessionStorage.setItem("checkout-form-data", JSON.stringify(formData));
+                        router.push(failureUrl);
                     },
                 },
             };
@@ -415,7 +430,9 @@ function CheckoutContent() {
                 } catch {
                     // Ignore error if modal is already closed or cannot be closed
                 }
-                router.push("/checkout/failure");
+                const failureUrl = isDirect ? "/checkout/failure?direct=true" : "/checkout/failure";
+                sessionStorage.setItem("checkout-form-data", JSON.stringify(formData));
+                router.push(failureUrl);
             });
 
         } catch (err: unknown) {
