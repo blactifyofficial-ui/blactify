@@ -31,6 +31,8 @@ CREATE TABLE products (
     price_base NUMERIC NOT NULL,
     price_offer NUMERIC,
     category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
+    show_on_home BOOLEAN DEFAULT FALSE,
+    featured_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

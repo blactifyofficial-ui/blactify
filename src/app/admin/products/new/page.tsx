@@ -546,22 +546,11 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                     <div className="flex items-center justify-between mt-6 pt-6 border-t border-zinc-50">
                         <div>
                             <span className="text-xs font-semibold uppercase tracking-widest text-zinc-900 block italic">Show on Home Screen</span>
-                            <p className="text-[10px] text-zinc-500 mt-1 italic font-medium">Feature this product on the main landing page (Limit: 6)</p>
+                            <p className="text-[10px] text-zinc-500 mt-1 italic font-medium">Feature this product on the main landing page. If you exceed 6 products, the oldest one will be removed.</p>
                         </div>
                         <button
                             type="button"
-                            onClick={async () => {
-                                if (!formData.show_on_home) {
-                                    const { count, error } = await supabase
-                                        .from("products")
-                                        .select("*", { count: 'exact', head: true })
-                                        .eq("show_on_home", true);
-
-                                    if (!error && count !== null && count >= 6) {
-                                        toast.error("You reached the limit of showing 6 products on the home screen.");
-                                        return;
-                                    }
-                                }
+                            onClick={() => {
                                 setFormData(prev => ({ ...prev, show_on_home: !prev.show_on_home }));
                             }}
                             className={`w-12 h-6 rounded-full transition-all duration-300 relative ${formData.show_on_home ? 'bg-black' : 'bg-zinc-200'}`}
@@ -926,20 +915,22 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                         Cancel
                     </button>
                 </div>
-            </form>
+            </form >
 
             {/* Cropper Modal */}
-            {croppingImage && (
-                <ImageCropper
-                    image={croppingImage}
-                    onCrop={handleCropComplete}
-                    onCancel={() => {
-                        setCroppingImage(null);
-                        setCroppingField(null);
-                    }}
-                    aspectRatio={1}
-                />
-            )}
-        </div>
+            {
+                croppingImage && (
+                    <ImageCropper
+                        image={croppingImage}
+                        onCrop={handleCropComplete}
+                        onCancel={() => {
+                            setCroppingImage(null);
+                            setCroppingField(null);
+                        }}
+                        aspectRatio={1}
+                    />
+                )
+            }
+        </div >
     );
 }
