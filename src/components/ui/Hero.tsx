@@ -66,18 +66,9 @@ export function Hero({ title, images, ctaText, ctaLink }: HeroProps) {
         setIsClicked(true);
         setIsAnimating(true);
 
-        if (!showFullText) {
-            setShowFullText(true);
-            setTimeout(() => {
-                if (ctaLink) router.push(ctaLink);
-                setIsAnimating(false);
-            }, 800);
-        } else {
-            setTimeout(() => {
-                if (ctaLink) router.push(ctaLink);
-                setIsAnimating(false);
-            }, 400);
-        }
+        setTimeout(() => {
+            if (ctaLink) router.push(ctaLink);
+        }, 300);
     };
 
     return (
@@ -120,8 +111,8 @@ export function Hero({ title, images, ctaText, ctaLink }: HeroProps) {
                     <div
                         className={cn(
                             "absolute inset-0 flex items-center justify-center transition-all duration-700 ease-in-out",
-                            showFullText ? "-translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-40 hover:opacity-100 active:opacity-100",
-                            isAnimating && "opacity-100 scale-110"
+                            showFullText ? "-translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-40 hover:opacity-100",
+                            isAnimating && "opacity-100 scale-90 duration-300"
                         )}
                     >
                         <div className={cn(
@@ -143,8 +134,8 @@ export function Hero({ title, images, ctaText, ctaLink }: HeroProps) {
                         <div
                             className={cn(
                                 "absolute inset-0 flex items-center justify-center text-[10px] md:text-sm font-bold uppercase tracking-[0.4em] transition-all duration-700 ease-in-out",
-                                showFullText ? "translate-y-0 opacity-40 hover:opacity-100 active:opacity-100" : "translate-y-full opacity-0 pointer-events-none",
-                                isAnimating && "opacity-100 scale-110"
+                                showFullText ? "translate-y-0 opacity-40 hover:opacity-100" : "translate-y-full opacity-0 pointer-events-none",
+                                isAnimating && "opacity-100 scale-90 duration-300"
                             )}
                         >
                             {ctaText || "Shop Now"}
