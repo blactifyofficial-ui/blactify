@@ -208,7 +208,7 @@ export default function ProductClientPage({ initialProduct }: ProductClientPageP
         : (product.stock ?? 0);
 
     return (
-        <main className="min-h-screen bg-white text-black pb-24 font-inter">
+        <main className="min-h-screen bg-white text-black pb-24 font-inter overflow-x-hidden w-full relative">
             <div className="max-w-7xl mx-auto">
                 {/* Breadcrumbs */}
                 <nav className="px-6 py-6 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
@@ -222,7 +222,8 @@ export default function ProductClientPage({ initialProduct }: ProductClientPageP
                 <div className="lg:grid lg:grid-cols-2 lg:gap-12 lg:items-start lg:px-6">
                     {/* Images Gallery - Single Image Slider */}
                     <div
-                        className="relative aspect-[4/5] w-full bg-zinc-50 overflow-hidden group lg:rounded-3xl cursor-grab active:cursor-grabbing"
+                        className="relative aspect-[4/5] w-full bg-zinc-50 overflow-hidden group lg:rounded-3xl cursor-grab active:cursor-grabbing touch-action-none"
+                        style={{ touchAction: 'pan-y' }}
                         onTouchStart={(e) => {
                             setTouchStart(e.targetTouches[0].clientX);
                             setTouchEnd(null);
