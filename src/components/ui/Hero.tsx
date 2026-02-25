@@ -21,6 +21,7 @@ export function Hero({ title, images, ctaText, ctaLink }: HeroProps) {
     const [showFullText, setShowFullText] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
+    const [isClicked, setIsClicked] = useState(false);
 
     // Background Image Animation
     useGSAP(() => {
@@ -50,18 +51,19 @@ export function Hero({ title, images, ctaText, ctaLink }: HeroProps) {
     // Handle toggle for the CTA area (eye vs Shop Now)
     useGSAP(() => {
         const interval = setInterval(() => {
-            if (!isHovered && !isAnimating) {
+            if (!isHovered && !isAnimating && !isClicked) {
                 setShowFullText((prev) => !prev);
             }
         }, 3000);
 
         return () => clearInterval(interval);
-    }, [isHovered, isAnimating]);
+    }, [isHovered, isAnimating, isClicked]);
 
     const handleCTAClick = (e: React.MouseEvent) => {
         if (e && e.preventDefault) e.preventDefault();
-        if (isAnimating) return;
+        if (isClicked) return;
 
+        setIsClicked(true);
         setIsAnimating(true);
 
         if (!showFullText) {
@@ -119,10 +121,13 @@ export function Hero({ title, images, ctaText, ctaLink }: HeroProps) {
                         className={cn(
                             "absolute inset-0 flex items-center justify-center transition-all duration-700 ease-in-out",
                             showFullText ? "-translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-40 hover:opacity-100 active:opacity-100",
-                            isAnimating && !showFullText && "opacity-100 scale-110"
+                            isAnimating && "opacity-100 scale-110"
                         )}
                     >
-                        <div className="relative w-24 h-24 md:w-32 md:h-32 transition-transform duration-300">
+                        <div className={cn(
+                            "relative w-24 h-24 md:w-32 md:h-32 transition-transform duration-300",
+                            !isClicked && "animate-eye-glow"
+                        )}>
                             <Image
                                 src="/welcome-eye.png"
                                 alt="Logo Icon"
@@ -139,7 +144,7 @@ export function Hero({ title, images, ctaText, ctaLink }: HeroProps) {
                             className={cn(
                                 "absolute inset-0 flex items-center justify-center text-[10px] md:text-sm font-bold uppercase tracking-[0.4em] transition-all duration-700 ease-in-out",
                                 showFullText ? "translate-y-0 opacity-40 hover:opacity-100 active:opacity-100" : "translate-y-full opacity-0 pointer-events-none",
-                                isAnimating && showFullText && "opacity-100 scale-110"
+                                isAnimating && "opacity-100 scale-110"
                             )}
                         >
                             {ctaText || "Shop Now"}
