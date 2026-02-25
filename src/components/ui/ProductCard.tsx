@@ -18,28 +18,26 @@ export type { Product }; // Re-export for compatibility
 interface ProductCardProps {
     product: Product;
     className?: string;
+    onImageLoad?: () => void;
 }
 
-export function ProductCard({ product, className }: ProductCardProps) {
+export function ProductCard({ product, className, onImageLoad }: ProductCardProps) {
     const { addItem } = useCartStore();
     const { user } = useAuth();
     const container = useRef<HTMLDivElement>(null);
 
     useGSAP(() => {
-        gsap.fromTo(container.current,
-            { y: 50, opacity: 0 },
-            {
-                y: 0,
-                opacity: 1,
-                duration: 0.8,
-                ease: "power2.out",
-                scrollTrigger: {
-                    trigger: container.current,
-                    start: "top bottom-=100px",
-                    toggleActions: "play none none none"
-                }
+        gsap.from(container.current, {
+            y: 50,
+            opacity: 0,
+            duration: 0.8,
+            ease: "power2.out",
+            scrollTrigger: {
+                trigger: container.current,
+                start: "top bottom-=100px",
+                toggleActions: "play none none none"
             }
-        );
+        });
     }, { scope: container });
 
     // Use price_offer as the primary price if available
@@ -47,16 +45,24 @@ export function ProductCard({ product, className }: ProductCardProps) {
     const hasDiscount = product.price_offer && product.price_offer < product.price_base;
 
     return (
-        <div ref={container} className={cn("group flex flex-col gap-3 opacity-0", className)}>
+        <div ref={container} className={cn("group flex flex-col gap-3", className)}>
             <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-100">
-                <Link href={`/product/${product.handle || product.id}`} className="relative block h-full w-full">
-                    <Image
-                        src={product.product_images?.[0]?.url || product.main_image || ""}
-                        alt={product.name}
-                        fill
-                        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 16vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
+                <Link href={`/product/${product.handle || product.id}`} className="relative block h-full w-full bg-zinc-50">
+                    {(product.product_images?.[0]?.url || product.main_image) ? (
+                        <Image
+                            src={product.product_images?.[0]?.url || product.main_image || ""}
+                            alt={product.name}
+                            fill
+                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 16vw"
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                            priority={false}
+                            onLoad={onImageLoad}
+                        />
+                    ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-zinc-100 text-[10px] font-bold uppercase tracking-widest text-zinc-300">
+                            No Image
+                        </div>
+                    )}
                 </Link>
                 {product.tag && (
                     <div className="absolute left-3 top-3 bg-black px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white">

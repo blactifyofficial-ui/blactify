@@ -8,17 +8,30 @@ import { Search, Filter, Menu, X as CloseIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollToTop } from "@/components/ui/ScrollToTop";
 import { useDebounce } from "@/hooks/useDebounce";
+import Image from "next/image";
 
 export default function ShopPage() {
+    const [mounted, setMounted] = useState(false);
     const [products, setProducts] = useState<Product[]>([]);
     const [dbCategories, setDbCategories] = useState<string[]>(["All"]);
     const [loading, setLoading] = useState(true);
+    const [isInitialLoading, setIsInitialLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const debouncedSearchQuery = useDebounce(searchQuery, 500);
     const [selectedCategory, setSelectedCategory] = useState("All");
-    const [sortBy, setSortBy] = useState("newest");
+    const [sortBy, setSortBy] = useState("mixed");
     const [isSortOpen, setIsSortOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isFirstImageLoaded, setIsFirstImageLoaded] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        // Fallback: If images take too long, hide splash after 3 seconds anyway
+        const timer = setTimeout(() => {
+            setIsInitialLoading(false);
+        }, 3000);
+        return () => clearTimeout(timer);
+    }, []);
 
     useEffect(() => {
         async function fetchCategories() {
@@ -51,7 +64,12 @@ export default function ShopPage() {
             try {
                 let query = supabase
                     .from("products")
-                    .select("*, categories!inner(name), product_images(*), product_variants(*)");
+                    .select(`
+                        *,
+                        categories${selectedCategory !== "All" ? "!inner" : ""}(name),
+                        product_images(url),
+                        product_variants(stock)
+                    `);
 
                 if (debouncedSearchQuery) {
                     query = query.ilike('name', `%${debouncedSearchQuery}%`);
@@ -75,7 +93,17 @@ export default function ShopPage() {
                 if (error) throw error;
 
                 // Move out-of-stock products to the end while preserving existing sort order
-                const sortedProducts = (data || []).sort((a, b) => {
+                let sortedProducts = [...(data || [])];
+
+                if (sortBy === "mixed") {
+                    // Fisher-Yates shuffle
+                    for (let i = sortedProducts.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [sortedProducts[i], sortedProducts[j]] = [sortedProducts[j], sortedProducts[i]];
+                    }
+                }
+
+                sortedProducts = sortedProducts.sort((a, b) => {
                     const aOutOfStock = (a.product_variants?.every((v: ProductVariant) => v.stock <= 0) ?? (a.stock ?? 0) <= 0);
                     const bOutOfStock = (b.product_variants?.every((v: ProductVariant) => v.stock <= 0) ?? (b.stock ?? 0) <= 0);
 
@@ -89,6 +117,8 @@ export default function ShopPage() {
                 console.error("Error fetching products:", error);
             } finally {
                 setLoading(false);
+                // We don't set isInitialLoading to false here anymore, 
+                // we wait for the first image load or the timeout
             }
         }
         fetchProducts();
@@ -98,8 +128,33 @@ export default function ShopPage() {
 
     const filteredProducts = products;
 
+    if (!mounted || (isInitialLoading && !isFirstImageLoaded)) {
+        return (
+            <div className="fixed inset-0 z-[200] bg-white flex flex-col items-center justify-center animate-in fade-in duration-500">
+                <div className="relative w-32 h-32 mb-6">
+                    <Image
+                        src="/logo-v1.png"
+                        alt="Blactify"
+                        fill
+                        className="object-contain animate-pulse"
+                        priority
+                    />
+                </div>
+                <div className="flex flex-col items-center gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-400 animate-pulse">
+                        Blactify
+                    </span>
+                    <div className="h-[1px] w-12 bg-zinc-100 animate-pulse" />
+                    <span className="text-[8px] font-medium uppercase tracking-[0.2em] text-zinc-300">
+                        Curating Essentials
+                    </span>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <main className="min-h-screen bg-white pb-20 pt-8">
+        <main className="min-h-screen bg-white pb-20 pt-8 animate-in fade-in duration-700">
             <div className="px-6">
                 <header className="mb-8">
                     <h1 className="font-empire text-5xl mb-6">Store</h1>
@@ -135,7 +190,7 @@ export default function ShopPage() {
                             onClick={() => setIsSortOpen(!isSortOpen)}
                             className="flex items-center gap-1.5 text-xs font-medium text-black active:scale-95 transition-all"
                         >
-                            Sort: {sortBy === "newest" ? "Newest" : sortBy === "price-low" ? "Price Low-High" : "Price High-Low"}
+                            Sort: {sortBy === "mixed" ? "Mixed" : sortBy === "newest" ? "Newest" : sortBy === "price-low" ? "Price Low-High" : "Price High-Low"}
                             <Filter size={12} className={cn("transition-transform", isSortOpen && "rotate-180")} />
                         </button>
 
@@ -147,6 +202,7 @@ export default function ShopPage() {
                                 />
                                 <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-zinc-100 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
                                     {[
+                                        { id: "mixed", label: "Mixed (Random)" },
                                         { id: "newest", label: "Newest" },
                                         { id: "price-low", label: "Price: Low to High" },
                                         { id: "price-high", label: "Price: High to Low" }
@@ -173,19 +229,32 @@ export default function ShopPage() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4 lg:grid-cols-6">
+                <div className="relative min-h-[400px]">
                     {loading ? (
-                        [...Array(6)].map((_, i) => (
-                            <div key={i} className="animate-pulse space-y-4">
-                                <div className="aspect-[4/5] bg-zinc-100 rounded-3xl"></div>
-                                <div className="h-4 bg-zinc-100 rounded-full w-3/4"></div>
-                                <div className="h-3 bg-zinc-100 rounded-full w-1/2"></div>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center animate-in fade-in duration-500">
+                            <div className="relative w-24 h-24 mb-4">
+                                <Image
+                                    src="/logo-v1.png"
+                                    alt="Blactify"
+                                    fill
+                                    className="object-contain animate-pulse"
+                                    priority
+                                />
                             </div>
-                        ))
+                            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-300 animate-pulse">
+                                Loading Collection
+                            </span>
+                        </div>
                     ) : (
-                        filteredProducts.map((product: Product) => (
-                            <ProductCard key={product.id} product={product} />
-                        ))
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4 lg:grid-cols-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            {filteredProducts.map((product: Product, index: number) => (
+                                <ProductCard
+                                    key={product.id}
+                                    product={product}
+                                    onImageLoad={index < 4 ? () => setIsFirstImageLoaded(true) : undefined}
+                                />
+                            ))}
+                        </div>
                     )}
                 </div>
 
