@@ -26,6 +26,7 @@ import {
     CITY_REGEX
 } from "@/lib/validation";
 import { getFriendlyErrorMessage } from "@/lib/error-messages";
+import { INDIAN_STATES } from "@/lib/constants";
 
 
 interface CartItem {
@@ -791,11 +792,9 @@ function CheckoutContent() {
                                             )}
                                         >
                                             <option value="" disabled>State</option>
-                                            <option value="MH">Maharashtra</option>
-                                            <option value="KA">Karnataka</option>
-                                            <option value="DL">Delhi</option>
-                                            <option value="KL">Kerala</option>
-                                            <option value="TN">Tamil Nadu</option>
+                                            {INDIAN_STATES.map((state) => (
+                                                <option key={state} value={state}>{state}</option>
+                                            ))}
                                         </select>
                                         {errors.state && <p className="text-red-500 text-xs">{errors.state}</p>}
                                     </div>
