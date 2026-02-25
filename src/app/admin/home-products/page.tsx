@@ -5,7 +5,6 @@ import Image from "next/image";
 import {
     Search,
     Home,
-    GripVertical,
     X,
     Save,
     Loader2,
@@ -131,8 +130,8 @@ export default function HomeProductsPage() {
                 const data = await res.json();
                 throw new Error(data.error || "Failed to save");
             }
-        } catch (err: any) {
-            toast.error(err.message);
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : "An error occurred");
         } finally {
             setSaving(false);
         }

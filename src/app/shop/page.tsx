@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { ProductCard, type Product } from "@/components/ui/ProductCard";
+import { ProductCard } from "@/components/ui/ProductCard";
+import type { Product, ProductVariant } from "@/types/database";
 import { Search, Filter, Menu, X as CloseIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollToTop } from "@/components/ui/ScrollToTop";
@@ -27,15 +28,15 @@ export default function ShopPage() {
                     .select("name, products(id)");
                 if (error) throw error;
                 if (data) {
-                    const categoriesWithCounts = data.map((c: any) => ({
+                    const categoriesWithCounts = data.map((c: { name: string; products: { id: string }[] | { id: string } | null }) => ({
                         name: c.name,
-                        count: c.products?.length || 0
+                        count: Array.isArray(c.products) ? c.products.length : c.products ? 1 : 0
                     }));
 
                     // Sort by count descending
-                    categoriesWithCounts.sort((a: any, b: any) => b.count - a.count);
+                    categoriesWithCounts.sort((a, b) => b.count - a.count);
 
-                    setDbCategories(["All", ...categoriesWithCounts.map((c: any) => c.name)]);
+                    setDbCategories(["All", ...categoriesWithCounts.map((c) => c.name)]);
                 }
             } catch (error) {
                 console.error("Error fetching categories:", error);
@@ -72,7 +73,18 @@ export default function ShopPage() {
                 const { data, error } = await query;
 
                 if (error) throw error;
-                setProducts(data || []);
+
+                // Move out-of-stock products to the end while preserving existing sort order
+                const sortedProducts = (data || []).sort((a, b) => {
+                    const aOutOfStock = (a.product_variants?.every((v: ProductVariant) => v.stock <= 0) ?? (a.stock ?? 0) <= 0);
+                    const bOutOfStock = (b.product_variants?.every((v: ProductVariant) => v.stock <= 0) ?? (b.stock ?? 0) <= 0);
+
+                    if (aOutOfStock && !bOutOfStock) return 1;
+                    if (!aOutOfStock && bOutOfStock) return -1;
+                    return 0;
+                });
+
+                setProducts(sortedProducts);
             } catch (error) {
                 console.error("Error fetching products:", error);
             } finally {
