@@ -101,29 +101,6 @@ function CheckoutContent() {
         }
     }, [isDirect]);
 
-    const activeItems = (isDirect ? (directItem ? [directItem] : []) : items) as CartItem[];
-
-    // Derived values
-    const subtotal = isDirect
-        ? activeItems.reduce((acc: number, item: CartItem) => acc + (item.price_offer || item.price_base) * item.quantity, 0)
-        : getSubtotal();
-
-    const shipping = isDirect
-        ? (subtotal === 0 ? 0 : (subtotal < 2999 ? 59 : 0))
-        : getShippingCharge();
-
-    const total = isDirect
-        ? (() => {
-            let t = subtotal;
-            if (discountCode === "WELCOME10") t = subtotal * 0.9;
-            return t + shipping;
-        })()
-        : getTotalPrice();
-
-    const discountAmount = isDirect
-        ? (discountCode === "WELCOME10" ? subtotal * 0.1 : 0)
-        : (subtotal - (total - shipping));
-
     const [formData, setFormData] = useState({
         email: user?.email || "",
         firstName: "",
@@ -137,6 +114,29 @@ function CheckoutContent() {
         phone: "",
         secondaryPhone: ""
     });
+
+    const activeItems = (isDirect ? (directItem ? [directItem] : []) : items) as CartItem[];
+
+    // Derived values
+    const subtotal = isDirect
+        ? activeItems.reduce((acc: number, item: CartItem) => acc + (item.price_offer || item.price_base) * item.quantity, 0)
+        : getSubtotal();
+
+    const shipping = isDirect
+        ? (subtotal === 0 ? 0 : (subtotal < 2999 ? (formData.state === "Kerala" ? 59 : 79) : 0))
+        : getShippingCharge(formData.state);
+
+    const total = isDirect
+        ? (() => {
+            let t = subtotal;
+            if (discountCode === "WELCOME10") t = subtotal * 0.9;
+            return t + shipping;
+        })()
+        : getTotalPrice(formData.state);
+
+    const discountAmount = isDirect
+        ? (discountCode === "WELCOME10" ? subtotal * 0.1 : 0)
+        : (subtotal - (total - shipping));
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 

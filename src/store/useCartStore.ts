@@ -20,8 +20,8 @@ interface CartStore {
     clearCart: () => void;
     getTotalItems: () => number;
     getSubtotal: () => number;
-    getTotalPrice: () => number;
-    getShippingCharge: () => number;
+    getTotalPrice: (state?: string) => number;
+    getShippingCharge: (state?: string) => number;
     discountCode: string | null;
     applyDiscount: (code: string) => void;
     removeDiscount: () => void;
@@ -135,9 +135,9 @@ export const useCartStore = create<CartStore>()(
                 get().items.reduce((acc, item) => acc + item.quantity, 0),
             getSubtotal: () =>
                 get().items.reduce((acc, item) => acc + (item.price_offer || item.price_base) * item.quantity, 0),
-            getTotalPrice: () => {
+            getTotalPrice: (state) => {
                 const subtotal = get().getSubtotal();
-                const shipping = get().getShippingCharge();
+                const shipping = get().getShippingCharge(state);
                 const discountCode = get().discountCode;
                 let total = subtotal;
 
@@ -147,10 +147,15 @@ export const useCartStore = create<CartStore>()(
 
                 return total + shipping;
             },
-            getShippingCharge: () => {
+            getShippingCharge: (state) => {
                 const subtotal = get().getSubtotal();
                 if (subtotal === 0) return 0;
-                return subtotal < 2999 ? 59 : 0;
+                if (subtotal >= 2999) return 0; // Free shipping threshold
+
+                if (state === "Kerala") {
+                    return 59;
+                }
+                return 79;
             },
             discountCode: null,
             applyDiscount: (code) => {
