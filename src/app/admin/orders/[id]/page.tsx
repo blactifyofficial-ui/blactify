@@ -138,7 +138,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
             }
         }
         fetchItemDetails();
-    }, [order]);
+    }, [order, itemImages]);
 
     const handleUpdateStatus = async (newStatus: string) => {
         if (!order) return;
@@ -312,9 +312,9 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                                 <div className="p-5 bg-zinc-50 rounded-[2rem] border border-zinc-100 italic">
                                     <p className="text-lg font-black tracking-tight mb-3 text-black">{order.customer_details?.name}</p>
                                     <div className="space-y-1 text-[11px] font-bold text-zinc-500 uppercase tracking-widest leading-loose">
-                                        <p>{order.shipping_address?.address || (order.shipping_address as any)?.line1}{(order.shipping_address?.apartment || (order.shipping_address as any)?.line2) && <>, {order.shipping_address.apartment || (order.shipping_address as any).line2}</>}</p>
+                                        <p>{order.shipping_address?.address || (order.shipping_address as { address?: string; line1?: string }).line1}{(order.shipping_address?.apartment || (order.shipping_address as { apartment?: string; line2?: string }).line2) && <>, {order.shipping_address.apartment || (order.shipping_address as { apartment?: string; line2?: string }).line2}</>}</p>
                                         <p>{order.shipping_address?.city}{order.shipping_address?.district && <>, {order.shipping_address.district}</>}</p>
-                                        <p>{order.shipping_address?.state} — {order.shipping_address?.pincode || (order.shipping_address as any)?.postal_code}</p>
+                                        <p>{order.shipping_address?.state} — {order.shipping_address?.pincode || (order.shipping_address as { pincode?: string; postal_code?: string }).postal_code}</p>
                                     </div>
                                 </div>
                                 <div className="flex flex-col gap-2">

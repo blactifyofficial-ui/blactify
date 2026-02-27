@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { getOrder } from "@/lib/order-sync";
 import Link from "next/link";
 import { Printer, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -54,16 +54,15 @@ export default function InvoicePage() {
 
         async function fetchOrder() {
             try {
-                const { data, error } = await supabase
-                    .from("orders")
-                    .select("*")
-                    .eq("id", orderId)
-                    .single();
+                const result = await getOrder(orderId);
 
-                if (error) throw error;
-                setOrder(data);
-            } catch {
-
+                if (result.success && result.order) {
+                    setOrder(result.order as unknown as OrderDetail);
+                } else {
+                    console.error("Failed to fetch order:", result.error);
+                }
+            } catch (err) {
+                console.error("Error in fetchOrder:", err);
             } finally {
                 setLoading(false);
             }
