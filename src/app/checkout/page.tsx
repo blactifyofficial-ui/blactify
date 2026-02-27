@@ -350,14 +350,24 @@ function CheckoutContent() {
                             user_id: user?.uid || "guest",
                             amount: total,
                             currency: "INR",
-                            items: activeItems,
+                            items: activeItems.map(item => ({
+                                id: item.id,
+                                name: item.name,
+                                size: item.size,
+                                quantity: item.quantity,
+                                price_base: item.price_base,
+                                price_offer: item.price_offer,
+                                main_image: item.main_image,
+                                product_images: item.product_images
+                            })),
                             status: "paid",
                             shipping_address: {
-                                line1: formData.address,
-                                line2: formData.apartment || formData.district || undefined,
+                                address: formData.address,
+                                apartment: formData.apartment || undefined,
                                 city: formData.city,
+                                district: formData.district,
                                 state: formData.state,
-                                postal_code: formData.pincode,
+                                pincode: formData.pincode,
                                 country: "India"
                             },
                             customer_details: {

@@ -51,6 +51,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
     const [statusUpdating, setStatusUpdating] = useState<boolean>(false);
     const [trackingId, setTrackingId] = useState("");
     const [itemMeasurements, setItemMeasurements] = useState<Record<string, Array<{ value: string; measurement_types: { name: string } }>>>({});
+    const [itemImages, setItemImages] = useState<Record<string, string>>({});
 
     useEffect(() => {
         async function fetchOrder() {
@@ -73,42 +74,70 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
 
     useEffect(() => {
         if (!order?.items) return;
-        async function fetchMeasurements() {
-            // Note: If variant measurements are also blocked by RLS, we may need a server action for this as well.
-            // For now, attempting to keep it simple as the main issue was orders access.
+        async function fetchItemDetails() {
             try {
                 const { supabase } = await import("@/lib/supabase");
                 const measurementsMap: Record<string, Array<{ value: string; measurement_types: { name: string } }>> = {};
+                const imagesMap: Record<string, string> = { ...itemImages };
+
                 if (!order?.items) return;
+
                 for (const item of order.items) {
-                    if (!item.id || !item.size) continue;
-                    const key = `${item.id}-${item.size}`;
-                    if (measurementsMap[key]) continue;
-                    const { data: variant } = await supabase
-                        .from('product_variants')
-                        .select(`
-                            id,
-                            variant_measurements (
-                                value,
-                                measurement_types (
-                                    name
+                    // Fetch Measurements
+                    if (item.id && item.size) {
+                        const key = `${item.id}-${item.size}`;
+                        if (!measurementsMap[key]) {
+                            const { data: variant } = await supabase
+                                .from('product_variants')
+                                .select(`
+                                    id,
+                                    variant_measurements (
+                                        value,
+                                        measurement_types (
+                                            name
+                                        )
+                                    )
+                                `)
+                                .eq('product_id', item.id)
+                                .eq('size', item.size)
+                                .maybeSingle();
+
+                            if (variant?.variant_measurements) {
+                                measurementsMap[key] = (variant.variant_measurements as unknown as { value: string; measurement_types: { name: string } | { name: string }[] }[]).map(m => ({
+                                    value: String(m.value),
+                                    measurement_types: (Array.isArray(m.measurement_types) ? m.measurement_types[0] : m.measurement_types) as { name: string }
+                                }));
+                            }
+                        }
+                    }
+
+                    // Fetch Image Fallback if missing
+                    const hasImage = item.main_image || item.image || item.imageUrl || (item.product_images && item.product_images.length > 0);
+                    if (!hasImage && item.id && !imagesMap[item.id]) {
+                        const { data: product } = await supabase
+                            .from('products')
+                            .select(`
+                                product_images (
+                                    url
                                 )
-                            )
-                        `)
-                        .eq('product_id', item.id)
-                        .eq('size', item.size)
-                        .maybeSingle();
-                    if (variant?.variant_measurements) {
-                        measurementsMap[key] = (variant.variant_measurements as unknown as { value: string; measurement_types: { name: string } | { name: string }[] }[]).map(m => ({
-                            value: String(m.value),
-                            measurement_types: (Array.isArray(m.measurement_types) ? m.measurement_types[0] : m.measurement_types) as { name: string }
-                        }));
+                            `)
+                            .eq('id', item.id)
+                            .maybeSingle();
+
+                        if (product?.product_images && Array.isArray(product.product_images) && product.product_images.length > 0) {
+                            const img = product.product_images[0].url;
+                            if (img) imagesMap[item.id] = img;
+                        }
                     }
                 }
+
                 setItemMeasurements(measurementsMap);
-            } catch { }
+                setItemImages(imagesMap);
+            } catch (err) {
+                console.error("Error fetching item details:", err);
+            }
         }
-        fetchMeasurements();
+        fetchItemDetails();
     }, [order]);
 
     const handleUpdateStatus = async (newStatus: string) => {
@@ -215,9 +244,9 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                                 <div key={idx} className="px-8 py-8 flex items-center justify-between group hover:bg-zinc-50 transition-colors duration-500">
                                     <div className="flex items-center gap-6">
                                         <div className="w-20 h-20 bg-zinc-50 rounded-[2rem] overflow-hidden flex-shrink-0 relative shadow-inner">
-                                            {(item.main_image || item.imageUrl) ? (
+                                            {(item.main_image || item.image || item.imageUrl || (item.product_images && item.product_images[0]?.url) || itemImages[item.id]) ? (
                                                 <Image
-                                                    src={item.main_image || item.imageUrl || ""}
+                                                    src={item.main_image || item.image || item.imageUrl || item.product_images?.[0]?.url || itemImages[item.id] || ""}
                                                     alt={item.name}
                                                     fill
                                                     sizes="80px"
@@ -283,9 +312,9 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                                 <div className="p-5 bg-zinc-50 rounded-[2rem] border border-zinc-100 italic">
                                     <p className="text-lg font-black tracking-tight mb-3 text-black">{order.customer_details?.name}</p>
                                     <div className="space-y-1 text-[11px] font-bold text-zinc-500 uppercase tracking-widest leading-loose">
-                                        <p>{order.shipping_address?.address}{order.shipping_address?.apartment && <>, {order.shipping_address.apartment}</>}</p>
+                                        <p>{order.shipping_address?.address || (order.shipping_address as any)?.line1}{(order.shipping_address?.apartment || (order.shipping_address as any)?.line2) && <>, {order.shipping_address.apartment || (order.shipping_address as any).line2}</>}</p>
                                         <p>{order.shipping_address?.city}{order.shipping_address?.district && <>, {order.shipping_address.district}</>}</p>
-                                        <p>{order.shipping_address?.state} — {order.shipping_address?.pincode}</p>
+                                        <p>{order.shipping_address?.state} — {order.shipping_address?.pincode || (order.shipping_address as any)?.postal_code}</p>
                                     </div>
                                 </div>
                                 <div className="flex flex-col gap-2">

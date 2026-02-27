@@ -118,6 +118,7 @@ export interface OrderJsonItem {
     price_offer?: number;
     size?: string;
     main_image?: string;
+    image?: string;
     imageUrl?: string; // Support for different naming in JSONB
     product_images?: { url: string; position: number }[];
     measurements?: Record<string, string>;

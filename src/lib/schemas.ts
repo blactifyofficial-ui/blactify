@@ -21,15 +21,18 @@ export const OrderItemSchema = z.object({
     quantity: z.number().int().positive(),
     price_base: z.number(),
     price_offer: z.number().optional().nullable(),
+    main_image: z.string().optional().nullable(),
+    product_images: z.array(z.object({ url: z.string() })).optional().nullable(),
 });
 
 export const AddressSchema = z.object({
-    line1: z.string().min(1),
-    line2: z.string().optional(),
+    address: z.string().min(1),
+    apartment: z.string().optional(),
     city: z.string().min(1),
+    district: z.string().min(1),
     state: z.string().min(1),
-    postal_code: z.string().min(6),
-    country: z.string().default("IN"),
+    pincode: z.string().min(6),
+    country: z.string().default("India"),
 });
 
 export const CustomerDetailsSchema = z.object({

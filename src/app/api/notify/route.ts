@@ -57,7 +57,7 @@ export async function POST(req: Request) {
                             ${emailItems.map((item: Record<string, unknown>) => {
             const price = (item.price_offer || item.price_base || 0) as number;
             const itemTotal = price * (item.quantity as number);
-            const imageUrl = ((item.product_images as Record<string, unknown>[])?.[0]?.url || item.main_image || "https://blactify.com/placeholder.jpg") as string;
+            const imageUrl = ((item.product_images as Record<string, unknown>[])?.[0]?.url || item.main_image || item.image || "https://blactify.com/placeholder.jpg") as string;
             return `
                                     <tr>
                                         <td style="padding-bottom: 20px; width: 80px;">
@@ -113,10 +113,10 @@ export async function POST(req: Request) {
                             <h3 style="margin: 0 0 15px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: #999999;">Shipping Address</h3>
                             <div style="font-size: 13px; color: #444444; line-height: 1.6;">
                                 <strong style="color: #111111;">${order.customer_details.name}</strong><br />
-                                ${order.shipping_address.address}<br />
-                                ${order.shipping_address.apartment ? `${order.shipping_address.apartment}<br />` : ""}
-                                ${order.shipping_address.city}, ${order.shipping_address.district}<br />
-                                ${order.shipping_address.state} - ${order.shipping_address.pincode}
+                                ${order.shipping_address.address || (order.shipping_address as any).line1}<br />
+                                ${(order.shipping_address.apartment || (order.shipping_address as any).line2) ? `${order.shipping_address.apartment || (order.shipping_address as any).line2}<br />` : ""}
+                                ${order.shipping_address.city}${order.shipping_address.district ? `, ${order.shipping_address.district}` : ""}<br />
+                                ${order.shipping_address.state} - ${order.shipping_address.pincode || (order.shipping_address as any).postal_code}
                             </div>
                         </div>
                         <div style="display: table-cell; width: 50%; vertical-align: top;">
