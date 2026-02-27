@@ -25,8 +25,38 @@ async function getInitialProducts() {
   }
 }
 
+async function getCategories() {
+  try {
+    // Fetch categories along with one product image to use as the category card image
+    const { data, error } = await supabase
+      .from("categories")
+      .select("name, products(product_images(url))")
+      .order("name", { ascending: true });
+
+    if (error) return [];
+
+    // Map each category to { name, image } using the first product's first image
+    const categories = (data || [])
+      .map((cat: { name: string; products: { product_images: { url: string }[] }[] | null }) => {
+        const firstProductImage = cat.products?.[0]?.product_images?.[0]?.url;
+        return {
+          name: cat.name,
+          image: firstProductImage || "/hero-placeholder.jpg",
+        };
+      })
+      .filter((cat: { name: string; image: string }) => cat.image !== "/hero-placeholder.jpg"); // Only show categories that have product images
+
+    return categories;
+  } catch {
+    return [];
+  }
+}
+
 export default async function Page() {
-  const products = await getInitialProducts();
+  const [products, categories] = await Promise.all([
+    getInitialProducts(),
+    getCategories(),
+  ]);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -62,7 +92,7 @@ export default async function Page() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
       />
-      <HomeClient initialProducts={products} />
+      <HomeClient initialProducts={products} initialCategories={categories} />
     </>
   );
 }

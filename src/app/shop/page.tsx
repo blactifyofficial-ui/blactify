@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { ProductCard } from "@/components/ui/ProductCard";
 import type { Product, ProductVariant } from "@/types/database";
@@ -11,26 +12,21 @@ import { useDebounce } from "@/hooks/useDebounce";
 import Image from "next/image";
 
 export default function ShopPage() {
+    const searchParams = useSearchParams();
+    const categoryFromUrl = searchParams.get("category");
     const [mounted, setMounted] = useState(false);
     const [products, setProducts] = useState<Product[]>([]);
     const [dbCategories, setDbCategories] = useState<string[]>(["All"]);
     const [loading, setLoading] = useState(true);
-    const [isInitialLoading, setIsInitialLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const debouncedSearchQuery = useDebounce(searchQuery, 500);
-    const [selectedCategory, setSelectedCategory] = useState("All");
+    const [selectedCategory, setSelectedCategory] = useState(categoryFromUrl || "All");
     const [sortBy, setSortBy] = useState("mixed");
     const [isSortOpen, setIsSortOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [isFirstImageLoaded, setIsFirstImageLoaded] = useState(false);
 
     useEffect(() => {
         setMounted(true);
-        // Fallback: If images take too long, hide splash after 3 seconds anyway
-        const timer = setTimeout(() => {
-            setIsInitialLoading(false);
-        }, 3000);
-        return () => clearTimeout(timer);
     }, []);
 
     useEffect(() => {
@@ -128,30 +124,7 @@ export default function ShopPage() {
 
     const filteredProducts = products;
 
-    if (!mounted || (isInitialLoading && !isFirstImageLoaded)) {
-        return (
-            <div className="fixed inset-0 z-[200] bg-white flex flex-col items-center justify-center animate-in fade-in duration-500">
-                <div className="relative w-32 h-32 mb-6">
-                    <Image
-                        src="/logo-v1.png"
-                        alt="Blactify"
-                        fill
-                        className="object-contain animate-pulse"
-                        priority
-                    />
-                </div>
-                <div className="flex flex-col items-center gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-400 animate-pulse">
-                        Blactify
-                    </span>
-                    <div className="h-[1px] w-12 bg-zinc-100 animate-pulse" />
-                    <span className="text-[8px] font-medium uppercase tracking-[0.2em] text-zinc-300">
-                        Curating Essentials
-                    </span>
-                </div>
-            </div>
-        );
-    }
+    if (!mounted) return null;
 
     return (
         <main className="min-h-screen bg-white pb-20 pt-8 animate-in fade-in duration-700">
@@ -247,11 +220,10 @@ export default function ShopPage() {
                         </div>
                     ) : (
                         <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4 lg:grid-cols-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                            {filteredProducts.map((product: Product, index: number) => (
+                            {filteredProducts.map((product: Product) => (
                                 <ProductCard
                                     key={product.id}
                                     product={product}
-                                    onImageLoad={index < 4 ? () => setIsFirstImageLoaded(true) : undefined}
                                 />
                             ))}
                         </div>

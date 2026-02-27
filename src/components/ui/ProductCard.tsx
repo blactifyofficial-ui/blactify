@@ -6,10 +6,9 @@ import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/useCartStore";
 import { Plus } from "lucide-react";
 import { useAuth } from "@/store/AuthContext";
-import { useRef } from "react";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
+import { useRef, useEffect, useState } from "react";
 import { Magnetic } from "@/components/ui/Magnetic";
+import { optimizeCloudinaryUrl } from "@/lib/cloudinary-url";
 
 import { Product } from "@/types/database";
 
@@ -26,32 +25,44 @@ export function ProductCard({ product, className, onImageLoad, hidePrice }: Prod
     const { addItem } = useCartStore();
     const { user } = useAuth();
     const container = useRef<HTMLDivElement>(null);
+    const [isVisible, setIsVisible] = useState(false);
 
-    useGSAP(() => {
-        gsap.from(container.current, {
-            y: 50,
-            opacity: 0,
-            duration: 0.8,
-            ease: "power2.out",
-            scrollTrigger: {
-                trigger: container.current,
-                start: "top bottom-=100px",
-                toggleActions: "play none none none"
-            }
-        });
-    }, { scope: container });
+    useEffect(() => {
+        const el = container.current;
+        if (!el) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.unobserve(el);
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, []);
 
     // Use price_offer as the primary price if available
     const displayPrice = product.price_offer || product.price_base;
     const hasDiscount = product.price_offer && product.price_offer < product.price_base;
 
     return (
-        <div ref={container} className={cn("group flex flex-col gap-3", className)}>
+        <div
+            ref={container}
+            className={cn(
+                "group flex flex-col gap-3 transition-all duration-700 ease-out",
+                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8",
+                className
+            )}
+        >
             <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-100">
                 <Link href={`/product/${product.handle || product.id}`} className="relative block h-full w-full bg-zinc-50">
                     {(product.product_images?.[0]?.url || product.main_image) ? (
                         <Image
-                            src={product.product_images?.[0]?.url || product.main_image || ""}
+                            src={optimizeCloudinaryUrl(product.product_images?.[0]?.url || product.main_image || "", 600)}
                             alt={product.name}
                             fill
                             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 16vw"
