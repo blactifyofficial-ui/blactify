@@ -68,7 +68,7 @@ export default function HomeClient({ initialProducts }: HomeClientProps) {
                         ))
                     ) : (
                         products.map((product) => (
-                            <ProductCard key={product.id} product={product} />
+                            <ProductCard key={product.id} product={product} hidePrice />
                         ))
                     )}
                 </div>

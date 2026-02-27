@@ -19,9 +19,10 @@ interface ProductCardProps {
     product: Product;
     className?: string;
     onImageLoad?: () => void;
+    hidePrice?: boolean;
 }
 
-export function ProductCard({ product, className, onImageLoad }: ProductCardProps) {
+export function ProductCard({ product, className, onImageLoad, hidePrice }: ProductCardProps) {
     const { addItem } = useCartStore();
     const { user } = useAuth();
     const container = useRef<HTMLDivElement>(null);
@@ -103,22 +104,25 @@ export function ProductCard({ product, className, onImageLoad }: ProductCardProp
                         {product.name}
                     </h3>
                 </Link>
-                <div className="flex items-center gap-2">
-                    {hasDiscount ? (
-                        <>
+                {!hidePrice && (
+                    <div className="flex items-center gap-2">
+                        {hasDiscount ? (
+                            <>
+                                <span className="text-[11px] md:text-[12px] font-medium text-black">
+                                    ₹{displayPrice.toFixed(2)}
+                                </span>
+                                <span className="text-[11px] md:text-[12px] text-zinc-400 line-through">
+                                    ₹{product.price_base.toFixed(2)}
+                                </span>
+                            </>
+                        ) : (
                             <span className="text-[11px] md:text-[12px] font-medium text-black">
                                 ₹{displayPrice.toFixed(2)}
                             </span>
-                            <span className="text-[11px] md:text-[12px] text-zinc-400 line-through">
-                                ₹{product.price_base.toFixed(2)}
-                            </span>
-                        </>
-                    ) : (
-                        <span className="text-[11px] md:text-[12px] font-medium text-black">
-                            ₹{displayPrice.toFixed(2)}
-                        </span>
-                    )}
-                </div>
+                        )}
+                    </div>
+                )}
+
             </div>
         </div>
     );
