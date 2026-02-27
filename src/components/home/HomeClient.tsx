@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { Hero } from "@/components/ui/Hero";
 import { ProductCard, type Product } from "@/components/ui/ProductCard";
 import Link from "next/link";
+import Image from "next/image";
 
 interface HomeClientProps {
     initialProducts: Product[];
@@ -43,9 +44,19 @@ export default function HomeClient({ initialProducts }: HomeClientProps) {
     return (
         <main className="flex flex-col">
             <Hero
-                title={<>Meet Timeless <br className="hidden md:block" /> Essentials</>}
+                title={
+                    <div className="relative w-32 h-32 md:w-64 md:h-64 lg:w-[400px] lg:h-[400px]">
+                        <Image
+                            src="/welcome-eye.png"
+                            alt="Blactify"
+                            fill
+                            className="object-contain filter invert brightness-200 drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]"
+                            priority
+                        />
+                    </div>
+                }
                 images={products.map(p => p.product_images?.[0]?.url || p.main_image || "/placeholder-product.jpg")}
-                ctaText="Shop Now"
+                ctaText="Shop Collection"
                 ctaLink="/shop"
             />
 
