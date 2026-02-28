@@ -1,11 +1,11 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-
+import { optimizeCloudinaryUrl } from "@/lib/cloudinary-client";
 interface HeroProps {
     title: string | React.ReactNode;
     images: string[];
@@ -82,14 +82,19 @@ export function Hero({ title, images, ctaText, ctaLink }: HeroProps) {
                         index === 0 ? "opacity-100" : "opacity-0"
                     )}
                 >
-                    <Image
-                        src={img}
-                        alt={typeof title === 'string' ? title : "Hero Image"}
-                        fill
-                        sizes="100vw"
-                        className="object-cover"
-                        priority={index === 0}
-                    />
+                    {/* Render only the first image immediately, lazy load others */}
+                    {(index === 0 || currentImageIndex === index || currentImageIndex + 1 === index) && (
+                        <Image
+                            src={optimizeCloudinaryUrl(img, 1600) || img}
+                            alt={typeof title === 'string' ? title : "Hero Image"}
+                            fill
+                            sizes="(max-width: 768px) 100vw, 100vw"
+                            className="object-cover"
+                            priority={index === 0}
+                            fetchPriority={index === 0 ? "high" : "auto"}
+                            quality={80}
+                        />
+                    )}
                 </div>
             ))}
             <div className="absolute inset-0 bg-black/20" />
@@ -146,3 +151,4 @@ export function Hero({ title, images, ctaText, ctaLink }: HeroProps) {
         </section>
     );
 }
+

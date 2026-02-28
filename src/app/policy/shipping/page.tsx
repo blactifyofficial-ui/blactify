@@ -41,11 +41,6 @@ export default function ShippingPolicyPage() {
                                         <td className="px-4 py-4">3-5 Business Days</td>
                                         <td className="px-4 py-4 text-right">₹80.00</td>
                                     </tr>
-                                    <tr>
-                                        <td className="px-4 py-4 font-medium text-black">Priority Shipping</td>
-                                        <td className="px-4 py-4">1-2 Business Days</td>
-                                        <td className="px-4 py-4 text-right">₹250.00</td>
-                                    </tr>
                                 </tbody>
                             </table>
                         </div>

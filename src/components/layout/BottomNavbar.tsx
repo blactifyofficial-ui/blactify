@@ -72,6 +72,7 @@ export function BottomNavbar({
                         return (
                             <button
                                 key={item.label}
+                                aria-label="Profile"
                                 onClick={() => {
                                     if (user) {
                                         router.push('/profile');
@@ -92,6 +93,7 @@ export function BottomNavbar({
                         <Link
                             key={item.href}
                             href={item.href}
+                            aria-label={item.label}
                             className={cn(
                                 isActive ? "text-black" : "text-zinc-400 hover:text-zinc-600"
                             )}
@@ -102,6 +104,7 @@ export function BottomNavbar({
                 })}
 
                 <button
+                    aria-label="Open Cart"
                     onClick={onCartClick}
                     className="relative flex flex-col items-center justify-center gap-1 text-zinc-400 hover:text-zinc-600 transition-colors"
                 >

@@ -129,7 +129,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                         <h2 className="font-empire text-3xl">
                             {mode === "signin" ? "Login" : "Sign Up"}
                         </h2>
-                        <button onClick={onClose} className="p-2 hover:bg-zinc-100 rounded-full">
+                        <button aria-label="Close" onClick={onClose} className="p-2 hover:bg-zinc-100 rounded-full">
                             <X size={20} />
                         </button>
                     </div>
@@ -138,7 +138,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                         {mode === "signin" ? (
                             <>
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase tracking-widest text-zinc-400">Email Address</label>
+                                    <label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Email Address</label>
                                     <div className="relative">
                                         <Mail className="absolute left-3 top-3 text-zinc-400" size={18} />
                                         <input
@@ -153,7 +153,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase tracking-widest text-zinc-400">Password</label>
+                                    <label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Password</label>
                                     <div className="relative">
                                         <Lock className="absolute left-3 top-3 text-zinc-400" size={18} />
                                         <input
@@ -166,6 +166,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                                         />
                                         <button
                                             type="button"
+                                            aria-label={showPassword ? "Hide password" : "Show password"}
                                             onClick={() => setShowPassword(!showPassword)}
                                             className="absolute right-3 top-3 text-zinc-400 hover:text-black transition-colors"
                                         >
@@ -177,7 +178,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                         ) : step === "details" ? (
                             <>
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase tracking-widest text-zinc-400">Full Name</label>
+                                    <label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Full Name</label>
                                     <div className="relative">
                                         <User className="absolute left-3 top-3 text-zinc-400" size={18} />
                                         <input
@@ -192,7 +193,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase tracking-widest text-zinc-400">Email Address</label>
+                                    <label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Email Address</label>
                                     <div className="relative">
                                         <Mail className="absolute left-3 top-3 text-zinc-400" size={18} />
                                         <input
@@ -207,7 +208,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase tracking-widest text-zinc-400">Password</label>
+                                    <label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Password</label>
                                     <div className="relative">
                                         <Lock className="absolute left-3 top-3 text-zinc-400" size={18} />
                                         <input
@@ -232,7 +233,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                             <div className="space-y-6 pt-4">
                                 <div className="text-center space-y-2">
                                     <p className="text-sm text-zinc-500 font-medium">Verify your email</p>
-                                    <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Sent to {email}</p>
+                                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Sent to {email}</p>
                                 </div>
                                 <div className="py-4">
                                     <OTPInput
@@ -244,7 +245,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                                 <button
                                     type="button"
                                     onClick={() => setStep("details")}
-                                    className="w-full text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-black transition-colors"
+                                    className="w-full text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-black transition-colors"
                                 >
                                     Edit details
                                 </button>
@@ -273,7 +274,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                                 <div className="w-full border-t border-zinc-100"></div>
                             </div>
                             <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-white px-2 text-zinc-400 font-bold tracking-widest">Or continue with</span>
+                                <span className="bg-white px-2 text-zinc-500 font-bold tracking-widest">Or continue with</span>
                             </div>
                         </div>
 
@@ -304,7 +305,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                             Google
                         </button>
 
-                        <p className="text-center text-xs text-zinc-400">
+                        <p className="text-center text-xs text-zinc-500">
                             {mode === "signin" ? (
                                 <>
                                     Don&apos;t have an account?{" "}

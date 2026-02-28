@@ -1,5 +1,12 @@
-@import url('https://fonts.cdnfonts.com/css/druk-wide-bold');
 @import "tailwindcss";
+
+@font-face {
+  font-family: 'Druk Wide Bold';
+  src: url('/fonts/DrukWideBold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   --background: #ffffff;

@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { Hero } from "@/components/ui/Hero";
 import { ProductCard, type Product } from "@/components/ui/ProductCard";
 import Link from "next/link";
@@ -11,34 +9,8 @@ interface HomeClientProps {
 }
 
 export default function HomeClient({ initialProducts }: HomeClientProps) {
-    const [products, setProducts] = useState<Product[]>(initialProducts);
-    const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        // Optionally refresh products on mount if needed, 
-        // but initialProducts should be enough for SEO/Initial load
-        if (initialProducts.length === 0) {
-            setLoading(true);
-            async function fetchProducts() {
-                try {
-                    const { data, error } = await supabase
-                        .from("products")
-                        .select("*, product_images(*), product_variants(*)")
-                        .not("home_order", "is", null)
-                        .limit(6)
-                        .order("home_order", { ascending: true });
-
-                    if (error) throw error;
-                    setProducts(data || []);
-                } catch {
-                    // Silent fail
-                } finally {
-                    setLoading(false);
-                }
-            }
-            fetchProducts();
-        }
-    }, [initialProducts]);
+    const products = initialProducts;
+    const loading = false;
 
     return (
         <main className="flex flex-col">

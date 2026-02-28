@@ -3,6 +3,8 @@ import { getProduct } from "@/lib/product-fetcher";
 import ProductClientPage from "@/components/product/ProductClientPage";
 import { notFound } from "next/navigation";
 
+export const revalidate = 120;
+
 interface Props {
     params: Promise<{ id: string }>;
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;

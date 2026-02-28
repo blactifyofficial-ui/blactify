@@ -75,6 +75,7 @@ export default function WelcomeBanner() {
         >
             <div className="w-full md:max-w-md mx-auto rounded-t-[40px] bg-black/60 backdrop-blur-2xl border-t border-white/10 p-8 pt-16 pb-12 text-white shadow-[0_-10px_40px_rgba(0,0,0,0.5)] relative">
                 <button
+                    aria-label="Close"
                     onClick={dismiss}
                     className="absolute top-6 right-6 p-2 opacity-60 hover:opacity-100 transition-opacity"
                 >
@@ -83,7 +84,7 @@ export default function WelcomeBanner() {
                 <div className="text-center flex flex-col gap-8">
                     <div>
                         <h2 className="font-empire text-7xl md:text-8xl mb-4 tracking-tighter leading-none font-black">Welcome Offer</h2>
-                        <p className="text-zinc-300 text-base leading-relaxed">
+                        <p className="text-zinc-200 text-base leading-relaxed">
                             Get 10% off your first order.<br />Use code: <span className="font-bold text-white">WELCOME10</span>
                         </p>
                     </div>

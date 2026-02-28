@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { getStoreSettings } from "@/app/actions/settings";
 import { getFriendlyErrorMessage } from "@/lib/error-messages";
+import { optimizeCloudinaryUrl } from "@/lib/cloudinary-client";
 
 interface Review {
     id: string;
@@ -284,7 +285,7 @@ export default function ProductClientPage({ initialProduct }: ProductClientPageP
                             {productImages.map((img, index) => (
                                 <div key={index} className="relative h-full w-full flex-shrink-0">
                                     <Image
-                                        src={img}
+                                        src={optimizeCloudinaryUrl(img, 1200) || ""}
                                         alt={`${product.name} - ${index}`}
                                         fill
                                         className="object-cover"

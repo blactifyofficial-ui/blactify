@@ -107,7 +107,7 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                 <div className="flex h-full flex-col">
                     <div className="flex items-center justify-between border-b border-zinc-200/50 px-6 py-4">
                         <h2 className="font-empire text-xl text-black">Bag</h2>
-                        <button onClick={onClose} className="p-2 hover:bg-zinc-100 rounded-full">
+                        <button aria-label="Close" onClick={onClose} className="p-2 hover:bg-zinc-100 rounded-full">
                             <X size={20} />
                         </button>
                     </div>
@@ -145,15 +145,17 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center border border-zinc-100">
                                                     <button
-                                                        onClick={() => updateQuantity(item.cartId || item.id, Math.max(1, item.quantity - 1))}
-                                                        className="p-1 hover:bg-zinc-50 text-black"
+                                                        aria-label="Decrease quantity"
+                                                        onClick={() => updateQuantity(item.cartId || item.id, Math.max(0, item.quantity - 1))}
+                                                        className="p-1 hover:bg-zinc-100 rounded-lg transition-colors"
                                                     >
                                                         <Minus size={14} />
                                                     </button>
                                                     <span className="w-8 text-center text-xs font-bold text-black">{item.quantity}</span>
                                                     <button
+                                                        aria-label="Increase quantity"
                                                         onClick={() => updateQuantity(item.cartId || item.id, item.quantity + 1)}
-                                                        className="p-1 hover:bg-zinc-50 text-black"
+                                                        className="p-1 hover:bg-zinc-100 rounded-lg transition-colors"
                                                     >
                                                         <Plus size={14} />
                                                     </button>
