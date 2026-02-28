@@ -70,7 +70,7 @@ export function Hero({ images }: HeroProps) {
     return (
         <section
             ref={container}
-            className="relative h-[85vh] w-full bg-white z-10 overflow-hidden"
+            className="relative h-[65vh] md:h-[85vh] w-full bg-white z-10 overflow-hidden"
         >
             {/* Background Images Wrapper (Clips the images) */}
             <div className="absolute inset-0 w-full h-full overflow-hidden">

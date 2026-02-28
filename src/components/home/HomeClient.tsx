@@ -6,7 +6,7 @@ import { Hero } from "@/components/ui/Hero";
 import { ProductCard, type Product } from "@/components/ui/ProductCard";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { optimizeCloudinaryUrl } from "@/lib/cloudinary-url";
 
