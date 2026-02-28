@@ -72,6 +72,7 @@ function ShopSkeleton() {
                     src="/logo-v1.png"
                     alt="Blactify"
                     fill
+                    sizes="128px"
                     className="object-contain animate-pulse"
                     priority
                 />
