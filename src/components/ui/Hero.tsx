@@ -32,11 +32,10 @@ export function Hero({ images }: HeroProps) {
         return () => clearInterval(interval);
     }, [currentImageIndex, images.length]);
 
-    // Entry animations
+    // Animations
     useGSAP(() => {
-        const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
-
-        tl.fromTo(ctaRef.current,
+        // Entry animation for CTA
+        gsap.fromTo(ctaRef.current,
             { y: 20, opacity: 0 },
             { y: 0, opacity: 1, duration: 1.2, delay: 0.5 }
         );
@@ -88,12 +87,25 @@ export function Hero({ images }: HeroProps) {
                 <div ref={ctaRef}>
                     <Link
                         href="/shop"
-                        className="group relative inline-flex items-center gap-1.5 px-5 py-2 bg-white/40 backdrop-blur-xl text-black text-[8px] md:text-[9px] font-bold uppercase tracking-[0.3em] rounded-full border border-white/30 overflow-hidden transition-all duration-500 hover:bg-white/60 hover:tracking-[0.4em] active:scale-95 shadow-2xl shadow-black/20"
+                        className="group relative inline-flex items-center gap-2.5 px-6 py-2.5 bg-white/40 backdrop-blur-xl text-black text-[8px] md:text-[9px] font-bold uppercase tracking-[0.3em] rounded-full border border-white/30 overflow-hidden transition-all duration-500 hover:bg-white/60 hover:tracking-[0.4em] active:scale-95 shadow-2xl shadow-black/20"
                     >
+                        {/* Logo Animation */}
+                        <div className="relative flex items-center max-w-0 opacity-0 -translate-x-3 transition-all duration-700 cubic-bezier(0.34, 1.56, 0.64, 1) group-hover:max-w-[40px] group-hover:opacity-100 group-hover:translate-x-0">
+                            <Image
+                                src="/welcome-eye.png"
+                                alt="Logo"
+                                width={24}
+                                height={24}
+                                className="object-contain min-w-[24px] transition-transform duration-500 group-hover:scale-110"
+                            />
+                        </div>
+
                         <span className="relative z-10 flex items-center gap-1">
                             Shop Now
                             <ArrowRight className="w-2.5 h-2.5 transition-transform duration-500 group-hover:translate-x-1" />
                         </span>
+
+                        {/* Glassy Sweep Animation */}
                         <div className="absolute inset-0 bg-white/10 translate-y-full transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)] group-hover:translate-y-0" />
                     </Link>
                 </div>

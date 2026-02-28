@@ -86,57 +86,58 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
                         <h2 className="text-2xl md:text-3xl font-medium tracking-tight text-black">
                             Shop by Category
                         </h2>
-                        <div className="hidden md:flex items-center gap-2">
-                            <button
-                                onClick={() => scrollCategories("left")}
-                                disabled={!canScrollLeft}
-                                className={cn(
-                                    "p-2 rounded-full border border-zinc-200 transition-all duration-300",
-                                    canScrollLeft ? "text-zinc-600 hover:text-black hover:border-zinc-400" : "text-zinc-200 cursor-default"
-                                )}
-                            >
-                                <ChevronLeft className="w-4 h-4" />
-                            </button>
-                            <button
-                                onClick={() => scrollCategories("right")}
-                                disabled={!canScrollRight}
-                                className={cn(
-                                    "p-2 rounded-full border border-zinc-200 transition-all duration-300",
-                                    canScrollRight ? "text-zinc-600 hover:text-black hover:border-zinc-400" : "text-zinc-200 cursor-default"
-                                )}
-                            >
-                                <ChevronRight className="w-4 h-4" />
-                            </button>
-                        </div>
                     </div>
 
-                    <div
-                        ref={categoryScrollRef}
-                        className="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-2 snap-x snap-mandatory"
-                    >
-                        {initialCategories.map((cat) => (
-                            <Link
-                                key={cat.name}
-                                href={`/shop?category=${encodeURIComponent(cat.name)}`}
-                                className="group relative flex-shrink-0 w-[220px] md:w-[260px] aspect-[3/4] rounded-2xl overflow-hidden snap-start"
-                            >
-                                <Image
-                                    src={optimizeCloudinaryUrl(cat.image, 500)}
-                                    alt={cat.name}
-                                    fill
-                                    sizes="(max-width: 768px) 220px, 260px"
-                                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-colors duration-500 group-hover:from-black/90" />
-                                <div className="absolute inset-x-0 bottom-0 p-5 flex items-end justify-between">
-                                    <span className="text-white text-xs md:text-sm font-bold uppercase tracking-[0.2em]">
-                                        {cat.name}
-                                    </span>
-                                    <ArrowRight className="w-4 h-4 text-white/40 transition-all duration-500 group-hover:text-white group-hover:translate-x-1" />
-                                </div>
-                                <div className="absolute top-0 left-0 w-0 h-[2px] bg-black transition-all duration-700 group-hover:w-full" />
-                            </Link>
-                        ))}
+                    <div className="relative group/nav">
+                        {/* Glassy Navigation Arrows */}
+                        <button
+                            onClick={() => scrollCategories("left")}
+                            className={cn(
+                                "absolute left-4 top-[40%] -translate-y-1/2 z-20 p-2 md:p-3 rounded-full bg-white/30 backdrop-blur-md border border-white/20 text-black transition-all duration-300 hover:bg-white/50 active:scale-90 shadow-lg",
+                                canScrollLeft ? "opacity-100 visible" : "opacity-0 invisible"
+                            )}
+                        >
+                            <ChevronLeft className="w-3 h-3 md:w-4 md:h-4" />
+                        </button>
+
+                        <button
+                            onClick={() => scrollCategories("right")}
+                            className={cn(
+                                "absolute right-4 top-[40%] -translate-y-1/2 z-20 p-2 md:p-3 rounded-full bg-white/30 backdrop-blur-md border border-white/20 text-black transition-all duration-300 hover:bg-white/50 active:scale-90 shadow-lg",
+                                canScrollRight ? "opacity-100 visible" : "opacity-0 invisible"
+                            )}
+                        >
+                            <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
+                        </button>
+
+                        <div
+                            ref={categoryScrollRef}
+                            className="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-2 snap-x snap-mandatory px-1"
+                        >
+                            {initialCategories.map((cat) => (
+                                <Link
+                                    key={cat.name}
+                                    href={`/shop?category=${encodeURIComponent(cat.name)}`}
+                                    className="group flex flex-col gap-4 flex-shrink-0 w-[220px] md:w-[260px] snap-start"
+                                >
+                                    <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
+                                        <Image
+                                            src={optimizeCloudinaryUrl(cat.image, 500)}
+                                            alt={cat.name}
+                                            fill
+                                            sizes="(max-width: 768px) 220px, 260px"
+                                            className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                                        />
+                                        <div className="absolute top-0 left-0 w-0 h-[2px] bg-black transition-all duration-700 group-hover:w-full" />
+                                    </div>
+                                    <div className="px-1">
+                                        <span className="text-black text-xs md:text-sm font-bold uppercase tracking-[0.2em]">
+                                            {cat.name}
+                                        </span>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
                     </div>
                 </section>
             )}
