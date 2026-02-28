@@ -104,7 +104,7 @@ export function Hero({ images }: HeroProps) {
                         href="/shop"
                         onClick={handleClick}
                         className={cn(
-                            "group relative inline-flex items-center gap-2.5 px-6 py-2.5 bg-white/40 backdrop-blur-xl text-black text-[8px] md:text-[9px] font-bold uppercase tracking-[0.3em] rounded-full border border-white/30 overflow-hidden transition-all duration-500 hover:bg-white/60 hover:tracking-[0.4em] active:scale-95 shadow-2xl shadow-black/20",
+                            "group relative inline-flex items-center gap-2 px-4 py-1.5 md:gap-2.5 md:px-6 md:py-2.5 bg-white/40 backdrop-blur-xl text-black text-[7px] md:text-[9px] font-bold uppercase tracking-[0.3em] rounded-full border border-white/30 overflow-hidden transition-all duration-500 hover:bg-white/60 hover:tracking-[0.4em] active:scale-95 shadow-2xl shadow-black/20",
                             isClicked && "bg-white/60 tracking-[0.4em]"
                         )}
                     >
@@ -116,10 +116,10 @@ export function Hero({ images }: HeroProps) {
                             <Image
                                 src="/welcome-eye.png"
                                 alt="Logo"
-                                width={24}
-                                height={24}
+                                width={20}
+                                height={20}
                                 className={cn(
-                                    "object-contain min-w-[24px] transition-transform duration-500 group-hover:scale-110",
+                                    "object-contain min-w-[20px] md:min-w-[24px] md:w-[24px] md:h-[24px] transition-transform duration-500 group-hover:scale-110",
                                     isClicked && "scale-110"
                                 )}
                             />
