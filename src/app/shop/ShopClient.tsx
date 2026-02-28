@@ -99,8 +99,8 @@ export default function ShopClient({ initialProducts, initialCategories }: ShopC
     return (
         <main className="min-h-screen bg-white pb-20 pt-8 animate-in fade-in duration-700">
             <div className="px-6">
-                <header className="mb-8">
-                    <h1 className="font-empire text-5xl mb-6">Store</h1>
+                <header className="mb-0">
+                    <h1 className="font-empire text-xl mb-2">Store</h1>
 
                     <div className="flex flex-col gap-4">
                         <div className="relative">

@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { TopNavbar } from "@/components/layout/TopNavbar";
-import { BottomNavbar } from "@/components/layout/BottomNavbar";
 import { Footer } from "@/components/layout/Footer";
 import WelcomeBanner from "@/components/ui/WelcomeBanner";
 import WelcomeAnimation from "@/components/ui/WelcomeAnimation";
@@ -84,17 +83,11 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                 }
             `}</style>
             <div className="relative min-h-screen bg-white text-black antialiased">
-                {!isAdmin && <TopNavbar />}
-                <main className={cn(!isAdmin && pathname !== "/" && "pt-12 md:pt-14")}>
+                {!isAdmin && <TopNavbar onCartClick={() => setIsCartOpen(true)} />}
+                <main className={cn(!isAdmin && pathname !== "/" && "pt-14 md:pt-16")}>
                     {children}
                 </main>
                 {!isAdmin && <Footer />}
-                {!isAdmin && (
-                    <BottomNavbar
-                        onCartClick={() => setIsCartOpen(true)}
-                        onProfileClick={() => setIsAuthOpen(true)}
-                    />
-                )}
                 {!isAdmin && <WelcomeBanner />}
                 {!isAdmin && <WelcomeAnimation />}
                 <CartDrawer

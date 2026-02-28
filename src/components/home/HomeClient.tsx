@@ -86,29 +86,33 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
                         <h2 className="text-2xl md:text-3xl font-medium tracking-tight text-black">
                             Shop by Category
                         </h2>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => scrollCategories("left")}
+                                disabled={!canScrollLeft}
+                                className={cn(
+                                    "p-2 rounded-full border border-zinc-100 transition-all active:scale-90",
+                                    canScrollLeft ? "text-black hover:bg-zinc-50" : "text-zinc-200 cursor-not-allowed"
+                                )}
+                                aria-label="Scroll left"
+                            >
+                                <ChevronLeft size={16} />
+                            </button>
+                            <button
+                                onClick={() => scrollCategories("right")}
+                                disabled={!canScrollRight}
+                                className={cn(
+                                    "p-2 rounded-full border border-zinc-100 transition-all active:scale-90",
+                                    canScrollRight ? "text-black hover:bg-zinc-50" : "text-zinc-200 cursor-not-allowed"
+                                )}
+                                aria-label="Scroll right"
+                            >
+                                <ChevronRight size={16} />
+                            </button>
+                        </div>
                     </div>
 
                     <div className="relative group/nav">
-                        {/* Glassy Navigation Arrows */}
-                        <button
-                            onClick={() => scrollCategories("left")}
-                            className={cn(
-                                "absolute left-4 top-[40%] -translate-y-1/2 z-20 p-2 md:p-3 rounded-full bg-white/30 backdrop-blur-md border border-white/20 text-black transition-all duration-300 hover:bg-white/50 active:scale-90 shadow-lg",
-                                canScrollLeft ? "opacity-100 visible" : "opacity-0 invisible"
-                            )}
-                        >
-                            <ChevronLeft className="w-3 h-3 md:w-4 md:h-4" />
-                        </button>
-
-                        <button
-                            onClick={() => scrollCategories("right")}
-                            className={cn(
-                                "absolute right-4 top-[40%] -translate-y-1/2 z-20 p-2 md:p-3 rounded-full bg-white/30 backdrop-blur-md border border-white/20 text-black transition-all duration-300 hover:bg-white/50 active:scale-90 shadow-lg",
-                                canScrollRight ? "opacity-100 visible" : "opacity-0 invisible"
-                            )}
-                        >
-                            <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
-                        </button>
 
                         <div
                             ref={categoryScrollRef}
