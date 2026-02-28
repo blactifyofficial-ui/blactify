@@ -69,7 +69,7 @@ export function Hero({ images }: HeroProps) {
     return (
         <section
             ref={container}
-            className="relative h-[85vh] w-full overflow-hidden bg-[#0a0a0a]"
+            className="relative h-[85vh] w-full overflow-hidden bg-white"
         >
             {/* Background Images */}
             <div className="absolute inset-0 w-full h-full">
@@ -86,13 +86,12 @@ export function Hero({ images }: HeroProps) {
                             alt="Collection"
                             fill
                             sizes="100vw"
-                            className="object-cover"
+                            className="object-contain"
                             priority={i === 0}
                         />
                     </div>
                 ))}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-black/90" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
+
             </div>
 
             {/* Grain / Noise */}
