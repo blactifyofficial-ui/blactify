@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { ArrowRight } from "lucide-react";
+import { useGSAP } from "@gsap/react";
 import { optimizeCloudinaryUrl } from "@/lib/cloudinary-url";
 
 interface HeroProps {
@@ -128,10 +128,6 @@ export function Hero({ images }: HeroProps) {
 
                         <span className="relative z-10 flex items-center gap-1">
                             Shop Now
-                            <ArrowRight className={cn(
-                                "w-2.5 h-2.5 transition-transform duration-500 group-hover:translate-x-1",
-                                isClicked && "translate-x-1"
-                            )} />
                         </span>
 
                         {/* Glassy Sweep Animation */}

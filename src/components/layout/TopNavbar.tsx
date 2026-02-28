@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 
 export function TopNavbar() {
     const [showFullText, setShowFullText] = useState(false);
-    const [isVisible, setIsVisible] = useState(false);
 
     // Text looping (3s delay)
     useEffect(() => {
