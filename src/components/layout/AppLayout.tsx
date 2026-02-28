@@ -85,7 +85,9 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
             `}</style>
             <div className="relative min-h-screen bg-white text-black antialiased">
                 {!isAdmin && <TopNavbar />}
-                <main>{children}</main>
+                <main className={cn(!isAdmin && pathname !== "/" && "pt-12 md:pt-14")}>
+                    {children}
+                </main>
                 {!isAdmin && <Footer />}
                 {!isAdmin && (
                     <BottomNavbar

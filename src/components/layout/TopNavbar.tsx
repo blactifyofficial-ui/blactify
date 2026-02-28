@@ -18,7 +18,7 @@ export function TopNavbar() {
 
     return (
         <header
-            className="fixed top-0 left-0 right-0 z-[60] transition-all duration-500 ease-in-out px-6 md:px-12 bg-white/40 backdrop-blur-md text-black border-b border-zinc-200/50 h-14"
+            className="fixed top-0 left-0 right-0 z-[60] transition-all duration-500 ease-in-out px-6 md:px-12 bg-white/40 backdrop-blur-md text-black border-b border-zinc-200/50 h-12 md:h-14"
         >
             <div className="max-w-7xl mx-auto flex items-center justify-center h-full">
                 <Link href="/" className="relative flex items-center justify-center group h-8 overflow-hidden">
