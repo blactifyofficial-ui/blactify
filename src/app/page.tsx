@@ -27,21 +27,21 @@ async function getInitialProducts() {
 
 async function getCategories() {
   try {
-    // Fetch categories along with one product image to use as the category card image
+    // Fetch categories along with image_url and one product image fallback
     const { data, error } = await supabase
       .from("categories")
-      .select("name, products(product_images(url))")
+      .select("name, image_url, products(product_images(url))")
       .order("name", { ascending: true });
 
     if (error) return [];
 
-    // Map each category to { name, image } using the first product's first image
+    // Map each category to { name, image } prioritizing image_url
     const categories = (data || [])
-      .map((cat: { name: string; products: { product_images: { url: string }[] }[] | null }) => {
-        const firstProductImage = cat.products?.[0]?.product_images?.[0]?.url;
+      .map((cat: { name: string; image_url?: string; products: { product_images: { url: string }[] }[] | null }) => {
+        const fallbackImage = cat.products?.[0]?.product_images?.[0]?.url;
         return {
           name: cat.name,
-          image: firstProductImage || "/hero-placeholder.jpg",
+          image: cat.image_url || fallbackImage || "/hero-placeholder.jpg",
         };
       })
       .filter((cat: { name: string; image: string }) => cat.image !== "/hero-placeholder.jpg"); // Only show categories that have product images

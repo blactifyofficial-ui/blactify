@@ -8,6 +8,7 @@ export interface Category {
     id: string;
     name: string;
     slug: string;
+    image_url?: string;
     size_config?: string[]; // Deprecated, keep for type compatibility during migration if needed
     category_measurements?: {
         measurement_types: MeasurementType;

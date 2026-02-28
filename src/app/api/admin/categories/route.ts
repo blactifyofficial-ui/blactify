@@ -5,12 +5,12 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export async function POST(request: Request) {
     try {
-        const { name, slug, size_config } = await request.json();
+        const { name, slug, size_config, image_url } = await request.json();
 
         // 1. Insert Category
         const { data: categoryData, error: insertError } = await supabaseAdmin
             .from("categories")
-            .insert([{ name, slug }])
+            .insert([{ name, slug, image_url }])
             .select()
             .single();
 
@@ -87,12 +87,12 @@ export async function GET() {
 
 export async function PUT(request: Request) {
     try {
-        const { id, name, slug, size_config } = await request.json();
+        const { id, name, slug, size_config, image_url } = await request.json();
 
         // 1. Update Category
         const { data: categoryData, error: updateError } = await supabaseAdmin
             .from("categories")
-            .update({ name, slug })
+            .update({ name, slug, image_url })
             .eq("id", id)
             .select()
             .single();
