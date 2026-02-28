@@ -2,61 +2,61 @@ import { Metadata } from "next";
 import { supabase } from "@/lib/supabase";
 import HomeClient from "@/components/home/HomeClient";
 
-export const revalidate = 120;
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Blactify | Meets Timeless Essentials",
   description: "Modern e-commerce platform for high-aesthetic meets timeless essentials. Discover curated premium apparel and accessories.",
 };
 
-import { unstable_cache } from "next/cache";
+async function getInitialProducts() {
+  try {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*, product_images(*), product_variants(*)")
+      .not("home_order", "is", null)
+      .order("home_order", { ascending: true })
+      .limit(6);
 
-const getInitialProducts = unstable_cache(
-  async () => {
-    try {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*, product_images(*), product_variants(*)")
-        .not("home_order", "is", null)
-        .order("home_order", { ascending: true })
-        .limit(6);
+    if (error) return [];
+    return data || [];
+  } catch {
+    return [];
+  }
+}
 
-      if (error) return [];
-      return data || [];
-    } catch {
-      return [];
-    }
-  },
-  ["home-products"],
-  { revalidate: 120, tags: ["home-products"] }
-);
+async function getCategories() {
+  try {
+    // Fetch categories along with one product image to use as the category card image
+    const { data, error } = await supabase
+      .from("categories")
+      .select("name, products(product_images(url))")
+      .order("name", { ascending: true });
 
-import { Suspense } from "react";
+    if (error) return [];
 
-function HomeSkeleton() {
-  return (
-    <main className="flex flex-col animate-pulse">
-      <div className="h-[80vh] w-full bg-zinc-200" />
-      <section className="px-6 py-12">
-        <div className="mb-12 flex items-end justify-between">
-          <div className="h-8 w-48 bg-zinc-200 rounded-lg" />
-          <div className="h-4 w-16 bg-zinc-200 rounded" />
-        </div>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4 lg:grid-cols-6">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="flex flex-col gap-4">
-              <div className="aspect-[3/4] bg-zinc-200 rounded-3xl" />
-              <div className="h-3 w-16 bg-zinc-200 rounded" />
-              <div className="h-4 w-3/4 bg-zinc-200 rounded" />
-            </div>
-          ))}
-        </div>
-      </section>
-    </main>
-  );
+    // Map each category to { name, image } using the first product's first image
+    const categories = (data || [])
+      .map((cat: { name: string; products: { product_images: { url: string }[] }[] | null }) => {
+        const firstProductImage = cat.products?.[0]?.product_images?.[0]?.url;
+        return {
+          name: cat.name,
+          image: firstProductImage || "/hero-placeholder.jpg",
+        };
+      })
+      .filter((cat: { name: string; image: string }) => cat.image !== "/hero-placeholder.jpg"); // Only show categories that have product images
+
+    return categories;
+  } catch {
+    return [];
+  }
 }
 
 export default async function Page() {
-  const products = await getInitialProducts();
+  const [products, categories] = await Promise.all([
+    getInitialProducts(),
+    getCategories(),
+  ]);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -92,9 +92,7 @@ export default async function Page() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
       />
-      <Suspense fallback={<HomeSkeleton />}>
-        <HomeClient initialProducts={products} />
-      </Suspense>
+      <HomeClient initialProducts={products} initialCategories={categories} />
     </>
   );
 }

@@ -12,7 +12,6 @@ import { getUserOrders } from "@/lib/order-sync";
 import { type Product } from "@/components/ui/ProductCard";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { getStoreSettings } from "@/app/actions/settings";
 import { getFriendlyErrorMessage } from "@/lib/error-messages";
 import { optimizeCloudinaryUrl } from "@/lib/cloudinary-client";
 
@@ -30,9 +29,11 @@ interface Review {
 
 interface ProductClientPageProps {
     initialProduct: Product;
+    initialReviews: Review[];
+    initialSettings: { purchases_enabled: boolean } | null;
 }
 
-export default function ProductClientPage({ initialProduct }: ProductClientPageProps) {
+export default function ProductClientPage({ initialProduct, initialReviews, initialSettings }: ProductClientPageProps) {
     const router = useRouter();
     const [product] = useState<Product>(initialProduct);
     const [loading] = useState(false);
@@ -42,7 +43,7 @@ export default function ProductClientPage({ initialProduct }: ProductClientPageP
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     // Review states
-    const [reviews, setReviews] = useState<Review[]>([]);
+    const [reviews, setReviews] = useState<Review[]>(initialReviews);
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
     const [newRating, setNewRating] = useState(5);
     const [newComment, setNewComment] = useState("");
@@ -50,20 +51,9 @@ export default function ProductClientPage({ initialProduct }: ProductClientPageP
     const [touchStart, setTouchStart] = useState<number | null>(null);
     const [touchEnd, setTouchEnd] = useState<number | null>(null);
     const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
-    const [storeEnabled, setStoreEnabled] = useState(true);
-    const [isCheckingStore, setIsCheckingStore] = useState(true);
+    const [storeEnabled] = useState(initialSettings?.purchases_enabled ?? true);
     const [hasPurchased, setHasPurchased] = useState(false);
     const [isCheckingPurchase, setIsCheckingPurchase] = useState(false);
-
-    useEffect(() => {
-        setIsCheckingStore(true);
-        getStoreSettings().then(settings => {
-            if (settings) {
-                setStoreEnabled(settings.purchases_enabled);
-            }
-            setIsCheckingStore(false);
-        });
-    }, []);
 
     // Minimum swipe distance (in px)
     const minSwipeDistance = 50;
@@ -91,10 +81,6 @@ export default function ProductClientPage({ initialProduct }: ProductClientPageP
         const data = await fetchReviews(product.id);
         setReviews(data);
     }, [product]);
-
-    useEffect(() => {
-        loadReviews();
-    }, [loadReviews]);
 
     useEffect(() => {
         async function checkPurchase() {
@@ -425,11 +411,7 @@ export default function ProductClientPage({ initialProduct }: ProductClientPageP
                         )}
 
                         <div className="relative flex flex-col gap-3 mt-8 lg:mt-0">
-                            {isCheckingStore ? (
-                                <div className="w-full h-16 rounded-full bg-zinc-50 animate-pulse flex items-center justify-center">
-                                    <div className="h-4 w-32 bg-zinc-100 rounded-full" />
-                                </div>
-                            ) : storeEnabled ? (
+                            {storeEnabled ? (
                                 <>
                                     <button
                                         onClick={async () => {
@@ -603,11 +585,7 @@ export default function ProductClientPage({ initialProduct }: ProductClientPageP
                                 <p className="text-xs text-zinc-400 font-sans max-w-xs mx-auto leading-relaxed">
                                     To maintain the highest standards of authenticity, only shoppers who have experienced this product can leave a review.
                                 </p>
-                                {isCheckingStore ? (
-                                    <div className="flex flex-col items-center gap-2 pt-2">
-                                        <div className="h-4 w-24 bg-white/5 animate-pulse rounded-full" />
-                                    </div>
-                                ) : storeEnabled ? (
+                                {storeEnabled ? (
                                     <button
                                         onClick={handleDirectBuy}
                                         className="text-[10px] font-bold text-white uppercase tracking-[0.3em] underline underline-offset-[12px] hover:text-zinc-300 transition-all active:scale-95 py-2"

@@ -20,9 +20,10 @@ interface ProductCardProps {
     className?: string;
     onImageLoad?: () => void;
     hidePrice?: boolean;
+    priority?: boolean;
 }
 
-export function ProductCard({ product, className, onImageLoad, hidePrice }: ProductCardProps) {
+export function ProductCard({ product, className, onImageLoad, hidePrice, priority }: ProductCardProps) {
     const { addItem } = useCartStore();
     const { user } = useAuth();
     const container = useRef<HTMLDivElement>(null);
@@ -54,10 +55,10 @@ export function ProductCard({ product, className, onImageLoad, hidePrice }: Prod
                             src={optimizeCloudinaryUrl(product.product_images?.[0]?.url || product.main_image, 800) || ""}
                             alt={product.name}
                             fill
-                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 16vw"
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                             className="object-cover transition-transform duration-500 group-hover:scale-105"
-                            priority={false}
-                            loading="lazy"
+                            priority={priority}
+                            loading={priority ? "eager" : "lazy"}
                             onLoad={onImageLoad}
                         />
                     ) : (

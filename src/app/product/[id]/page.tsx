@@ -45,9 +45,16 @@ export async function generateMetadata(
     };
 }
 
+import { fetchReviews } from "@/lib/review-sync";
+import { getStoreSettings } from "@/app/actions/settings";
+
 export default async function Page({ params }: Props) {
     const { id } = await params;
-    const product = await getProduct(id);
+    const [product, reviews, settings] = await Promise.all([
+        getProduct(id),
+        fetchReviews(id),
+        getStoreSettings()
+    ]);
 
     if (!product) {
         notFound();
@@ -83,7 +90,11 @@ export default async function Page({ params }: Props) {
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
-            <ProductClientPage initialProduct={product} />
+            <ProductClientPage
+                initialProduct={product}
+                initialReviews={reviews || []}
+                initialSettings={settings}
+            />
         </>
     );
 }

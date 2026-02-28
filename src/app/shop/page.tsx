@@ -89,15 +89,19 @@ function ShopSkeleton() {
     );
 }
 
-export default async function ShopPage() {
+async function ShopContent() {
     const [categories, products] = await Promise.all([
         getCategories(),
         getProducts()
     ]);
 
+    return <ShopClient initialProducts={products} initialCategories={categories} />;
+}
+
+export default async function ShopPage() {
     return (
         <Suspense fallback={<ShopSkeleton />}>
-            <ShopClient initialProducts={products} initialCategories={categories} />
+            <ShopContent />
         </Suspense>
     );
 }

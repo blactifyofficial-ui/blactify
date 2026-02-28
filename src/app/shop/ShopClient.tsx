@@ -21,10 +21,11 @@ export default function ShopClient({ initialProducts, initialCategories }: ShopC
     const [sortBy, setSortBy] = useState("mixed");
     const [isSortOpen, setIsSortOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [visibleCount, setVisibleCount] = useState(20);
+
     useEffect(() => {
-        // Hydration matching fix
-        const t = setTimeout(() => setMounted(true), 0);
-        return () => clearTimeout(t);
+        const frame = requestAnimationFrame(() => setMounted(true));
+        return () => cancelAnimationFrame(frame);
     }, []);
 
     const categories = initialCategories;
@@ -56,14 +57,19 @@ export default function ShopClient({ initialProducts, initialCategories }: ShopC
     }
 
     // Sort products
-    if (sortBy === "price-low") {
+    if (sortBy === "mixed") {
+        // Simple stable pseudo-random sort based on product ID
+        filteredProducts.sort((a, b) => {
+            const hashA = a.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+            const hashB = b.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+            return (hashA % 13) - (hashB % 13) || a.id.localeCompare(b.id);
+        });
+    } else if (sortBy === "price-low") {
         filteredProducts.sort((a, b) => a.price_base - b.price_base);
     } else if (sortBy === "price-high") {
         filteredProducts.sort((a, b) => b.price_base - a.price_base);
     } else if (sortBy === "newest") {
         filteredProducts.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
-    } else {
-        // "mixed" roughly maintains the original layout structure from DB ordering unless specifically changed
     }
 
     // Always sort out-of-stock items to the bottom
@@ -76,10 +82,18 @@ export default function ShopClient({ initialProducts, initialCategories }: ShopC
         return 0;
     });
 
+    const paginatedProducts = filteredProducts.slice(0, visibleCount);
+    const hasMore = visibleCount < filteredProducts.length;
+
+    const handleLoadMore = () => {
+        setVisibleCount(prev => prev + 20);
+    };
 
     // Splash screen while client hydrating only
     if (!mounted) {
-        return null;
+        return (
+            <div className="min-h-screen bg-white" />
+        );
     }
 
     return (
@@ -159,15 +173,27 @@ export default function ShopClient({ initialProducts, initialCategories }: ShopC
                 </div>
 
                 <div className="relative min-h-[400px]">
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4 lg:grid-cols-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                        {filteredProducts.map((product: Product) => (
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4 lg:grid-cols-5 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        {paginatedProducts.map((product: Product, index: number) => (
                             <ProductCard
                                 key={product.id}
                                 product={product}
+                                priority={index < 4}
                             />
                         ))}
                     </div>
                 </div>
+
+                {hasMore && (
+                    <div className="flex justify-center mt-16 mb-12">
+                        <button
+                            onClick={handleLoadMore}
+                            className="px-12 py-4 bg-black text-white rounded-full text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-zinc-800 transition-all active:scale-95 shadow-xl"
+                        >
+                            Load More
+                        </button>
+                    </div>
+                )}
 
                 {filteredProducts.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-20 text-center">

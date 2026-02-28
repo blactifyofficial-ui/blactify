@@ -13,6 +13,7 @@ export async function POST(req: Request) {
         // Upload to Cloudinary
         const result = await cloudinary.uploader.upload(image, {
             folder: 'blactify-products',
+            format: 'webp',
         });
 
         return NextResponse.json({

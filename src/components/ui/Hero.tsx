@@ -1,154 +1,107 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { optimizeCloudinaryUrl } from "@/lib/cloudinary-client";
+import { ArrowRight } from "lucide-react";
+import { optimizeCloudinaryUrl } from "@/lib/cloudinary-url";
+
 interface HeroProps {
-    title: string | React.ReactNode;
     images: string[];
-    ctaText?: string;
-    ctaLink?: string;
 }
 
-export function Hero({ title, images, ctaText, ctaLink }: HeroProps) {
-    const router = useRouter();
+export function Hero({ images }: HeroProps) {
     const container = useRef<HTMLDivElement>(null);
-    const titleRef = useRef<HTMLHeadingElement>(null);
+    const ctaRef = useRef<HTMLDivElement>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const [showFullText, setShowFullText] = useState(false);
-    const [isHovered, setIsHovered] = useState(false);
-    const [isAnimating, setIsAnimating] = useState(false);
-    const [isClicked, setIsClicked] = useState(false);
 
-    // Background Image Animation
-    useGSAP(() => {
+    // Image crossfade cycle
+    useEffect(() => {
         if (images.length <= 1) return;
-
         const interval = setInterval(() => {
             const nextIndex = (currentImageIndex + 1) % images.length;
-
-            // Fade out current, fade in next
-            gsap.to(`.hero-image-${currentImageIndex}`, { opacity: 0, duration: 1.5, ease: "power2.inOut" });
-            gsap.to(`.hero-image-${nextIndex}`, { opacity: 1, duration: 1.5, ease: "power2.inOut" });
-
+            const els = container.current?.querySelectorAll(".hero-bg-image");
+            if (els) {
+                gsap.to(els[currentImageIndex], { opacity: 0, scale: 1, duration: 2, ease: "power2.inOut" });
+                gsap.to(els[nextIndex], { opacity: 1, scale: 1.05, duration: 2, ease: "power2.inOut" });
+            }
             setCurrentImageIndex(nextIndex);
         }, 5000);
-
         return () => clearInterval(interval);
     }, [currentImageIndex, images.length]);
 
-    // Title Entry Animation
+    // Entry animations
     useGSAP(() => {
-        gsap.fromTo(titleRef.current,
-            { y: 50, opacity: 0 },
-            { y: 0, opacity: 0.85, duration: 1.2, ease: "power3.out", delay: 0.5 }
+        const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
+
+        tl.fromTo(ctaRef.current,
+            { y: 20, opacity: 0 },
+            { y: 0, opacity: 1, duration: 1.2, delay: 0.5 }
         );
+
+        // Subtle slow Ken Burns on the first visible image
+        gsap.to(".hero-bg-image:first-child", {
+            scale: 1.08,
+            duration: 20,
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut"
+        });
+
     }, { scope: container });
 
-    // Handle toggle for the CTA area (eye vs Shop Now)
-    useGSAP(() => {
-        const interval = setInterval(() => {
-            if (!isHovered && !isAnimating && !isClicked) {
-                setShowFullText((prev) => !prev);
-            }
-        }, 3000);
-
-        return () => clearInterval(interval);
-    }, [isHovered, isAnimating, isClicked]);
-
-    const handleCTAClick = (e: React.MouseEvent) => {
-        if (e && e.preventDefault) e.preventDefault();
-        if (isClicked) return;
-
-        setIsClicked(true);
-        setIsAnimating(true);
-
-        setTimeout(() => {
-            if (ctaLink) router.push(ctaLink);
-        }, 300);
-    };
-
     return (
-        <section ref={container} className="relative h-[80vh] w-full overflow-hidden bg-zinc-100">
-            {images.map((img, index) => (
-                <div
-                    key={`${img}-${index}`}
-                    className={cn(
-                        "absolute inset-0 transition-opacity",
-                        `hero-image-${index}`,
-                        index === 0 ? "opacity-100" : "opacity-0"
-                    )}
-                >
-                    {/* Render only the first image immediately, lazy load others */}
-                    {(index === 0 || currentImageIndex === index || currentImageIndex + 1 === index) && (
-                        <Image
-                            src={optimizeCloudinaryUrl(img, 1600) || img}
-                            alt={typeof title === 'string' ? title : "Hero Image"}
-                            fill
-                            sizes="(max-width: 768px) 100vw, 100vw"
-                            className="object-cover"
-                            priority={index === 0}
-                            fetchPriority={index === 0 ? "high" : "auto"}
-                            quality={80}
-                        />
-                    )}
-                </div>
-            ))}
-            <div className="absolute inset-0 bg-black/20" />
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-[#333639] z-10">
-                <h1
-                    ref={titleRef}
-                    className="font-empire text-3xl md:text-5xl lg:text-7xl mb-4 md:mb-8 opacity-0 uppercase leading-none tracking-tighter drop-shadow-2xl"
-                >
-                    {title}
-                </h1>
-
-                <div
-                    className="relative h-48 w-72 flex items-center justify-center overflow-hidden cursor-pointer"
-                    onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}
-                    onClick={handleCTAClick}
-                >
-                    {/* Eye Icon Slide */}
+        <section
+            ref={container}
+            className="relative h-[85vh] w-full bg-white z-10 overflow-hidden"
+        >
+            {/* Background Images Wrapper (Clips the images) */}
+            <div className="absolute inset-0 w-full h-full overflow-hidden">
+                {images.map((img, i) => (
                     <div
+                        key={`${img}-${i}`}
                         className={cn(
-                            "absolute inset-0 flex items-center justify-center transition-all duration-700 ease-in-out",
-                            showFullText ? "-translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-40 hover:opacity-100",
-                            isAnimating && "opacity-100 scale-90 duration-300"
+                            "hero-bg-image absolute inset-0 w-full h-full will-change-transform",
+                            i === 0 ? "opacity-100" : "opacity-0"
                         )}
                     >
-                        <div className={cn(
-                            "relative w-24 h-24 md:w-32 md:h-32 transition-transform duration-300",
-                            !isClicked && "animate-eye-glow"
-                        )}>
-                            <Image
-                                src="/welcome-eye.png"
-                                alt="Logo Icon"
-                                fill
-                                sizes="(max-width: 768px) 96px, 128px"
-                                className="object-contain"
-                            />
-                        </div>
+                        <Image
+                            src={optimizeCloudinaryUrl(img, 1200)}
+                            alt="Collection"
+                            fill
+                            sizes="100vw"
+                            className="object-contain"
+                            priority={i === 0}
+                        />
                     </div>
+                ))}
 
-                    {/* Shop Now Slide */}
-                    {ctaLink && (
-                        <div
-                            className={cn(
-                                "absolute inset-0 flex items-center justify-center text-[10px] md:text-sm font-bold uppercase tracking-[0.4em] transition-all duration-700 ease-in-out",
-                                showFullText ? "translate-y-0 opacity-40 hover:opacity-100" : "translate-y-full opacity-0 pointer-events-none",
-                                isAnimating && "opacity-100 scale-90 duration-300"
-                            )}
-                        >
-                            {ctaText || "Shop Now"}
-                        </div>
-                    )}
+                {/* Grain / Noise (Must stay inside current clip) */}
+                <div className="absolute inset-0 noise-bg pointer-events-none z-[1]" />
+            </div>
+
+            {/* Content */}
+            <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 text-center">
+                {/* CTA ONLY */}
+                <div ref={ctaRef}>
+                    <Link
+                        href="/shop"
+                        className="group relative inline-flex items-center gap-1.5 px-5 py-2 bg-white/40 backdrop-blur-xl text-black text-[8px] md:text-[9px] font-bold uppercase tracking-[0.3em] rounded-full border border-white/30 overflow-hidden transition-all duration-500 hover:bg-white/60 hover:tracking-[0.4em] active:scale-95 shadow-2xl shadow-black/20"
+                    >
+                        <span className="relative z-10 flex items-center gap-1">
+                            Shop Now
+                            <ArrowRight className="w-2.5 h-2.5 transition-transform duration-500 group-hover:translate-x-1" />
+                        </span>
+                        <div className="absolute inset-0 bg-white/10 translate-y-full transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)] group-hover:translate-y-0" />
+                    </Link>
                 </div>
             </div>
+
+            {/* Ambient lights */}
+            <div className="absolute top-0 left-0 w-[400px] h-[400px] bg-white/[0.03] blur-[100px] rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+            <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-white/[0.03] blur-[100px] rounded-full translate-x-1/2 translate-y-1/2 pointer-events-none" />
         </section>
     );
 }
-

@@ -15,5 +15,5 @@ export function optimizeCloudinaryUrl(url: string | null | undefined, width: num
     const beforeUpload = cleanUrl.substring(0, uploadIndex + 7);
     const afterUpload = cleanUrl.substring(uploadIndex + 7);
 
-    return `${beforeUpload}f_webp,q_auto,w_${width}/${afterUpload}`;
+    return `${beforeUpload}f_auto,q_auto,w_${width}/${afterUpload}`;
 }
