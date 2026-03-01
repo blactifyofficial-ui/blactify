@@ -82,7 +82,7 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
                                         />
                                         <div className="absolute top-0 left-0 w-0 h-[2px] bg-black transition-all duration-700 group-hover:w-full" />
                                     </div>
-                                    <div className="px-1">
+                                    <div className="px-1 text-center">
                                         <span className="text-black text-xs md:text-sm font-bold uppercase tracking-[0.2em]">
                                             {cat.name}
                                         </span>
