@@ -80,10 +80,34 @@ export default function AdminDashboardPage() {
     };
 
     const statCards = [
-        { name: "Total Revenue", value: `₹${stats.totalRevenue.toLocaleString()}`, icon: IndianRupee, change: "+12.5%", trendingUp: true },
-        { name: "Total Orders", value: stats.totalOrders.toLocaleString(), icon: ShoppingBag, change: "+3.2%", trendingUp: true },
-        { name: "Active Users", value: stats.activeUsers.toLocaleString(), icon: Users, change: stats.userGrowth, trendingUp: true },
-        { name: "System Status", value: "Optimal", icon: CheckCircle2, change: "Live", trendingUp: true },
+        {
+            name: "Total Revenue",
+            value: `₹${stats.totalRevenue.toLocaleString()}`,
+            icon: IndianRupee,
+            change: stats.revenueGrowth,
+            trendingUp: !stats.revenueGrowth.startsWith('-')
+        },
+        {
+            name: "Total Orders",
+            value: stats.totalOrders.toLocaleString(),
+            icon: ShoppingBag,
+            change: stats.orderGrowth,
+            trendingUp: !stats.orderGrowth.startsWith('-')
+        },
+        {
+            name: "Active Users",
+            value: stats.activeUsers.toLocaleString(),
+            icon: Users,
+            change: stats.userGrowth,
+            trendingUp: !stats.userGrowth.startsWith('-')
+        },
+        {
+            name: "System Status",
+            value: "Optimal",
+            icon: CheckCircle2,
+            change: "Live",
+            trendingUp: true
+        },
     ];
 
     if (loading) return <AdminLoading message="Getting things ready..." />;

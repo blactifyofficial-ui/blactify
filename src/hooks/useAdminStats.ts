@@ -8,7 +8,9 @@ import { getAdminStats } from "@/app/actions/stats";
 
 export interface DashboardStats {
     totalRevenue: number;
+    revenueGrowth: string;
     totalOrders: number;
+    orderGrowth: string;
     recentOrders: Order[];
     revenueByMonth: { month: string; amount: number }[];
     conversionRate: string;
@@ -20,7 +22,9 @@ export interface DashboardStats {
 export function useAdminStats() {
     const [stats, setStats] = useState<DashboardStats>({
         totalRevenue: 0,
+        revenueGrowth: "0%",
         totalOrders: 0,
+        orderGrowth: "0%",
         recentOrders: [],
         revenueByMonth: [],
         conversionRate: "0%",
@@ -44,7 +48,9 @@ export function useAdminStats() {
             // Map server types to client types if needed
             setStats({
                 totalRevenue: result.stats.totalRevenue,
+                revenueGrowth: result.stats.revenueGrowth || "0%",
                 totalOrders: result.stats.totalOrders,
+                orderGrowth: result.stats.orderGrowth || "0%",
                 recentOrders: result.stats.recentOrders as Order[],
                 revenueByMonth: result.stats.revenueByMonth,
                 conversionRate: result.stats.conversionRate || "0%",

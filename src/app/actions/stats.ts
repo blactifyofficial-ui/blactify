@@ -17,6 +17,30 @@ export async function getAdminStats() {
         const revenue = typedOrders.reduce((sum, order) => sum + Number(order.amount), 0) || 0;
         const totalOrders = typedOrders.length;
 
+        // Growth Calculations (Last 30 days vs Previous 30 days)
+        const now = new Date();
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+
+        const currentPeriodOrders = typedOrders.filter(o => new Date(o.created_at) >= thirtyDaysAgo);
+        const previousPeriodOrders = typedOrders.filter(o => {
+            const date = new Date(o.created_at);
+            return date >= sixtyDaysAgo && date < thirtyDaysAgo;
+        });
+
+        const currentRevenue = currentPeriodOrders.reduce((sum, o) => sum + Number(o.amount), 0);
+        const previousRevenue = previousPeriodOrders.reduce((sum, o) => sum + Number(o.amount), 0);
+
+        const revenueGrowthVal = previousRevenue > 0
+            ? ((currentRevenue - previousRevenue) / previousRevenue) * 100
+            : currentRevenue > 0 ? 100 : 0;
+        const revenueGrowth = `${revenueGrowthVal >= 0 ? '+' : ''}${revenueGrowthVal.toFixed(1)}%`;
+
+        const orderGrowthVal = previousPeriodOrders.length > 0
+            ? ((currentPeriodOrders.length - previousPeriodOrders.length) / previousPeriodOrders.length) * 100
+            : currentPeriodOrders.length > 0 ? 100 : 0;
+        const orderGrowth = `${orderGrowthVal >= 0 ? '+' : ''}${orderGrowthVal.toFixed(1)}%`;
+
         // Active Users (Total Profiles)
         const { count: usersCount, error: usersError } = await supabaseAdmin
             .from("profiles")
@@ -24,10 +48,7 @@ export async function getAdminStats() {
 
         if (usersError) throw new Error(usersError.message);
 
-        // Recent Users (Last 30 Days) for Growth
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
+        // User Growth (New users in last 30 days vs total)
         let recentUsersCount = 0;
         try {
             const { count } = await supabaseAdmin
@@ -80,7 +101,9 @@ export async function getAdminStats() {
             success: true,
             stats: {
                 totalRevenue: revenue,
+                revenueGrowth,
                 totalOrders: totalOrders,
+                orderGrowth,
                 recentOrders: typedOrders.slice(0, 5),
                 revenueByMonth,
                 activeUsers: usersCount || 0,

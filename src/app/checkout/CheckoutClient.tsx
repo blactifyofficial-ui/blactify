@@ -293,10 +293,15 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
 
         // 1. Validate Form
         if (!validateForm()) {
-            const firstErrorField = document.querySelector('.text-red-500');
-            if (firstErrorField) {
-                firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+            toast.error("Please fill in all required fields correctly.");
+
+            // Allow React to render the error classes before querying
+            setTimeout(() => {
+                const firstErrorField = document.querySelector('.text-red-500');
+                if (firstErrorField) {
+                    firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
             return;
         }
 
