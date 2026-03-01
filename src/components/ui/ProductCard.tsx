@@ -54,9 +54,10 @@ export function ProductCard({ product, className, onImageLoad, hidePrice, priori
                         <Image
                             src={optimizeCloudinaryUrl(product.product_images?.[0]?.url || product.main_image, 800) || ""}
                             alt={product.name}
-                            fill
-                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                            width={400}
+                            height={533}
+                            sizes="(max-width:768px) 50vw, (max-width:1200px) 33vw, 25vw"
+                            className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
                             priority={priority}
                             loading={priority ? "eager" : "lazy"}
                             onLoad={onImageLoad}

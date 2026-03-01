@@ -1,68 +1,19 @@
-import { supabase } from "@/lib/supabase";
-import { unstable_cache } from "next/cache";
-import ShopClient from "./ShopClient";
-import type { Product } from "@/types/database";
+import { Suspense } from "react";
+import Image from "next/image";
+import dynamic from "next/dynamic";
+import { getCategories, getProducts } from "./data";
+import { ProductGrid } from "./ProductGrid";
+import { LoadMore } from "./LoadMore";
+import { ScrollToTop } from "@/components/ui/ScrollToTop";
 
-export const revalidate = 120;
+import Filters from "./DynamicFilters";
+
+export const revalidate = 60;
 
 export const metadata = {
     title: "Store - Blactify",
     description: "Discover curated premium apparel and accessories.",
 };
-
-const getCategories = unstable_cache(
-    async () => {
-        try {
-            const { data, error } = await supabase
-                .from("categories")
-                .select("name, products(id)");
-            if (error) throw error;
-            if (data) {
-                const categoriesWithCounts = data.map((c: { name: string, products: { id: string }[] | null }) => ({
-                    name: c.name,
-                    count: Array.isArray(c.products) ? c.products.length : c.products ? 1 : 0
-                }));
-
-                // Sort by count descending
-                categoriesWithCounts.sort((a, b) => b.count - a.count);
-                return ["All", ...categoriesWithCounts.map((c) => c.name)];
-            }
-        } catch (error) {
-            console.error("Error fetching categories:", error);
-        }
-        return ["All"];
-    },
-    ["shop-categories"],
-    { revalidate: 120, tags: ["shop-categories"] }
-);
-
-const getProducts = unstable_cache(
-    async () => {
-        try {
-            const { data, error } = await supabase
-                .from("products")
-                .select(`
-                    *,
-                    categories(name),
-                    product_images(url),
-                    product_variants(stock)
-                `)
-                .order('created_at', { ascending: false });
-
-            if (error) throw error;
-            return (data || []) as Product[];
-        } catch (error) {
-            console.error("Error fetching products:", error);
-            return [];
-        }
-    },
-    ["shop-products"],
-    { revalidate: 120, tags: ["shop-products"] }
-);
-
-
-import { Suspense } from "react";
-import Image from "next/image";
 
 function ShopSkeleton() {
     return (
@@ -90,19 +41,58 @@ function ShopSkeleton() {
     );
 }
 
-async function ShopContent() {
-    const [categories, products] = await Promise.all([
+// Ensure the page takes valid searchParams type (Next.js App router specific, Promise in v15+)
+export default async function ShopPage({
+    searchParams
+}: {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+    const params = await searchParams;
+
+    const search = typeof params?.search === 'string' ? params.search : undefined;
+    const category = typeof params?.category === 'string' ? params.category : undefined;
+    const sortBy = typeof params?.sortBy === 'string' ? params.sortBy : undefined;
+
+    const limit = 8;
+
+    const [categories, result] = await Promise.all([
         getCategories(),
-        getProducts()
+        getProducts({ limit, search, category, sortBy, offset: 0 })
     ]);
 
-    return <ShopClient initialProducts={products} initialCategories={categories} />;
-}
-
-export default async function ShopPage() {
     return (
         <Suspense fallback={<ShopSkeleton />}>
-            <ShopContent />
+            <main className="min-h-screen bg-white pb-20 pt-8 animate-in fade-in duration-700">
+                <div className="px-6">
+                    <Filters
+                        categories={categories}
+                        totalResults={result.total}
+                        initialSearch={search}
+                        initialCategory={category}
+                        initialSortBy={sortBy}
+                    />
+
+                    <div className="relative min-h-[400px]">
+                        {result.products.length > 0 ? (
+                            <>
+                                <ProductGrid products={result.products} />
+                                <LoadMore
+                                    initialHasMore={result.hasMore}
+                                    limit={limit}
+                                    search={search}
+                                    category={category}
+                                    sortBy={sortBy}
+                                />
+                            </>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-20 text-center">
+                                <p className="text-zinc-500 font-sans italic">No items found matching your filter.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+                <ScrollToTop />
+            </main>
         </Suspense>
     );
 }
