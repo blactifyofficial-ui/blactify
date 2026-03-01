@@ -10,7 +10,7 @@ export const getCategories = unstable_cache(
                 .select("name, products(id)");
             if (error) throw error;
             if (data) {
-                const categoriesWithCounts = data.map((c: any) => ({
+                const categoriesWithCounts = data.map((c: { name: string; products: unknown }) => ({
                     name: c.name,
                     count: Array.isArray(c.products) ? c.products.length : c.products ? 1 : 0
                 }));

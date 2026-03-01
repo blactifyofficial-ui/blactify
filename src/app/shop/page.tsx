@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import Image from "next/image";
-import dynamic from "next/dynamic";
 import { getCategories, getProducts } from "./data";
 import { ProductGrid } from "./ProductGrid";
 import { LoadMore } from "./LoadMore";

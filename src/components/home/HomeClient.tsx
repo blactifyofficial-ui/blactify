@@ -1,13 +1,11 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Hero } from "@/components/ui/Hero";
 import { ProductCard, type Product } from "@/components/ui/ProductCard";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { optimizeCloudinaryUrl } from "@/lib/cloudinary-url";
 
 interface CategoryWithImage {
@@ -23,9 +21,6 @@ interface HomeClientProps {
 export default function HomeClient({ initialProducts, initialCategories }: HomeClientProps) {
     const [products, setProducts] = useState<Product[]>(initialProducts);
     const [loading, setLoading] = useState(false);
-    const categoryScrollRef = useRef<HTMLDivElement>(null);
-    const [canScrollLeft, setCanScrollLeft] = useState(false);
-    const [canScrollRight, setCanScrollRight] = useState(true);
 
     useEffect(() => {
         if (initialProducts.length === 0) {
@@ -51,28 +46,6 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
         }
     }, [initialProducts]);
 
-    // Scroll arrows for category strip
-    const updateScrollButtons = useCallback(() => {
-        const el = categoryScrollRef.current;
-        if (!el) return;
-        setCanScrollLeft(el.scrollLeft > 5);
-        setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 5);
-    }, []);
-
-    useEffect(() => {
-        const el = categoryScrollRef.current;
-        if (!el) return;
-        updateScrollButtons();
-        el.addEventListener("scroll", updateScrollButtons);
-        return () => el.removeEventListener("scroll", updateScrollButtons);
-    }, [initialCategories, updateScrollButtons]);
-
-    const scrollCategories = (dir: "left" | "right") => {
-        const el = categoryScrollRef.current;
-        if (!el) return;
-        el.scrollBy({ left: dir === "left" ? -260 : 260, behavior: "smooth" });
-    };
-
     return (
         <main className="flex flex-col">
             <Hero
@@ -82,40 +55,15 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
             {/* Shop by Category — between Hero and Best Sellers */}
             {initialCategories.length > 0 && (
                 <section className="px-6 py-12 bg-white">
-                    <div className="flex items-center justify-between mb-8">
+                    <div className="mb-8">
                         <h2 className="text-2xl md:text-3xl font-medium tracking-tight text-black">
                             Shop by Category
                         </h2>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => scrollCategories("left")}
-                                disabled={!canScrollLeft}
-                                className={cn(
-                                    "p-2 rounded-full border border-zinc-100 transition-all active:scale-90",
-                                    canScrollLeft ? "text-black hover:bg-zinc-50" : "text-zinc-200 cursor-not-allowed"
-                                )}
-                                aria-label="Scroll left"
-                            >
-                                <ChevronLeft size={16} />
-                            </button>
-                            <button
-                                onClick={() => scrollCategories("right")}
-                                disabled={!canScrollRight}
-                                className={cn(
-                                    "p-2 rounded-full border border-zinc-100 transition-all active:scale-90",
-                                    canScrollRight ? "text-black hover:bg-zinc-50" : "text-zinc-200 cursor-not-allowed"
-                                )}
-                                aria-label="Scroll right"
-                            >
-                                <ChevronRight size={16} />
-                            </button>
-                        </div>
                     </div>
 
                     <div className="relative group/nav">
 
                         <div
-                            ref={categoryScrollRef}
                             className="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-2 snap-x snap-mandatory px-1"
                         >
                             {initialCategories.map((cat) => (
