@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 
 export const revalidate = 120;
 export const preferredRegion = "sin1";
-export const runtime = "edge";
 
 interface Props {
     params: Promise<{ id: string }>;

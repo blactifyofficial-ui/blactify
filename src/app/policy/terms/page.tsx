@@ -1,5 +1,4 @@
 export const preferredRegion = "sin1";
-export const runtime = "edge";
 
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
