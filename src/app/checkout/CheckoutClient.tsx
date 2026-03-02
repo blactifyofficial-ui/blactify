@@ -17,12 +17,12 @@ import { Tag } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import {
-    EMAIL_REGEX,
-    PHONE_REGEX,
-    PINCODE_REGEX,
-    NAME_REGEX,
-    ADDRESS_REGEX,
-    CITY_REGEX
+    EmailSchema,
+    PhoneSchema,
+    PincodeSchema,
+    NameSchema,
+    AddressSchema,
+    CitySchema
 } from "@/lib/validation";
 import { getFriendlyErrorMessage } from "@/lib/error-messages";
 import { INDIAN_STATES } from "@/lib/constants";
@@ -187,54 +187,54 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
         // Email validation
         if (!formData.email.trim()) {
             newErrors.email = "Email is required";
-        } else if (!EMAIL_REGEX.test(formData.email)) {
+        } else if (!EmailSchema.safeParse(formData.email).success) {
             newErrors.email = "Invalid email address";
         }
 
         // Phone validation
         if (!formData.phone.trim()) {
             newErrors.phone = "Phone number is required";
-        } else if (!PHONE_REGEX.test(formData.phone)) {
+        } else if (!PhoneSchema.safeParse(formData.phone).success) {
             newErrors.phone = "Invalid phone number (10 digits starting with 6-9)";
         }
 
         // PIN Code validation
         if (!formData.pincode.trim()) {
             newErrors.pincode = "PIN code is required";
-        } else if (!PINCODE_REGEX.test(formData.pincode)) {
+        } else if (!PincodeSchema.safeParse(formData.pincode).success) {
             newErrors.pincode = "Invalid PIN code (6 digits)";
         }
 
         // Name validation
         if (!formData.firstName.trim()) {
             newErrors.firstName = "First name is required";
-        } else if (!NAME_REGEX.test(formData.firstName)) {
+        } else if (!NameSchema.safeParse(formData.firstName).success) {
             newErrors.firstName = "Invalid first name (2-50 characters)";
         }
 
         if (!formData.lastName.trim()) {
             newErrors.lastName = "Last name is required";
-        } else if (!NAME_REGEX.test(formData.lastName)) {
+        } else if (!NameSchema.safeParse(formData.lastName).success) {
             newErrors.lastName = "Invalid last name (2-50 characters)";
         }
 
         // Address validation
         if (!formData.address.trim()) {
             newErrors.address = "Address is required";
-        } else if (!ADDRESS_REGEX.test(formData.address)) {
+        } else if (!AddressSchema.safeParse(formData.address).success) {
             newErrors.address = "Invalid address format or length (5-100 characters)";
         }
 
         // City & District validation
         if (!formData.district.trim()) {
             newErrors.district = "District is required";
-        } else if (!CITY_REGEX.test(formData.district)) {
+        } else if (!CitySchema.safeParse(formData.district).success) {
             newErrors.district = "Invalid district name";
         }
 
         if (!formData.city.trim()) {
             newErrors.city = "City is required";
-        } else if (!CITY_REGEX.test(formData.city)) {
+        } else if (!CitySchema.safeParse(formData.city).success) {
             newErrors.city = "Invalid city name";
         }
 

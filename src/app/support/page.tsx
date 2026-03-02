@@ -9,7 +9,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { PHONE_REGEX } from "@/lib/validation";
+import { PhoneSchema } from "@/lib/validation";
 import { getFriendlyErrorMessage } from "@/lib/error-messages";
 
 
@@ -85,7 +85,7 @@ export default function SupportPage() {
             return;
         }
 
-        if (!PHONE_REGEX.test(formData.phone)) {
+        if (!PhoneSchema.safeParse(formData.phone).success) {
             toast.error("Please enter a valid phone number (10 digits starting with 6-9)");
             return;
         }

@@ -22,7 +22,7 @@ import { useAdminCategories } from "@/hooks/useAdminCategories";
 import { Category } from "@/types/database";
 import { AdminLoading, AdminPageHeader, AdminCard } from "@/components/admin/AdminUI";
 import { cn } from "@/lib/utils";
-import { CATEGORY_NAME_REGEX } from "@/lib/validation";
+import { CategoryNameSchema } from "@/lib/validation";
 
 
 export default function AdminCategoriesPage() {
@@ -86,7 +86,7 @@ export default function AdminCategoriesPage() {
     };
 
     const validateName = (name: string) => {
-        return CATEGORY_NAME_REGEX.test(name);
+        return CategoryNameSchema.safeParse(name).success;
     };
 
     const resetForm = () => {

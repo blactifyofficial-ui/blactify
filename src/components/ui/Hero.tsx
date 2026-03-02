@@ -83,11 +83,12 @@ export function Hero({ images }: HeroProps) {
                     >
                         <Image
                             src={optimizeCloudinaryUrl(img, 1200)}
-                            alt="Collection"
+                            alt={`Hero Collection Image ${i + 1}`}
                             fill
                             sizes="100vw"
                             className="object-contain"
                             priority={i === 0}
+                            loading={i === 0 ? "eager" : "lazy"}
                         />
                     </div>
                 ))}

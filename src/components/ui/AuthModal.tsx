@@ -11,7 +11,7 @@ import {
     signInWithPopup
 } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
-import { EMAIL_REGEX, PASSWORD_REGEX, NAME_REGEX, OTP_REGEX } from "@/lib/validation";
+import { EmailSchema, PasswordSchema, NameSchema, OtpSchema } from "@/lib/validation";
 import { getFriendlyErrorMessage } from "@/lib/error-messages";
 import { OTPInput } from "./OTPInput";
 import { sendSignupOTP, verifySignupOTP } from "@/actions/auth";
@@ -34,18 +34,18 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
         e.preventDefault();
         setError("");
 
-        // Regex Validations
-        if (mode === "signup" && !NAME_REGEX.test(name)) {
+        // Zod Validations
+        if (mode === "signup" && !NameSchema.safeParse(name).success) {
             setError("Please enter a valid name (2-50 characters)");
             return;
         }
 
-        if (!EMAIL_REGEX.test(email)) {
+        if (!EmailSchema.safeParse(email).success) {
             setError("Please enter a valid email address");
             return;
         }
 
-        if (mode === "signup" && !PASSWORD_REGEX.test(password)) {
+        if (mode === "signup" && !PasswordSchema.safeParse(password).success) {
             setError("Password must be at least 8 characters and include both letters and numbers");
             return;
         }
@@ -67,7 +67,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                     }
                 } else {
                     // Verify OTP first
-                    if (!OTP_REGEX.test(otp)) {
+                    if (!OtpSchema.safeParse(otp).success) {
                         setError("Please enter a valid 6-character code");
                         setLoading(false);
                         return;

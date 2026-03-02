@@ -2,6 +2,8 @@ import { Metadata } from "next";
 import { supabase } from "@/lib/supabase";
 import HomeClient from "@/components/home/HomeClient";
 
+import { unstable_cache } from "next/cache";
+
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -9,48 +11,56 @@ export const metadata: Metadata = {
   description: "Modern e-commerce platform for high-aesthetic meets timeless essentials. Discover curated premium apparel and accessories.",
 };
 
-async function getInitialProducts() {
-  try {
-    const { data, error } = await supabase
-      .from("products")
-      .select("*, product_images(*), product_variants(*)")
-      .not("home_order", "is", null)
-      .order("home_order", { ascending: true })
-      .limit(6);
+const getInitialProducts = unstable_cache(
+  async () => {
+    try {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*, product_images(*), product_variants(*)")
+        .not("home_order", "is", null)
+        .order("home_order", { ascending: true })
+        .limit(6);
 
-    if (error) return [];
-    return data || [];
-  } catch {
-    return [];
-  }
-}
+      if (error) return [];
+      return data || [];
+    } catch {
+      return [];
+    }
+  },
+  ["initial-products"],
+  { revalidate: 3600, tags: ["products"] }
+);
 
-async function getCategories() {
-  try {
-    // Fetch categories along with image_url and one product image fallback
-    const { data, error } = await supabase
-      .from("categories")
-      .select("name, image_url, products(product_images(url))")
-      .order("name", { ascending: true });
+const getCategories = unstable_cache(
+  async () => {
+    try {
+      // Fetch categories along with image_url and one product image fallback
+      const { data, error } = await supabase
+        .from("categories")
+        .select("name, image_url, products(product_images(url))")
+        .order("name", { ascending: true });
 
-    if (error) return [];
+      if (error) return [];
 
-    // Map each category to { name, image } prioritizing image_url
-    const categories = (data || [])
-      .map((cat: { name: string; image_url?: string; products: { product_images: { url: string }[] }[] | null }) => {
-        const fallbackImage = cat.products?.[0]?.product_images?.[0]?.url;
-        return {
-          name: cat.name,
-          image: cat.image_url || fallbackImage || "/hero-placeholder.jpg",
-        };
-      })
-      .filter((cat: { name: string; image: string }) => cat.image !== "/hero-placeholder.jpg"); // Only show categories that have product images
+      // Map each category to { name, image } prioritizing image_url
+      const categories = (data || [])
+        .map((cat: { name: string; image_url?: string; products: { product_images: { url: string }[] }[] | null }) => {
+          const fallbackImage = cat.products?.[0]?.product_images?.[0]?.url;
+          return {
+            name: cat.name,
+            image: cat.image_url || fallbackImage || "/hero-placeholder.jpg",
+          };
+        })
+        .filter((cat: { name: string; image: string }) => cat.image !== "/hero-placeholder.jpg"); // Only show categories that have product images
 
-    return categories;
-  } catch {
-    return [];
-  }
-}
+      return categories;
+    } catch {
+      return [];
+    }
+  },
+  ["categories"],
+  { revalidate: 3600, tags: ["categories"] }
+);
 
 export default async function Page() {
   const [products, categories] = await Promise.all([

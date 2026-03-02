@@ -24,9 +24,9 @@ import {
 } from "lucide-react";
 import ImageCropper from "@/components/admin/ImageCropper";
 import {
-    HANDLE_REGEX,
-    PRODUCT_ID_REGEX,
-    CATEGORY_NAME_REGEX
+    HandleSchema,
+    ProductIdSchema,
+    CategoryNameSchema
 } from "@/lib/validation";
 
 interface ProductVariant {
@@ -100,7 +100,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
     const handleQuickAddCategory = async () => {
         if (!newCatName.trim()) return;
 
-        if (!CATEGORY_NAME_REGEX.test(newCatName.trim())) {
+        if (!CategoryNameSchema.safeParse(newCatName.trim()).success) {
             toast.error("Name must be 3-50 characters (alphanumeric and ' & - , only)");
             return;
         }
@@ -302,13 +302,13 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
         if (!formData.main_image) newErrors.main_image = "Main product image is required";
 
         // Handle: kebab-case
-        if (formData.handle && !HANDLE_REGEX.test(formData.handle)) {
+        if (formData.handle && !HandleSchema.safeParse(formData.handle).success) {
             newErrors.handle = "Handle must be kebab-case (e.g., cool-product-1)";
         }
 
         // Product ID: p-001 (only if not editing)
         if (!isEditing && formData.id?.trim()) {
-            if (!PRODUCT_ID_REGEX.test(formData.id)) {
+            if (!ProductIdSchema.safeParse(formData.id).success) {
                 newErrors.id = "Product ID must follow 'p-001' format";
             }
         }

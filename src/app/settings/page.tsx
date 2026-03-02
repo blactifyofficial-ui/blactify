@@ -10,7 +10,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useCartStore } from "@/store/useCartStore";
-import { NAME_REGEX } from "@/lib/validation";
+import { NameSchema } from "@/lib/validation";
 import { getFriendlyErrorMessage } from "@/lib/error-messages";
 
 
@@ -69,7 +69,7 @@ export default function SettingsPage() {
         e.preventDefault();
         if (!auth.currentUser) return;
 
-        if (!NAME_REGEX.test(name)) {
+        if (!NameSchema.safeParse(name).success) {
             setStatus({ type: 'error', message: 'Please enter a valid name (2-50 characters)' });
             return;
         }

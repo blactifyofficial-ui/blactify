@@ -9,12 +9,20 @@ import { Footer } from "@/components/layout/Footer";
 import WelcomeBanner from "@/components/ui/WelcomeBanner";
 import WelcomeAnimation from "@/components/ui/WelcomeAnimation";
 import { AuthProvider } from "@/store/AuthContext";
-import { CartDrawer } from "@/components/ui/CartDrawer";
 import { FloatingCart } from "@/components/ui/FloatingCart";
 import { ScrollToTop } from "@/components/ui/ScrollToTop";
-import { AuthModal } from "@/components/ui/AuthModal";
+import dynamic from "next/dynamic";
 import { Toaster } from "sonner";
 import { Suspense } from "react";
+import { ErrorBoundary } from "@/components/error/ErrorBoundary";
+
+const AuthModal = dynamic(() => import("@/components/ui/AuthModal").then(mod => mod.AuthModal), {
+    ssr: false,
+});
+
+const CartDrawer = dynamic(() => import("@/components/ui/CartDrawer").then(mod => mod.CartDrawer), {
+    ssr: false,
+});
 
 function AppLayoutContent({ children }: { children: React.ReactNode }) {
     const [isCartOpen, setIsCartOpen] = useState(false);
@@ -58,54 +66,56 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     }, []);
 
     return (
-        <AuthProvider>
-            <Toaster
-                position={isMobile ? "top-center" : "top-right"}
-                offset={100}
-                toastOptions={{
-                    classNames: {
-                        toast: cn(
-                            "rounded-full border border-zinc-100 shadow-xl font-sans bg-white w-auto min-w-fit mx-auto",
-                            isMobile ? "p-2 px-4 max-w-[200px]" : "p-2 px-4 max-w-[280px]"
-                        ),
-                        title: cn("font-bold", isMobile ? "text-xs" : "text-sm"),
-                        description: cn("font-medium opacity-80", isMobile ? "text-[11px]" : "text-xs"),
-                        content: "flex items-center gap-2",
-                    },
-                }}
-            />
-            <style>{`
-                [data-sonner-toaster] {
-                    top: 100px !important;
-                }
-            `}</style>
-            <div className="relative min-h-screen bg-white text-black antialiased">
-                {!isAdmin && <TopNavbar onMenuClick={() => setIsSidebarOpen(true)} />}
-                {!isAdmin && <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />}
-
-                <main className={cn(!isAdmin && pathname !== "/" && "pt-12 md:pt-14 pb-8")}>
-                    {children}
-                </main>
-                {!isAdmin && <Footer />}
-                {!isAdmin && <WelcomeBanner />}
-                {!isAdmin && <WelcomeAnimation />}
-                {!isAdmin && (
-                    <>
-                        <FloatingCart onClick={() => setIsCartOpen(true)} />
-                    </>
-                )}
-                <ScrollToTop />
-                <CartDrawer
-                    isOpen={isCartOpen}
-                    onClose={() => setIsCartOpen(false)}
-                    onAuthRequired={() => {
-                        setIsCartOpen(false);
-                        setIsAuthOpen(true);
+        <ErrorBoundary>
+            <AuthProvider>
+                <Toaster
+                    position={isMobile ? "top-center" : "top-right"}
+                    offset={100}
+                    toastOptions={{
+                        classNames: {
+                            toast: cn(
+                                "rounded-full border border-zinc-100 shadow-xl font-sans bg-white w-auto min-w-fit mx-auto",
+                                isMobile ? "p-2 px-4 max-w-[200px]" : "p-2 px-4 max-w-[280px]"
+                            ),
+                            title: cn("font-bold", isMobile ? "text-xs" : "text-sm"),
+                            description: cn("font-medium opacity-80", isMobile ? "text-[11px]" : "text-xs"),
+                            content: "flex items-center gap-2",
+                        },
                     }}
                 />
-                <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
-            </div>
-        </AuthProvider>
+                <style>{`
+                    [data-sonner-toaster] {
+                        top: 100px !important;
+                    }
+                `}</style>
+                <div className="relative min-h-screen bg-white text-black antialiased">
+                    {!isAdmin && <TopNavbar onMenuClick={() => setIsSidebarOpen(true)} />}
+                    {!isAdmin && <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />}
+
+                    <main className={cn(!isAdmin && pathname !== "/" && "pt-12 md:pt-14 pb-8")}>
+                        {children}
+                    </main>
+                    {!isAdmin && <Footer />}
+                    {!isAdmin && <WelcomeBanner />}
+                    {!isAdmin && <WelcomeAnimation />}
+                    {!isAdmin && (
+                        <>
+                            <FloatingCart onClick={() => setIsCartOpen(true)} />
+                        </>
+                    )}
+                    <ScrollToTop />
+                    <CartDrawer
+                        isOpen={isCartOpen}
+                        onClose={() => setIsCartOpen(false)}
+                        onAuthRequired={() => {
+                            setIsCartOpen(false);
+                            setIsAuthOpen(true);
+                        }}
+                    />
+                    <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
+                </div>
+            </AuthProvider>
+        </ErrorBoundary>
     );
 }
 
