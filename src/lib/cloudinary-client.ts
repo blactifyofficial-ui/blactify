@@ -5,8 +5,8 @@
  * 
  * It also handles cases where transformations might already exist by cleaning them first.
  */
-export function optimizeCloudinaryUrl(url: string | null | undefined, width: number = 800): string | null {
-    if (!url) return null;
+export function optimizeCloudinaryUrl(url: string | null | undefined, width: number = 800): string {
+    if (!url) return "";
 
     // Only optimize Cloudinary URLs
     if (!url.includes("res.cloudinary.com")) return url;
