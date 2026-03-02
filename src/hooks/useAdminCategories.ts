@@ -50,6 +50,7 @@ export function useAdminCategories({ page, pageSize }: UseAdminCategoriesProps) 
                 id: cat.id,
                 name: cat.name,
                 slug: cat.slug,
+                image_url: cat.image_url,
                 created_at: cat.created_at,
                 size_config: cat.category_measurements?.map(cm => cm.measurement_types?.name).filter(Boolean) || cat.size_config || []
             }));

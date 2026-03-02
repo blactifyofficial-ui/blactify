@@ -58,6 +58,7 @@ export interface Product {
     };
     category?: string; // Fallback
     tag?: string;
+    out_of_stock_at?: string;
 
     // Normalized relationships
     product_images?: {

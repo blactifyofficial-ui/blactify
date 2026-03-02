@@ -58,7 +58,16 @@ export async function POST(request: Request) {
             }
         }
 
-        // 3. Handle Images
+        // 3. Update out_of_stock_at based on total stock
+        const totalStock = variants?.reduce((acc: number, v: { stock: number }) => acc + v.stock, 0) || 0;
+        await supabaseAdmin
+            .from("products")
+            .update({
+                out_of_stock_at: totalStock <= 0 ? new Date().toISOString() : null
+            })
+            .eq("id", id);
+
+        // 4. Handle Images
         if (images && images.length > 0) {
             await supabaseAdmin.from("product_images").delete().eq("product_id", id);
             const { error: imageError } = await supabaseAdmin
@@ -142,7 +151,16 @@ export async function PUT(request: Request) {
             }
         }
 
-        // 3. Handle Images
+        // 3. Update out_of_stock_at based on total stock
+        const totalStock = variants?.reduce((acc: number, v: { stock: number }) => acc + v.stock, 0) || 0;
+        await supabaseAdmin
+            .from("products")
+            .update({
+                out_of_stock_at: totalStock <= 0 ? new Date().toISOString() : null
+            })
+            .eq("id", id);
+
+        // 4. Handle Images
         if (images) {
             // Fetch existing images to identify removals for Cloudinary cleanup
             const { data: existingImages } = await supabaseAdmin

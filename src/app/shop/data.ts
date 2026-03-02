@@ -63,6 +63,16 @@ export async function getProducts(options?: GetProductsOptions) {
     const allProducts = await getAllCachedProducts();
     let filteredProducts = [...allProducts];
 
+    // Filter out products out of stock for > 7 days
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    filteredProducts = filteredProducts.filter((p) => {
+        if (!p.out_of_stock_at) return true;
+        const outOfStockDate = new Date(p.out_of_stock_at);
+        return outOfStockDate > sevenDaysAgo;
+    });
+
     const search = options?.search?.toLowerCase();
     if (search) {
         filteredProducts = filteredProducts.filter((p) =>
