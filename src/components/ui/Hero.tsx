@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { optimizeCloudinaryUrl } from "@/lib/cloudinary-url";
+import { optimizeCloudinaryUrl } from "@/lib/cloudinary-client";
 
 interface HeroProps {
     images: string[];

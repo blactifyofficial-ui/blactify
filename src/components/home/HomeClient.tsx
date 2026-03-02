@@ -6,7 +6,7 @@ import { Hero } from "@/components/ui/Hero";
 import { ProductCard, type Product } from "@/components/ui/ProductCard";
 import Link from "next/link";
 import Image from "next/image";
-import { optimizeCloudinaryUrl } from "@/lib/cloudinary-url";
+import { optimizeCloudinaryUrl } from "@/lib/cloudinary-client";
 
 interface CategoryWithImage {
     name: string;
