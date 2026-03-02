@@ -2,6 +2,9 @@
 
 A premium e-commerce experience for timeless essentials.
 
+> [!TIP]
+> **New to the project?** Read our detailed [**Project Overview**](./PROJECT_OVERVIEW.md) for a deep dive into the tech stack, features, and UX philosophy.
+
 ## Features
 - **Admin Dashboard**: Comprehensive management of products, categories, and orders.
 - **Product Gallery**: High-performance image loading and sleek UI.
