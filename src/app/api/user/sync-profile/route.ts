@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+export const preferredRegion = "sin1";
 
 export async function POST(request: Request) {
     try {

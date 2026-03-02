@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@supabase/supabase-js";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import { Resend } from "resend";
 import { SELLER_CONFIG } from "@/lib/config";
 
@@ -15,24 +15,27 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
     }
 });
 
-export async function getStoreSettings() {
-    try {
-        const { data, error } = await supabaseAdmin
-            .from("store_settings")
-            .select("*")
-            .eq("id", true)
-            .single();
+export const getStoreSettings = unstable_cache(
+    async () => {
+        try {
+            const { data, error } = await supabaseAdmin
+                .from("store_settings")
+                .select("*")
+                .eq("id", true)
+                .single();
 
-        if (error) {
-            // Return default if error (e.g. table doesn't exist yet)
+            if (error) {
+                return { purchases_enabled: true };
+            }
+
+            return data;
+        } catch {
             return { purchases_enabled: true };
         }
-
-        return data;
-    } catch {
-        return { purchases_enabled: true };
-    }
-}
+    },
+    ["store-settings"],
+    { revalidate: 3600, tags: ["settings"] }
+);
 
 export async function togglePurchaseStatus(status: boolean) {
     try {

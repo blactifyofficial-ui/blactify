@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+export const preferredRegion = "sin1";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 // Helper to verify admin status (optional but recommended)

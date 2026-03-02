@@ -3,6 +3,8 @@ import { Inter, Outfit, Space_Grotesk } from "next/font/google";
 import { AppLayout } from "@/components/layout/AppLayout";
 import "./globals.css";
 
+export const preferredRegion = "sin1";
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],

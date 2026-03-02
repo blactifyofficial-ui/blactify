@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+export const preferredRegion = "sin1";
 import Razorpay from "razorpay";
 import { z } from "zod";
 

@@ -1,4 +1,5 @@
 import { getStoreSettings } from "@/app/actions/settings";
+export const preferredRegion = "sin1";
 import CheckoutClient from "./CheckoutClient";
 import { Metadata } from "next";
 

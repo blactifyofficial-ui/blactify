@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+export const preferredRegion = "sin1";
 import { deleteFromCloudinary } from '@/lib/cloudinary';
 import { NextResponse } from 'next/server';
 import { z } from "zod";

@@ -5,6 +5,8 @@ import HomeClient from "@/components/home/HomeClient";
 import { unstable_cache } from "next/cache";
 
 export const dynamic = "force-dynamic";
+export const preferredRegion = "sin1";
+export const runtime = "edge";
 
 export const metadata: Metadata = {
   title: "Blactify | Meets Timeless Essentials",

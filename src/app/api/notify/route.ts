@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+export const preferredRegion = "sin1";
 import { SELLER_CONFIG } from "@/lib/config";
 
 

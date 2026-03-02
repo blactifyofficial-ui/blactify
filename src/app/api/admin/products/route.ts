@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+export const preferredRegion = "sin1";
 import { deleteFromCloudinary } from "@/lib/cloudinary";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 

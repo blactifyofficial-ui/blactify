@@ -8,6 +8,8 @@ import { ScrollToTop } from "@/components/ui/ScrollToTop";
 import Filters from "./DynamicFilters";
 
 export const revalidate = 60;
+export const preferredRegion = "sin1";
+export const runtime = "edge";
 
 export const metadata = {
     title: "Store - Blactify",

@@ -1,4 +1,5 @@
 import { cloudinary } from '@/lib/cloudinary';
+export const preferredRegion = "sin1";
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {

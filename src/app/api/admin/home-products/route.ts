@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+export const preferredRegion = "sin1";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { revalidatePath } from "next/cache";
 

@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+export const preferredRegion = "sin1";
 import AdminLayoutClient from "./AdminLayoutClient";
 
 export const metadata: Metadata = {
