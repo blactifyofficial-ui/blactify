@@ -18,13 +18,13 @@ export class ErrorBoundary extends Component<Props, State> {
         hasError: false,
     };
 
-    public static getDerivedStateFromError(_: Error): State {
+    public static getDerivedStateFromError(_error: Error): State {
         return { hasError: true };
     }
 
     public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
         console.error("Uncaught error:", error, errorInfo);
-        Sentry.captureException(error, { extra: errorInfo as any });
+        Sentry.captureException(error, { extra: errorInfo as unknown as Record<string, unknown> });
         toast.error("Something went wrong. We've been notified and are looking into it.");
     }
 
@@ -35,7 +35,7 @@ export class ErrorBoundary extends Component<Props, State> {
                     <div className="flex flex-col items-center justify-center min-h-[400px] text-center px-4">
                         <h2 className="text-2xl font-bold mb-4">Oops, something went wrong</h2>
                         <p className="text-zinc-500 mb-6 max-w-md">
-                            We've encountered an unexpected error. Please try refreshing the page or contact support if the issue persists.
+                            We&apos;ve encountered an unexpected error. Please try refreshing the page or contact support if the issue persists.
                         </p>
                         <button
                             onClick={() => window.location.reload()}
