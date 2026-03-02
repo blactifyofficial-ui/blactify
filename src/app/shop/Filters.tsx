@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Search, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -25,49 +25,61 @@ export default function Filters({ totalResults, initialSearch = "", initialCateg
     const [sortBy, setSortBy] = useState(initialSortBy);
     const [isSortOpen, setIsSortOpen] = useState(false);
 
-    // Sync state with props (for when URL changes from external navigation like Sidebar)
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSelectedCategory(initialCategory || "All");
-    }, [initialCategory]);
+    // Track the last URL we pushed to avoid loops
+    const lastPushedRef = useRef("");
 
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+    // Synchronize state with props DURING render to avoid stale state in effects
+    // This is the recommended pattern for syncing state from props in React
+    const [prevInitialCategory, setPrevInitialCategory] = useState(initialCategory);
+    const [prevInitialSearch, setPrevInitialSearch] = useState(initialSearch);
+
+    if (initialCategory !== prevInitialCategory) {
+        setSelectedCategory(initialCategory || "All");
+        setPrevInitialCategory(initialCategory);
+    }
+
+    if (initialSearch !== prevInitialSearch) {
         setSearchQuery(initialSearch || "");
-    }, [initialSearch]);
+        setPrevInitialSearch(initialSearch);
+    }
 
     // Sync to URL
     useEffect(() => {
         const params = new URLSearchParams(searchParams.toString());
+        const currentSearch = params.get("search") || "";
+        const currentCategory = params.get("category") || "All";
+        const currentSortBy = params.get("sortBy") || "mixed";
 
         let changed = false;
 
-        if (debouncedSearchQuery && debouncedSearchQuery !== params.get("search")) {
-            params.set("search", debouncedSearchQuery);
-            changed = true;
-        } else if (!debouncedSearchQuery && params.has("search")) {
-            params.delete("search");
-            changed = true;
-        }
-
-        if (selectedCategory !== "All" && selectedCategory !== params.get("category")) {
-            params.set("category", selectedCategory);
-            changed = true;
-        } else if (selectedCategory === "All" && params.has("category")) {
-            params.delete("category");
+        // Search
+        if (debouncedSearchQuery !== currentSearch) {
+            if (debouncedSearchQuery) params.set("search", debouncedSearchQuery);
+            else params.delete("search");
             changed = true;
         }
 
-        if (sortBy !== "mixed" && sortBy !== params.get("sortBy")) {
-            params.set("sortBy", sortBy);
+        // Category
+        if (selectedCategory !== currentCategory) {
+            if (selectedCategory !== "All") params.set("category", selectedCategory);
+            else params.delete("category");
             changed = true;
-        } else if (sortBy === "mixed" && params.has("sortBy")) {
-            params.delete("sortBy");
+        }
+
+        // Sort
+        if (sortBy !== currentSortBy) {
+            if (sortBy !== "mixed") params.set("sortBy", sortBy);
+            else params.delete("sortBy");
             changed = true;
         }
 
         if (changed) {
-            router.push(`${pathname}?${params.toString()}`, { scroll: false });
+            const newUrl = `${pathname}?${params.toString()}`;
+            // Only push if it's different from what we last pushed
+            if (newUrl !== lastPushedRef.current) {
+                lastPushedRef.current = newUrl;
+                router.push(newUrl, { scroll: false });
+            }
         }
     }, [debouncedSearchQuery, selectedCategory, sortBy, pathname, router, searchParams]);
 
