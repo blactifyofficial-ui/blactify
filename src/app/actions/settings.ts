@@ -100,10 +100,14 @@ export async function togglePurchaseStatus(status: boolean) {
             }
         }
 
-        revalidatePath("/admin");
-        revalidatePath("/checkout");
-        revalidatePath("/cart");
         revalidatePath("/shop"); // Just in case we add indicators there
+
+        // Log the action
+        const { logAction } = await import("@/lib/logger");
+        await logAction({
+            action_type: "purchase_toggle",
+            details: { enabled: status }
+        });
 
         return { success: true };
     } catch {

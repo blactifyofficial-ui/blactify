@@ -77,6 +77,13 @@ export async function POST(request: Request) {
             if (imageError) throw imageError;
         }
 
+        // Log the action
+        const { logAction } = await import("@/lib/logger");
+        await logAction({
+            action_type: "product_add",
+            details: { id, name, price_base }
+        });
+
         return NextResponse.json({ success: true });
     } catch (dbErr: unknown) {
         return NextResponse.json({ error: dbErr instanceof Error ? dbErr.message : "Failed to create product" }, { status: 500 });
@@ -191,6 +198,13 @@ export async function PUT(request: Request) {
             }
         }
 
+        // Log the action
+        const { logAction } = await import("@/lib/logger");
+        await logAction({
+            action_type: "product_edit",
+            details: { id, name, price_base }
+        });
+
         return NextResponse.json({ success: true });
     } catch (dbErr: unknown) {
         return NextResponse.json({ error: dbErr instanceof Error ? dbErr.message : "Failed to update product" }, { status: 500 });
@@ -218,6 +232,13 @@ export async function DELETE(request: Request) {
         // 2. Delete the product (cascades or manual deletion of variants handled by DB schema usually)
         const { error } = await supabaseAdmin.from("products").delete().eq("id", id);
         if (error) throw error;
+
+        // Log the action
+        const { logAction } = await import("@/lib/logger");
+        await logAction({
+            action_type: "product_delete",
+            details: { id }
+        });
 
         return NextResponse.json({ success: true });
     } catch (dbErr: unknown) {

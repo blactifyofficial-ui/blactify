@@ -33,6 +33,8 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const isAdmin = pathname?.startsWith('/admin');
+    const isDeveloper = pathname?.startsWith('/developer');
+    const isRestricted = isAdmin || isDeveloper;
 
     // Handle opening cart via query param
     useEffect(() => {
@@ -89,16 +91,16 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                     }
                 `}</style>
                 <div className="relative min-h-screen bg-white text-black antialiased">
-                    {!isAdmin && <TopNavbar onMenuClick={() => setIsSidebarOpen(true)} />}
-                    {!isAdmin && <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />}
+                    {!isRestricted && <TopNavbar onMenuClick={() => setIsSidebarOpen(true)} />}
+                    {!isRestricted && <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />}
 
-                    <main className={cn(!isAdmin && pathname !== "/" && "pt-12 md:pt-14 pb-8")}>
+                    <main className={cn(!isRestricted && pathname !== "/" && "pt-12 md:pt-14 pb-8")}>
                         {children}
                     </main>
-                    {!isAdmin && <Footer />}
-                    {!isAdmin && <WelcomeBanner />}
-                    {!isAdmin && <WelcomeAnimation />}
-                    {!isAdmin && (
+                    {!isRestricted && <Footer />}
+                    {!isRestricted && <WelcomeBanner />}
+                    {!isRestricted && <WelcomeAnimation />}
+                    {!isRestricted && (
                         <>
                             <FloatingCart onClick={() => setIsCartOpen(true)} />
                         </>

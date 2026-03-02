@@ -21,11 +21,35 @@ export default function AdminLoginPage() {
     const handleLogin = async () => {
         try {
             setError(null);
-            await signInWithPopup(auth, googleProvider);
+            const result = await signInWithPopup(auth, googleProvider);
+
+            // Log the login attempt
+            await fetch("/api/admin/log-login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: result.user.email,
+                    success: true
+                })
+            });
+
             // AuthContext will handle the redirect if is_admin is true
         } catch (err: unknown) {
             const error = err instanceof Error ? err : new Error(String(err));
             setError(error.message || "Failed to sign in. Please try again.");
+
+            // Log the failed login
+            try {
+                await fetch("/api/admin/log-login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: auth.currentUser?.email || "unknown",
+                        success: false,
+                        error: error.message
+                    })
+                });
+            } catch { /* ignore */ }
         }
     };
 

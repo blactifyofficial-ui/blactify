@@ -29,6 +29,19 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
+        // Log the sync/registration action
+        const { logAction } = await import("@/lib/logger");
+        await logAction({
+            action_type: "user_registration",
+            user_email: email,
+            details: {
+                id,
+                full_name,
+                is_admin: data?.is_admin || false,
+                is_sync: true
+            }
+        });
+
         return NextResponse.json({
             success: true,
             isAdmin: data?.is_admin || false

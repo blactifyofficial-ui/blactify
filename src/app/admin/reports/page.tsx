@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import {
     Download,
@@ -94,7 +95,20 @@ export default function AdminReportsPage() {
                             </button>
                         ))}
                     </div>
-                    <button className="flex items-center justify-center gap-3 bg-black text-white px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:blur-[0.5px] transition-all shadow-2xl shadow-black/20">
+                    <button
+                        onClick={async () => {
+                            // Log the export action
+                            try {
+                                await fetch("/api/admin/log-report", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ type: filterType })
+                                });
+                            } catch { /* ignore */ }
+                            toast.success("Report export initiated");
+                        }}
+                        className="flex items-center justify-center gap-3 bg-black text-white px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:blur-[0.5px] transition-all shadow-2xl shadow-black/20"
+                    >
                         <Download size={14} />
                         Export Report
                     </button>

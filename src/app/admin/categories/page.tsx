@@ -138,6 +138,13 @@ export default function AdminCategoriesPage() {
                 throw new Error(errorData.error || "Failed to process request");
             }
 
+            // Log the action (POST/PUT)
+            const { logAction } = await import("@/lib/logger");
+            await logAction({
+                action_type: editingId ? "category_edit" : "category_add",
+                details: { id: editingId || payload.slug, name: newCategoryName }
+            });
+
             toast.success(editingId ? "Category updated" : "New category created", {
                 description: `Category saved: ${newCategoryName}`,
             });
@@ -167,6 +174,13 @@ export default function AdminCategoriesPage() {
                 const errorData = await response.json();
                 throw new Error(errorData.error || "Deletion failed");
             }
+
+            // Log the action
+            const { logAction } = await import("@/lib/logger");
+            await logAction({
+                action_type: "category_delete",
+                details: { id: categoryToDelete }
+            });
 
             toast.success("Category deleted");
             refetch();
