@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Image from "next/image";
-import { getCategories, getProducts } from "./data";
+import { getProducts } from "./data";
 import { ProductGrid } from "./ProductGrid";
 import { LoadMore } from "./LoadMore";
 import { ScrollToTop } from "@/components/ui/ScrollToTop";
@@ -54,17 +54,13 @@ export default async function ShopPage({
 
     const limit = 8;
 
-    const [categories, result] = await Promise.all([
-        getCategories(),
-        getProducts({ limit, search, category, sortBy, offset: 0 })
-    ]);
+    const result = await getProducts({ limit, search, category, sortBy, offset: 0 });
 
     return (
         <Suspense fallback={<ShopSkeleton />}>
-            <main className="min-h-screen bg-white pb-20 pt-8 animate-in fade-in duration-700">
+            <main className="min-h-screen bg-white pb-12 animate-in fade-in duration-700">
                 <div className="px-6">
                     <Filters
-                        categories={categories}
                         totalResults={result.total}
                         initialSearch={search}
                         initialCategory={category}

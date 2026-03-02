@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged, User, signOut as firebaseSignOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { syncUserProfile } from "@/lib/profile-sync";
 
@@ -9,18 +9,24 @@ interface AuthContextType {
     user: User | null;
     isAdmin: boolean;
     loading: boolean;
+    signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
     isAdmin: false,
     loading: true,
+    signOut: async () => { },
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);
     const [loading, setLoading] = useState(true);
+
+    const signOut = async () => {
+        await firebaseSignOut(auth);
+    };
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -44,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, isAdmin, loading }}>
+        <AuthContext.Provider value={{ user, isAdmin, loading, signOut }}>
             {children}
         </AuthContext.Provider>
     );

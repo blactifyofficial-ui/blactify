@@ -31,14 +31,14 @@ export function ScrollToTop() {
         <button
             onClick={scrollToTop}
             className={cn(
-                "fixed bottom-24 right-6 z-50 p-3 rounded-full transition-all duration-300 transform active:scale-95",
+                "fixed bottom-22 right-6 z-50 w-12 h-12 rounded-full transition-all duration-300 transform active:scale-95 flex items-center justify-center",
                 "bg-zinc-400/20 backdrop-blur-md border border-white/20 shadow-lg",
                 "text-zinc-600 hover:text-black hover:bg-zinc-400/30",
                 isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0 pointer-events-none"
             )}
             aria-label="Scroll to top"
         >
-            <ArrowUp size={20} />
+            <ArrowUp size={16} strokeWidth={2.5} />
         </button>
     );
 }

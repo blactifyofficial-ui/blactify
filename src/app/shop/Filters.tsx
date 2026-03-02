@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { Search, Filter, Menu, X as CloseIcon } from "lucide-react";
+import { Search, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
 
@@ -14,7 +14,7 @@ interface FiltersProps {
     initialSortBy?: string;
 }
 
-export default function Filters({ categories, totalResults, initialSearch = "", initialCategory = "All", initialSortBy = "mixed" }: FiltersProps) {
+export default function Filters({ totalResults, initialSearch = "", initialCategory = "All", initialSortBy = "mixed" }: Omit<FiltersProps, 'categories'>) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -24,7 +24,17 @@ export default function Filters({ categories, totalResults, initialSearch = "", 
     const [selectedCategory, setSelectedCategory] = useState(initialCategory);
     const [sortBy, setSortBy] = useState(initialSortBy);
     const [isSortOpen, setIsSortOpen] = useState(false);
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    // Sync state with props (for when URL changes from external navigation like Sidebar)
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setSelectedCategory(initialCategory || "All");
+    }, [initialCategory]);
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setSearchQuery(initialSearch || "");
+    }, [initialSearch]);
 
     // Sync to URL
     useEffect(() => {
@@ -69,7 +79,7 @@ export default function Filters({ categories, totalResults, initialSearch = "", 
 
     return (
         <>
-            <header className="mb-0 mt-8">
+            <header className="mb-0 mt-2">
                 <h1 className="font-empire text-xl mb-2">Store</h1>
 
                 <div className="flex flex-col gap-4">
@@ -88,12 +98,6 @@ export default function Filters({ categories, totalResults, initialSearch = "", 
 
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-zinc-50 mt-4">
                 <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => setIsMenuOpen(true)}
-                        className="p-1 text-black hover:bg-zinc-100 rounded-lg transition-colors active:scale-95"
-                    >
-                        <Menu size={20} />
-                    </button>
                     <span className="text-xs font-medium text-zinc-500 uppercase tracking-widest">
                         {totalResults} Results
                     </span>
@@ -106,6 +110,7 @@ export default function Filters({ categories, totalResults, initialSearch = "", 
                         </button>
                     )}
                 </div>
+
                 <div className="relative">
                     <button
                         onClick={() => setIsSortOpen(!isSortOpen)}
@@ -147,56 +152,6 @@ export default function Filters({ categories, totalResults, initialSearch = "", 
                             </div>
                         </>
                     )}
-                </div>
-            </div>
-
-            {/* Category Hamburger Menu Drawer */}
-            <div
-                className={cn(
-                    "fixed inset-0 z-[100] bg-black/40 transition-opacity duration-300",
-                    isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-                )}
-                onClick={() => setIsMenuOpen(false)}
-            />
-            <div
-                className={cn(
-                    "fixed inset-y-0 left-0 z-[110] w-full max-w-[280px] bg-white/70 backdrop-blur-md border-r border-zinc-200/50 shadow-2xl transition-transform duration-300 ease-out",
-                    isMenuOpen ? "translate-x-0" : "-translate-x-full"
-                )}
-            >
-                <div className="flex flex-col h-full">
-                    <div className="flex items-center justify-between px-6 py-6 border-b border-zinc-200/50">
-                        <h3 className="font-empire text-xl text-black">Categories</h3>
-                        <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-black/5 rounded-full transition-colors">
-                            <CloseIcon size={20} />
-                        </button>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto py-6 px-4">
-                        <div className="space-y-1">
-                            {categories.map((cat: string) => (
-                                <button
-                                    key={cat}
-                                    onClick={() => {
-                                        setSelectedCategory(cat);
-                                        setIsMenuOpen(false);
-                                    }}
-                                    className={cn(
-                                        "w-full text-left px-5 py-4 rounded-2xl text-sm font-medium transition-all",
-                                        selectedCategory === cat
-                                            ? "bg-black/5 text-black transform scale-[1.02]"
-                                            : "text-zinc-500 hover:bg-black/5 hover:text-black"
-                                    )}
-                                >
-                                    {cat}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="p-6 border-t border-zinc-200/50 bg-black/5">
-                        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-[0.2em]">Select category to filter</p>
-                    </div>
                 </div>
             </div>
         </>
