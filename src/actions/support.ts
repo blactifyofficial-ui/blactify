@@ -88,12 +88,32 @@ export async function createTicket(formData: z.infer<typeof SupportTicketSchema>
     }
 }
 
-export async function respondToTicket(ticketId: string, response: string, userEmail: string, orderId?: string) {
+export async function respondToTicket(ticketId: string, response: string, userEmail?: string, orderId?: string) {
     try {
-        if (!ticketId || !response || !userEmail) throw new Error("Missing required fields");
+        if (!ticketId || !response) throw new Error("Missing required fields");
         if (response.length < 5) throw new Error("Response is too short");
 
-        // 1. Update ticket in database
+        // 1. Ensure we have the user's email
+        let targetEmail = userEmail;
+        if (!targetEmail) {
+            const { data: ticketData, error: ticketError } = await supabaseAdmin
+                .from("support_tickets")
+                .select("profiles(email)")
+                .eq("id", ticketId)
+                .single();
+
+            if (ticketError || !ticketData?.profiles) {
+                throw new Error("System could not retrieve the customer's email address.");
+            }
+            // Handle both object and array response from Supabase
+            targetEmail = Array.isArray(ticketData.profiles)
+                ? ticketData.profiles[0]?.email
+                : (ticketData.profiles as any)?.email;
+        }
+
+        if (!targetEmail) throw new Error("Customer email is missing or invalid.");
+
+        // 2. Update ticket in database
         const { error: updateError } = await supabaseAdmin
             .from("support_tickets")
             .update({
@@ -105,7 +125,7 @@ export async function respondToTicket(ticketId: string, response: string, userEm
 
         if (updateError) throw updateError;
 
-        // 2. Send email via Resend
+        // 3. Send email via Resend
         if (SELLER_CONFIG.resendApiKey) {
             const resend = new Resend(SELLER_CONFIG.resendApiKey);
 
@@ -122,17 +142,26 @@ export async function respondToTicket(ticketId: string, response: string, userEm
                 </div>
             `;
 
-            await resend.emails.send({
+            const { error: emailError } = await resend.emails.send({
                 from: SELLER_CONFIG.fromEmail,
-                to: [userEmail],
+                to: [targetEmail],
                 subject: `Re: Your Support Ticket Update`,
                 html: emailHtml,
             });
+
+            if (emailError) {
+                console.error("Support Email Send Failure:", emailError);
+                return {
+                    success: false,
+                    error: `Ticket updated, but email failed: ${emailError.message}. Make sure the domain is verified in Resend.`
+                };
+            }
         }
 
         return { success: true };
     } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred.";
+        console.error("Support Response Error:", errorMessage);
         return { success: false, error: errorMessage };
     }
 }
