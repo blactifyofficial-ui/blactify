@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
-import { getTicketById, respondToTicket } from "@/actions/support";
+import { getTicketById, respondToTicket, closeTicket } from "@/actions/support";
 import {
     ChevronLeft,
     Send,
@@ -22,7 +22,7 @@ import { format } from "date-fns";
 
 interface Ticket {
     id: string;
-    status: string;
+    status: 'open' | 'responded' | 'closed';
     created_at: string;
     message: string;
     category: string;
@@ -46,6 +46,7 @@ export default function AdminTicketDetailPage({ params }: { params: Promise<{ id
     const [loading, setLoading] = useState(true);
     const [response, setResponse] = useState("");
     const [isSending, setIsSending] = useState(false);
+    const [isClosing, setIsClosing] = useState(false);
 
     useEffect(() => {
         async function fetchTicket() {
@@ -89,6 +90,26 @@ export default function AdminTicketDetailPage({ params }: { params: Promise<{ id
         }
     };
 
+    const handleClose = async () => {
+        if (!confirm("Are you sure you want to close this ticket?")) return;
+
+        setIsClosing(true);
+        try {
+            const result = await closeTicket(id);
+            if (result.success) {
+                toast.success("Ticket closed successfully");
+                const updated = await getTicketById(id);
+                if (updated.success) setTicket(updated.ticket);
+            } else {
+                toast.error(result.error || "Failed to close ticket");
+            }
+        } catch {
+            toast.error("Process Failure");
+        } finally {
+            setIsClosing(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-zinc-50">
@@ -113,7 +134,9 @@ export default function AdminTicketDetailPage({ params }: { params: Promise<{ id
                             <div className="flex items-center gap-3">
                                 <span className={cn(
                                     "px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest",
-                                    ticket.status === 'open' ? "bg-amber-100 text-amber-600" : "bg-emerald-100 text-emerald-600"
+                                    ticket.status === 'open' ? "bg-amber-100 text-amber-600" :
+                                        ticket.status === 'closed' ? "bg-zinc-100 text-zinc-600" :
+                                            "bg-emerald-100 text-emerald-600"
                                 )}>
                                     {ticket.status}
                                 </span>
@@ -123,6 +146,16 @@ export default function AdminTicketDetailPage({ params }: { params: Promise<{ id
                                 </span>
                             </div>
                         </div>
+                        {ticket.status !== 'closed' && (
+                            <button
+                                onClick={handleClose}
+                                disabled={isClosing}
+                                className="px-6 py-3 border border-zinc-200 hover:bg-zinc-50 rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 transition-all disabled:opacity-50"
+                            >
+                                <CheckCircle2 size={14} />
+                                {isClosing ? "Closing..." : "Close Ticket"}
+                            </button>
+                        )}
                     </div>
                 </header>
 

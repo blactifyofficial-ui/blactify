@@ -194,3 +194,17 @@ export async function getTicketById(id: string) {
         return { success: false, error: err instanceof Error ? err.message : "Fetch Failed" };
     }
 }
+
+export async function closeTicket(id: string) {
+    try {
+        const { error } = await supabaseAdmin
+            .from("support_tickets")
+            .update({ status: "closed" })
+            .eq("id", id);
+
+        if (error) throw error;
+        return { success: true };
+    } catch (err: unknown) {
+        return { success: false, error: err instanceof Error ? err.message : "Failed to close ticket" };
+    }
+}
