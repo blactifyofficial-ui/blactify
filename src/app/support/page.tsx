@@ -144,7 +144,7 @@ export default function SupportPage() {
                     </div>
                     <h1 className="font-empire text-4xl mb-6">Got it!</h1>
                     <p className="text-zinc-500 mb-10 leading-relaxed uppercase text-[11px] font-bold tracking-[0.2em]">
-                        Your ticket has been raised. You will be reached out with email soon.
+                        Your ticket has been raised. You will receive an email update soon. Please check your spam folder as well.
                     </p>
                     <Link href="/" className="inline-block bg-black text-white px-10 py-5 rounded-full text-xs font-bold uppercase tracking-widest hover:scale-105 transition-transform active:scale-95">
                         Back to Home
