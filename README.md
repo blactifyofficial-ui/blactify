@@ -39,3 +39,8 @@ A premium e-commerce experience for timeless essentials.
    ```bash
    npm run build
    ```
+
+## Contact
+
+For any queries or support, reach out to us at [support@blactify.com](mailto:support@blactify.com).
+

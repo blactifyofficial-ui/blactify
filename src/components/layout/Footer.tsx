@@ -36,6 +36,7 @@ export function Footer() {
                             <ul className="space-y-3 text-[10px] font-medium uppercase tracking-widest text-zinc-400">
                                 <li><Link href="/orders" className="hover:text-black transition-colors">Orders</Link></li>
                                 <li><Link href="/support" className="hover:text-black transition-colors">Contact Support</Link></li>
+                                <li><a href="mailto:support@blactify.com" className="hover:text-black transition-colors lowercase">support@blactify.com</a></li>
                                 <li><Link href="/policy/shipping" className="hover:text-black transition-colors">Shipping</Link></li>
                                 <li><Link href="/policy/privacy" className="hover:text-black transition-colors">Privacy</Link></li>
                                 <li><Link href="/policy/terms" className="hover:text-black transition-colors">Terms</Link></li>

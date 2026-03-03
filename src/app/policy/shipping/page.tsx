@@ -74,6 +74,12 @@ export default function ShippingPolicyPage() {
                             Currently, we only ship within India. We are working hard to expand our logistics to support international aesthetics soon.
                         </p>
                     </section>
+                    <section className="space-y-4 pt-12 border-t border-zinc-100">
+                        <h2 className="text-sm font-bold uppercase tracking-widest text-black">Contact Us</h2>
+                        <p>
+                            If you have any questions about our shipping policy, please contact us at <a href="mailto:support@blactify.com" className="text-black font-medium underline">support@blactify.com</a>.
+                        </p>
+                    </section>
                 </div>
             </div>
         </main>

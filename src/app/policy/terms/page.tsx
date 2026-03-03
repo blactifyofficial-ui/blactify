@@ -51,6 +51,12 @@ export default function TermsOfServicePage() {
                             Your use of this website and any dispute arising out of such use is subject to the laws of India.
                         </p>
                     </section>
+                    <section className="space-y-4 pt-12 border-t border-zinc-100">
+                        <h2 className="text-sm font-bold uppercase tracking-widest text-black">Contact Us</h2>
+                        <p>
+                            For any queries regarding these terms, reach out at <a href="mailto:support@blactify.com" className="text-black font-medium underline">support@blactify.com</a>.
+                        </p>
+                    </section>
                 </div>
             </div>
         </main>

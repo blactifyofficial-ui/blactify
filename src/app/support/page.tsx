@@ -164,6 +164,10 @@ export default function SupportPage() {
                     </button>
                     <h1 className="font-empire text-5xl">Support</h1>
                     <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-4">Raise a ticket and we&apos;ll get back to you</p>
+                    <div className="mt-8 p-4 bg-zinc-50 border border-zinc-100 rounded-2xl flex items-center justify-between">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Direct Contact</span>
+                        <a href="mailto:support@blactify.com" className="text-[11px] font-bold text-black hover:underline tracking-tight">support@blactify.com</a>
+                    </div>
                 </header>
 
                 <form onSubmit={handleSubmit} className="space-y-10">

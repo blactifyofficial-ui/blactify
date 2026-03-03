@@ -10,18 +10,14 @@ import {
     Clock,
     User,
     Hash,
-    ChevronRight,
     Search,
-    Filter,
     RefreshCcw,
-    Zap,
     AlertTriangle,
     CheckCircle2,
-    Info,
     LogOut,
-    LogIn,
-    UserPlus
+    LogIn
 } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import {
     Chart as ChartJS,
@@ -207,8 +203,18 @@ export default function DeveloperLogsPage() {
                             <p className="text-[8px] text-zinc-400 font-bold uppercase tracking-widest">Account</p>
                             <p className="text-[11px] font-bold text-black tracking-tight italic">{user.email}</p>
                         </div>
-                        <div className="w-8 h-8 bg-zinc-50 border border-zinc-100 rounded-lg overflow-hidden ring-1 ring-zinc-50 shadow-sm">
-                            {user.photoURL ? <img src={user.photoURL} alt="Avatar" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-50" />}
+                        <div className="w-8 h-8 bg-zinc-50 border border-zinc-100 rounded-lg overflow-hidden ring-1 ring-zinc-50 shadow-sm relative">
+                            {user.photoURL ? (
+                                <Image
+                                    src={user.photoURL}
+                                    alt="Avatar"
+                                    fill
+                                    className="object-cover"
+                                    unoptimized
+                                />
+                            ) : (
+                                <div className="w-full h-full bg-zinc-50" />
+                            )}
                         </div>
 
                         <button

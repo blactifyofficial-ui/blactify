@@ -57,6 +57,12 @@ export default function PrivacyPolicyPage() {
                             We do not sell, trade, or otherwise transfer your personally identifiable information to outside parties except to fulfill your order (e.g., shipping carriers and payment processors).
                         </p>
                     </section>
+                    <section className="space-y-4 pt-12 border-t border-zinc-100">
+                        <h2 className="text-sm font-bold uppercase tracking-widest text-black">Contact Us</h2>
+                        <p>
+                            If you have any questions about this Privacy Policy, please contact us at <a href="mailto:support@blactify.com" className="text-black font-medium underline">support@blactify.com</a>.
+                        </p>
+                    </section>
                 </div>
             </div>
         </main>
