@@ -39,8 +39,46 @@ export default function AdminReportsPage() {
         fetchOrders();
     }, []);
 
-    const totalRevenue = orders.reduce((sum, o) => sum + Number(o.amount), 0);
+    const totalRevenue = orders.reduce((sum, o) => {
+        const amt = Number(o.amount);
+        return sum + (isNaN(amt) ? 0 : amt);
+    }, 0);
     const averageOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
+
+    const downloadCSV = () => {
+        if (orders.length === 0) {
+            toast.error("No data to export");
+            return;
+        }
+
+        const headers = ["Order ID", "Date", "Customer", "Email", "Phone", "Amount", "Status"];
+        const csvRows = [
+            headers.join(","),
+            ...orders.map(o => {
+                const customer = o.customer_details as any;
+                return [
+                    o.id,
+                    new Date(o.created_at as string).toLocaleDateString(),
+                    `"${customer?.name || 'N/A'}"`,
+                    customer?.email || 'N/A',
+                    customer?.phone || 'N/A',
+                    o.amount,
+                    o.status
+                ].join(",");
+            })
+        ].join("\n");
+
+        const blob = new Blob([csvRows], { type: "text/csv" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.setAttribute("hidden", "");
+        a.setAttribute("href", url);
+        a.setAttribute("download", `blactify_report_${filterType}_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        toast.success("CSV Export Complete");
+    };
 
     const chartData = orders.reduce((acc: Record<string, number>, o) => {
         const date = new Date(o.created_at as string);
@@ -52,7 +90,8 @@ export default function AdminReportsPage() {
         } else {
             key = date.getFullYear().toString();
         }
-        acc[key] = (acc[key] || 0) + Number(o.amount);
+        const amt = Number(o.amount);
+        acc[key] = (acc[key] || 0) + (isNaN(amt) ? 0 : amt);
         return acc;
     }, {});
 
@@ -106,7 +145,7 @@ export default function AdminReportsPage() {
                                     body: JSON.stringify({ type: filterType })
                                 });
                             } catch { /* ignore */ }
-                            toast.success("Report export initiated");
+                            downloadCSV();
                         }}
                         className="flex items-center justify-center gap-3 bg-black text-white px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:blur-[0.5px] transition-all shadow-2xl shadow-black/20"
                     >
@@ -137,10 +176,10 @@ export default function AdminReportsPage() {
                 <AdminCard className="group bg-black text-white border-white/5 shadow-2xl shadow-black/30 relative overflow-hidden">
                     <div className="relative z-10">
                         <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-3 italic">Gross Revenue</p>
-                        <h3 className="text-4xl font-black tracking-tighter">₹{totalRevenue.toLocaleString()}</h3>
-                        <div className="mt-8 flex items-center gap-3 bg-white/5 w-fit px-4 py-2 rounded-full border border-white/10">
+                        <h3 className="text-4xl font-black tracking-tighter text-white">₹{totalRevenue.toLocaleString()}</h3>
+                        <div className="mt-8 flex items-center gap-3 bg-white/10 w-fit px-4 py-2 rounded-full border border-white/20">
                             <TrendingUp size={14} className="text-green-500" />
-                            <span className="text-[10px] font-black uppercase tracking-widest">+24.8% Growth</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-white">+24.8% Growth</span>
                         </div>
                     </div>
                     <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-white/5 rounded-full blur-[80px] group-hover:bg-white/10 transition-colors duration-1000"></div>

@@ -35,8 +35,8 @@ export async function appendOrderToSheet(orderData: {
                 cleaned = cleaned.replace(/'/g, '"');
             }
 
-            // Fix literal newline characters
-            cleaned = cleaned.replace(/\\n/g, '\n');
+            // Remove non-printable control characters that break JSON.parse (but KEEP \n \r \t)
+            cleaned = cleaned.replace(/[\x00-\x09\x0B-\x0C\x0E-\x1F\x7F]/g, "");
 
             credentialsJson = JSON.parse(cleaned);
         } catch (parseErr) {
