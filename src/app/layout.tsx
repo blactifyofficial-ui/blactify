@@ -78,7 +78,6 @@ export const metadata: Metadata = {
     shortcut: "/favicon.ico",
     apple: "/icon.png",
   },
-  manifest: "/manifest.webmanifest",
 };
 
 export const viewport: Viewport = {
