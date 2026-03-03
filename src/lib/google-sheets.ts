@@ -4,6 +4,14 @@ export async function appendOrderToSheet(orderData: {
     id: string;
     items: { name: string; size?: string; quantity: number }[];
     customer_details: { name: string; email: string; phone: string };
+    shipping_address: {
+        address: string;
+        apartment?: string;
+        city: string;
+        district: string;
+        state: string;
+        pincode: string;
+    };
     amount: number;
     status: string;
 }) {
@@ -12,11 +20,29 @@ export async function appendOrderToSheet(orderData: {
         const credentialsBase64 = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
 
         if (!spreadsheetId || !credentialsBase64) {
+            console.warn("⚠️ Google Sheets missing environment variables");
             return;
         }
 
         // Decode credentials from Base64
-        const credentialsJson = JSON.parse(Buffer.from(credentialsBase64, 'base64').toString());
+        let credentialsJson;
+        try {
+            const decoded = Buffer.from(credentialsBase64, 'base64').toString();
+
+            // Fix possible single quote issues (Python/Shell style)
+            let cleaned = decoded.trim();
+            if (cleaned.includes("'type'")) {
+                cleaned = cleaned.replace(/'/g, '"');
+            }
+
+            // Fix literal newline characters
+            cleaned = cleaned.replace(/\\n/g, '\n');
+
+            credentialsJson = JSON.parse(cleaned);
+        } catch (parseErr) {
+            console.error("❌ Failed to parse GOOGLE_SERVICE_ACCOUNT_KEY:", parseErr);
+            return;
+        }
 
         const auth = new google.auth.GoogleAuth({
             credentials: credentialsJson,
@@ -24,6 +50,7 @@ export async function appendOrderToSheet(orderData: {
         });
 
         const sheets = google.sheets({ version: 'v4', auth });
+        console.log("📡 Initializing Sheets API for Order:", orderData.id);
 
         // Format the items into a string
         const itemsList = orderData.items.map((item) =>
@@ -31,7 +58,9 @@ export async function appendOrderToSheet(orderData: {
         ).join(', ');
 
         // Prepare the row data
-        // Header recommendation: Order ID, Date, Name, Email, Phone, Amount, Items, Status
+        // Header recommendation: Order ID, Date, Name, Email, Phone, Amount, Items, Status, Address, City, State, Pincode
+        const fullAddress = `${orderData.shipping_address.address}${orderData.shipping_address.apartment ? `, ${orderData.shipping_address.apartment}` : ''}`;
+
         const row = [
             orderData.id,
             new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
@@ -40,19 +69,24 @@ export async function appendOrderToSheet(orderData: {
             orderData.customer_details.phone,
             orderData.amount,
             itemsList,
-            orderData.status
+            orderData.status,
+            fullAddress,
+            orderData.shipping_address.city,
+            orderData.shipping_address.state,
+            orderData.shipping_address.pincode
         ];
 
         await sheets.spreadsheets.values.append({
             spreadsheetId,
-            range: 'Sheet1!A:H', // Adjust range if needed
+            range: 'Sheet1!A:L', // Expanded range to include address fields
             valueInputOption: 'USER_ENTERED',
             requestBody: {
                 values: [row],
             },
         });
+        console.log(`✅ Order ${orderData.id} synced to Google Sheets`);
 
-    } catch {
-        // Silent fail for sheets sync
+    } catch (error) {
+        console.error("❌ Google Sheets Sync Error:", error);
     }
 }

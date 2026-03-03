@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase";
 import {
     Download,
     TrendingUp,
@@ -14,6 +13,7 @@ import {
 } from "lucide-react";
 import { AdminLoading, AdminPageHeader, AdminCard } from "@/components/admin/AdminUI";
 import { cn } from "@/lib/utils";
+import { testSheetSync, getAllOrdersForReport } from "@/app/actions/orders";
 
 export default function AdminReportsPage() {
     const [orders, setOrders] = useState<Record<string, unknown>[]>([]);
@@ -23,14 +23,15 @@ export default function AdminReportsPage() {
     useEffect(() => {
         async function fetchOrders() {
             try {
-                const { data, error } = await supabase
-                    .from("orders")
-                    .select("*")
-                    .order("created_at", { ascending: false });
-                if (error) throw error;
-                setOrders(data || []);
-            } catch {
-                // error handled
+                const result = await getAllOrdersForReport();
+                if (result.success) {
+                    setOrders(result.orders as Record<string, unknown>[]);
+                } else {
+                    toast.error(result.error || "Failed to load orders");
+                }
+            } catch (err) {
+                toast.error("An unexpected error occurred while fetching reports.");
+                console.error(err);
             } finally {
                 setLoading(false);
             }
@@ -111,6 +112,22 @@ export default function AdminReportsPage() {
                     >
                         <Download size={14} />
                         Export Report
+                    </button>
+                    <button
+                        onClick={async () => {
+                            const loadingToast = toast.loading("Sending test entry...");
+                            const result = await testSheetSync();
+                            toast.dismiss(loadingToast);
+                            if (result.success) {
+                                toast.success("Test entry added to Sheet!");
+                            } else {
+                                toast.error("Failed to add test entry: " + result.error);
+                            }
+                        }}
+                        className="flex items-center justify-center gap-3 bg-zinc-100 text-black px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-200 transition-all border border-zinc-200"
+                    >
+                        <Zap size={14} />
+                        Test Sheet Sync
                     </button>
                 </div>
             </AdminPageHeader>

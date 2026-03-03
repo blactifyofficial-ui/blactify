@@ -79,6 +79,7 @@ export async function saveOrder(orderData: z.infer<typeof OrderSyncSchema>) {
             id: orderIdToSave,
             items: data.items,
             customer_details: data.customer_details,
+            shipping_address: data.shipping_address,
             amount: data.amount,
             status: data.status
         }).catch(() => { });
