@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 export const preferredRegion = "sin1";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-
-// Helper to verify admin status (optional but recommended)
+import { verifyAdminAuth } from "@/lib/auth-server";
+import { logAction } from "@/lib/logger";
 
 export async function POST(request: Request) {
+    const auth = await verifyAdminAuth(request);
+    if (auth.error) return auth.error;
     try {
         const { name, slug, size_config, image_url } = await request.json();
 
@@ -45,13 +47,21 @@ export async function POST(request: Request) {
             }
         }
 
+        await logAction({
+            action_type: "category_add",
+            details: { name, slug },
+            user_email: auth.email
+        });
+
         return NextResponse.json(categoryData);
     } catch {
         return NextResponse.json({ error: "Failed to create category" }, { status: 500 });
     }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+    const auth = await verifyAdminAuth(request);
+    if (auth.error) return auth.error;
     try {
         const { data: categories, error } = await supabaseAdmin
             .from("categories")
@@ -87,6 +97,8 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
+    const auth = await verifyAdminAuth(request);
+    if (auth.error) return auth.error;
     try {
         const { id, name, slug, size_config, image_url } = await request.json();
 
@@ -130,6 +142,12 @@ export async function PUT(request: Request) {
             }
         }
 
+        await logAction({
+            action_type: "category_edit",
+            details: { id, name, slug },
+            user_email: auth.email
+        });
+
         return NextResponse.json(categoryData);
     } catch {
         return NextResponse.json({ error: "Failed to update category" }, { status: 500 });
@@ -138,6 +156,8 @@ export async function PUT(request: Request) {
 
 
 export async function DELETE(request: Request) {
+    const auth = await verifyAdminAuth(request);
+    if (auth.error) return auth.error;
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get("id");
@@ -152,6 +172,12 @@ export async function DELETE(request: Request) {
             .eq("id", id);
 
         if (error) throw error;
+
+        await logAction({
+            action_type: "category_delete",
+            details: { id },
+            user_email: auth.email
+        });
 
         return NextResponse.json({ success: true });
     } catch {

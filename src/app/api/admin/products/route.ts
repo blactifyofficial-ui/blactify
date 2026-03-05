@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 export const preferredRegion = "sin1";
 import { deleteFromCloudinary } from "@/lib/cloudinary";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-
+import { verifyAdminAuth } from "@/lib/auth-server";
 
 export async function POST(request: Request) {
+    const auth = await verifyAdminAuth(request);
+    if (auth.error) return auth.error;
     try {
         const body = await request.json();
         const { id, name, handle, price_base, price_offer, category_id, description, variants, images } = body;
@@ -81,7 +83,8 @@ export async function POST(request: Request) {
         const { logAction } = await import("@/lib/logger");
         await logAction({
             action_type: "product_add",
-            details: { id, name, price_base }
+            details: { id, name, price_base },
+            user_email: auth.email
         });
 
         return NextResponse.json({ success: true });
@@ -91,6 +94,8 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+    const auth = await verifyAdminAuth(request);
+    if (auth.error) return auth.error;
     try {
         const body = await request.json();
         const { id, name, handle, price_base, price_offer, category_id, description, variants, images } = body;
@@ -202,7 +207,8 @@ export async function PUT(request: Request) {
         const { logAction } = await import("@/lib/logger");
         await logAction({
             action_type: "product_edit",
-            details: { id, name, price_base }
+            details: { id, name, price_base },
+            user_email: auth.email
         });
 
         return NextResponse.json({ success: true });
@@ -212,6 +218,8 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+    const auth = await verifyAdminAuth(request);
+    if (auth.error) return auth.error;
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get("id");
@@ -237,7 +245,8 @@ export async function DELETE(request: Request) {
         const { logAction } = await import("@/lib/logger");
         await logAction({
             action_type: "product_delete",
-            details: { id }
+            details: { id },
+            user_email: auth.email
         });
 
         return NextResponse.json({ success: true });

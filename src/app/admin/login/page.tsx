@@ -24,9 +24,13 @@ export default function AdminLoginPage() {
             const result = await signInWithPopup(auth, googleProvider);
 
             // Log the login attempt
+            const token = await result.user.getIdToken();
             await fetch("/api/admin/log-login", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
                 body: JSON.stringify({
                     email: result.user.email,
                     success: true

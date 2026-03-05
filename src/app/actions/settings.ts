@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { revalidatePath, unstable_cache } from "next/cache";
 import { Resend } from "resend";
 import { SELLER_CONFIG } from "@/lib/config";
+import { verifyActionAdminAuth } from "@/lib/auth-server";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -39,6 +40,7 @@ export const getStoreSettings = unstable_cache(
 
 export async function togglePurchaseStatus(status: boolean) {
     try {
+        const auth = await verifyActionAdminAuth();
         const { error } = await supabaseAdmin
             .from("store_settings")
             .upsert({ id: true, purchases_enabled: status });
@@ -106,7 +108,8 @@ export async function togglePurchaseStatus(status: boolean) {
         const { logAction } = await import("@/lib/logger");
         await logAction({
             action_type: "purchase_toggle",
-            details: { enabled: status }
+            details: { enabled: status },
+            user_email: auth.email
         });
 
         return { success: true };

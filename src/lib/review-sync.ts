@@ -1,4 +1,8 @@
+"use server";
+
 import { supabase } from "./supabase";
+import { supabaseAdmin } from "./supabase-admin";
+import { verifyActionAuth } from "./auth-server";
 
 export async function fetchReviews(productId: string) {
     try {
@@ -29,9 +33,14 @@ export async function postReview(reviewData: {
     user_id: string;
     rating: number;
     comment: string;
-}) {
+}, token: string) {
     try {
-        const { error } = await supabase
+        const auth = await verifyActionAuth(token);
+        if (auth.uid !== reviewData.user_id) {
+            return { success: false, error: "Forbidden: You can only post reviews as yourself." };
+        }
+
+        const { error } = await supabaseAdmin
             .from("reviews")
             .insert({
                 product_id: reviewData.product_id,

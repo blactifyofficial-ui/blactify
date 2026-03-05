@@ -23,6 +23,7 @@ import {
     Crop
 } from "lucide-react";
 import ImageCropper from "@/components/admin/ImageCropper";
+import { auth } from "@/lib/firebase";
 import {
     HandleSchema,
     ProductIdSchema,
@@ -110,51 +111,26 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
         const slug = newCatName.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
 
         try {
-            // 1. Create Category
-            const { data: categoryData, error: insertError } = await supabase
-                .from("categories")
-                .insert([{
+            const token = await auth.currentUser?.getIdToken();
+            const response = await fetch("/api/admin/categories", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
                     name: newCatName.trim(),
-                    slug
-                    // size_config deprecated
-                }])
-                .select()
-                .single();
+                    slug,
+                    size_config: newCatSizeFields
+                })
+            });
 
-            if (insertError) throw insertError;
-
-            // 2. Handle Measurement Fields
-            if (newCatSizeFields.length > 0) {
-                // A. Upsert types
-                const { error: measError } = await supabase
-                    .from("measurement_types")
-                    .upsert(
-                        newCatSizeFields.map(name => ({ name })),
-                        { onConflict: 'name' }
-                    );
-                if (measError) throw measError;
-
-                // B. Get IDs
-                const { data: allTypes } = await supabase.from("measurement_types").select("id, name").in("name", newCatSizeFields);
-                const typeMap = new Map(allTypes?.map(m => [m.name, m.id]));
-
-                // C. Link
-                const links = newCatSizeFields.map(name => {
-                    const typeId = typeMap.get(name);
-                    if (!typeId) return null;
-                    return {
-                        category_id: categoryData.id,
-                        measurement_type_id: typeId
-                    };
-                }).filter(Boolean);
-
-                if (links.length > 0) {
-                    const { error: linkError } = await supabase
-                        .from("category_measurements")
-                        .insert(links);
-                    if (linkError) throw linkError;
-                }
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to add category");
             }
+
+            const categoryData = await response.json();
 
             toast.success("Category added!");
             await fetchCategories();
@@ -163,16 +139,9 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
             setNewCatSizeFields([]);
             setShowQuickAdd(false);
         } catch (err: unknown) {
-
-            let message = "Failed to add category.";
-            if (err instanceof Error) {
-                if ('code' in err && err.code === '23505') {
-                    message = "A category with this name already exists.";
-                } else {
-                    message = err.message || message;
-                }
-            }
-            toast.error(message);
+            console.error(err);
+            const errorMessage = err instanceof Error ? err.message : "Failed to add category";
+            toast.error(errorMessage);
         } finally {
             setAddingCat(false);
         }
@@ -272,10 +241,14 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
         setUploading(field);
 
         try {
+            const token = await auth.currentUser?.getIdToken();
             const res = await fetch("/api/upload", {
                 method: "POST",
                 body: JSON.stringify({ image: croppedImageData }),
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
             });
             const data = await res.json();
 
@@ -347,9 +320,13 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                 images: images
             };
 
+            const token = await auth.currentUser?.getIdToken();
             const response = await fetch("/api/admin/products", {
                 method: isEditing ? "PUT" : "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
                 body: JSON.stringify(payload)
             });
 

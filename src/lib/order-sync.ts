@@ -4,21 +4,53 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import { appendOrderToSheet } from "./google-sheets";
 import { OrderSyncSchema } from "./schemas";
 import { z } from "zod";
+import { verifyActionAuth } from "./auth-server";
+import crypto from "crypto";
 
 export async function saveOrder(orderData: z.infer<typeof OrderSyncSchema>) {
-    const validatedData = OrderSyncSchema.safeParse(orderData);
-    if (!validatedData.success) {
-        return {
-            success: false,
-            error: {
-                message: validatedData.error.issues[0].message,
-                technical: JSON.stringify(validatedData.error.format())
-            }
-        };
-    }
-    const data = validatedData.data;
-
     try {
+        const auth = await verifyActionAuth();
+        const validatedData = OrderSyncSchema.safeParse(orderData);
+        if (!validatedData.success) {
+            return {
+                success: false,
+                error: {
+                    message: validatedData.error.issues[0].message,
+                    technical: JSON.stringify(validatedData.error.format())
+                }
+            };
+        }
+        const data = validatedData.data;
+        if (auth.uid !== data.user_id) {
+            return { success: false, error: { message: "Forbidden: You can only save your own orders." } };
+        }
+
+        // --- PAYMENT VERIFICATION ---
+        if (data.status === "paid") {
+            const razorpay_order_id = data.razorpay_order_id;
+            const razorpay_payment_id = data.razorpay_payment_id;
+            const razorpay_signature = data.payment_details?.razorpay_signature as string;
+
+            if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+                return { success: false, error: { message: "Missing payment verification details." } };
+            }
+
+            const key_secret = process.env.RAZORPAY_KEY_SECRET;
+            if (!key_secret) {
+                console.error("RAZORPAY_KEY_SECRET is not configured");
+                return { success: false, error: { message: "Payment verification failed: secret missing." } };
+            }
+
+            const expected_signature = crypto
+                .createHmac("sha256", key_secret)
+                .update(razorpay_order_id + "|" + razorpay_payment_id)
+                .digest("hex");
+
+            if (expected_signature !== razorpay_signature) {
+                return { success: false, error: { message: "Invalid payment signature. Verification failed." } };
+            }
+        }
+        // ----------------------------
         const orderIdToSave = data.razorpay_order_id || `order_${Date.now()}`;
 
         const { data: rpcData, error } = await supabaseAdmin.rpc('create_order_v2', {
@@ -99,6 +131,7 @@ export async function saveOrder(orderData: z.infer<typeof OrderSyncSchema>) {
 
 export async function getOrder(orderId: string) {
     try {
+        await verifyActionAuth();
         const { data, error } = await supabaseAdmin
             .from("orders")
             .select("*")
@@ -117,6 +150,8 @@ export async function getOrder(orderId: string) {
 
 export async function getUserOrders(userId: string) {
     try {
+        const auth = await verifyActionAuth();
+        if (auth.uid !== userId) throw new Error("Forbidden: You can only view your own orders.");
         const { data, error } = await supabaseAdmin
             .from("orders")
             .select("*")

@@ -12,7 +12,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { loadRazorpay } from "@/lib/razorpay";
 import { saveOrder } from "@/lib/order-sync";
-import { markWelcomeDiscountUsed } from "@/lib/profile-sync";
+import { markWelcomeDiscountUsed } from "@/actions/profile";
 import { Tag } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -317,9 +317,13 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
 
         try {
             // 1. Create order on server
+            const token = await auth.currentUser?.getIdToken();
             const response = await fetch("/api/checkout", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
                 body: JSON.stringify({
                     amount: total,
                     currency: "INR",
@@ -394,7 +398,8 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
 
                         if (saveResult.success) {
                             if (discountCode === "WELCOME10" && user) {
-                                await markWelcomeDiscountUsed(user.uid);
+                                const token = await user.getIdToken();
+                                await markWelcomeDiscountUsed(user.uid, token);
                             }
 
                             if (isDirect) {

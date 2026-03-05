@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 export const preferredRegion = "sin1";
+import { verifyAuth } from "@/lib/auth-server";
 
 export async function POST(request: Request) {
+    const auth = await verifyAuth(request);
+    if (auth.error) return auth.error;
     try {
         const body = await request.json();
         const { id, email, full_name, avatar_url } = body;
@@ -10,6 +13,7 @@ export async function POST(request: Request) {
         if (!id) {
             return NextResponse.json({ error: "Missing user ID" }, { status: 400 });
         }
+        if (auth.uid !== id) return NextResponse.json({ error: "Forbidden: You can only sync your own profile" }, { status: 403 });
 
         const { data, error } = await supabaseAdmin
             .from("profiles")

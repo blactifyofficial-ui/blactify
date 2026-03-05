@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAuth } from "@/store/AuthContext";
 import { auth } from "@/lib/firebase";
 import { updateProfile, signOut } from "firebase/auth";
-import { syncUserProfile } from "@/lib/profile-sync";
+import { syncUserProfile } from "@/lib/profile-client";
 import { ChevronLeft, User, Mail, Check, AlertCircle, Save, X, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -31,10 +31,13 @@ export default function SettingsPage() {
 
         setIsDeleting(true);
         try {
-            // 1. Delete from Supabase & Cloudinary via API
+            const token = await user.getIdToken();
             const response = await fetch('/api/user/delete', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({ userId: user.uid })
             });
 

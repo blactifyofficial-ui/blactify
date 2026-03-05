@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 export const preferredRegion = "sin1";
 import Razorpay from "razorpay";
 import { z } from "zod";
+import { verifyAuth } from "@/lib/auth-server";
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID!,
@@ -15,6 +16,8 @@ const CheckoutSchema = z.object({
 });
 
 export async function POST(req: Request) {
+    const authResult = await verifyAuth(req);
+    if (authResult.error) return authResult.error;
     try {
         const body = await req.json();
         const validated = CheckoutSchema.safeParse(body);

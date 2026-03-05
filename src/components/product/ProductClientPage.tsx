@@ -116,22 +116,29 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
         }
 
         setIsSubmitting(true);
-        const result = await postReview({
-            product_id: product!.id,
-            user_id: user.uid,
-            rating: newRating,
-            comment: newComment
-        });
+        try {
+            const token = await user.getIdToken();
+            const result = await postReview({
+                product_id: product!.id,
+                user_id: user.uid,
+                rating: newRating,
+                comment: newComment
+            }, token);
 
-        if (result.success) {
-            setNewComment("");
-            setIsReviewModalOpen(false);
-            toast.success("Great! Your review has been posted.");
-            await loadReviews();
-        } else {
-            toast.error("Rating Error", { description: getFriendlyErrorMessage(result.error) });
+            if (result.success) {
+                setNewComment("");
+                setIsReviewModalOpen(false);
+                toast.success("Great! Your review has been posted.");
+                await loadReviews();
+            } else {
+                toast.error("Rating Error", { description: getFriendlyErrorMessage(result.error) });
+            }
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : "Submission failed";
+            toast.error("Submission failed", { description: errorMessage });
+        } finally {
+            setIsSubmitting(false);
         }
-        setIsSubmitting(false);
     };
 
     const averageRating = useMemo(() => {

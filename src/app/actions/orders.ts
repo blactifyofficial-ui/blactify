@@ -1,6 +1,7 @@
 "use server";
 
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { verifyActionAdminAuth } from "@/lib/auth-server";
 
 interface GetAdminOrdersProps {
     page: number;
@@ -10,6 +11,7 @@ interface GetAdminOrdersProps {
 
 export async function getAdminOrders({ page, pageSize, searchTerm }: GetAdminOrdersProps) {
     try {
+        await verifyActionAdminAuth();
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
 
@@ -47,6 +49,7 @@ export async function getAdminOrders({ page, pageSize, searchTerm }: GetAdminOrd
 
 export async function getAdminOrderById(id: string) {
     try {
+        await verifyActionAdminAuth();
         const { data, error } = await supabaseAdmin
             .from("orders")
             .select("*")
@@ -72,6 +75,7 @@ export async function getAdminOrderById(id: string) {
 
 export async function updateAdminOrder(id: string, updates: Record<string, unknown>) {
     try {
+        await verifyActionAdminAuth();
         const { data, error } = await supabaseAdmin
             .from("orders")
             .update(updates)
@@ -94,6 +98,7 @@ export async function updateAdminOrder(id: string, updates: Record<string, unkno
 
 export async function getAllOrdersForReport() {
     try {
+        await verifyActionAdminAuth();
         const { data, error } = await supabaseAdmin
             .from("orders")
             .select("*")
@@ -115,6 +120,7 @@ import { appendOrderToSheet } from "@/lib/google-sheets";
 
 export async function testSheetSync() {
     try {
+        await verifyActionAdminAuth();
         await appendOrderToSheet({
             id: "TEST_SYNC_" + Math.random().toString(36).substring(7).toUpperCase(),
             items: [

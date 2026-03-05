@@ -1,3 +1,5 @@
+"use server";
+
 import { supabaseAdmin } from "./supabase-admin";
 
 export type ActionType =

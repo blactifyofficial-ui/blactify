@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, User, signOut as firebaseSignOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { syncUserProfile } from "@/lib/profile-sync";
+import { syncUserProfile } from "@/lib/profile-client";
 
 interface AuthContextType {
     user: User | null;

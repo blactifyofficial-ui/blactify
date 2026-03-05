@@ -16,6 +16,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { AdminPageHeader, AdminCard, AdminLoading } from "@/components/admin/AdminUI";
 import { toast } from "sonner";
+import { auth } from "@/lib/firebase";
 
 interface HomeProduct {
     id: string;
@@ -34,7 +35,12 @@ export default function HomeProductsPage() {
 
     const fetchFeaturedProducts = useCallback(async () => {
         try {
-            const res = await fetch("/api/admin/home-products");
+            const token = await auth.currentUser?.getIdToken();
+            const res = await fetch("/api/admin/home-products", {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
             const data = await res.json();
             if (res.ok && Array.isArray(data)) {
                 setFeaturedProducts(data);
@@ -118,9 +124,13 @@ export default function HomeProductsPage() {
     const handleSave = async () => {
         setSaving(true);
         try {
+            const token = await auth.currentUser?.getIdToken();
             const res = await fetch("/api/admin/home-products", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
                 body: JSON.stringify({ productIds: featuredProducts.map(p => p.id) })
             });
 

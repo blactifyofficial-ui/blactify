@@ -2,10 +2,13 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 export const preferredRegion = "sin1";
 import { SELLER_CONFIG } from "@/lib/config";
+import { verifyAuth } from "@/lib/auth-server";
 
 
 
 export async function POST(req: Request) {
+    const authResult = await verifyAuth(req);
+    if (authResult.error) return authResult.error;
     try {
         const { order } = await req.json();
         const orderId = order.id || "N/A";

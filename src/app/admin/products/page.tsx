@@ -17,6 +17,7 @@ import { useAdminProducts } from "@/hooks/useAdminProducts";
 import { AdminLoading, AdminPageHeader, AdminCard } from "@/components/admin/AdminUI";
 import { toast } from "sonner";
 import { Product } from "@/types/database";
+import { auth } from "@/lib/firebase";
 
 export default function AdminProductsPage() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -42,8 +43,12 @@ export default function AdminProductsPage() {
         if (!productToDelete) return;
         setIsDeleting(true);
         try {
+            const token = await auth.currentUser?.getIdToken();
             const response = await fetch(`/api/admin/products?id=${productToDelete}`, {
-                method: "DELETE"
+                method: "DELETE",
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
 
             if (!response.ok) {

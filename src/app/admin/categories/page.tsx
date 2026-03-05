@@ -23,6 +23,7 @@ import { Category } from "@/types/database";
 import { AdminLoading, AdminPageHeader, AdminCard } from "@/components/admin/AdminUI";
 import { cn } from "@/lib/utils";
 import { CategoryNameSchema } from "@/lib/validation";
+import { auth } from "@/lib/firebase";
 
 
 export default function AdminCategoriesPage() {
@@ -66,10 +67,14 @@ export default function AdminCategoriesPage() {
         setUploadingImage(true);
 
         try {
+            const token = await auth.currentUser?.getIdToken();
             const res = await fetch("/api/upload", {
                 method: "POST",
                 body: JSON.stringify({ image: croppedImageData }),
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
             });
             const data = await res.json();
 
@@ -127,9 +132,13 @@ export default function AdminCategoriesPage() {
                 size_config: newSizeFields
             };
 
+            const token = await auth.currentUser?.getIdToken();
             const response = await fetch("/api/admin/categories" + (editingId ? "" : ""), {
                 method: editingId ? "PUT" : "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
                 body: JSON.stringify(payload)
             });
 
@@ -138,12 +147,8 @@ export default function AdminCategoriesPage() {
                 throw new Error(errorData.error || "Failed to process request");
             }
 
-            // Log the action (POST/PUT)
-            const { logAction } = await import("@/lib/logger");
-            await logAction({
-                action_type: editingId ? "category_edit" : "category_add",
-                details: { id: editingId || payload.slug, name: newCategoryName }
-            });
+            // Categories are now logged on the server within the API route
+            // removed logAction call from client to prevent spoofing
 
             toast.success(editingId ? "Category updated" : "New category created", {
                 description: `Category saved: ${newCategoryName}`,
@@ -166,8 +171,12 @@ export default function AdminCategoriesPage() {
         if (!categoryToDelete) return;
         setIsDeleting(true);
         try {
+            const token = await auth.currentUser?.getIdToken();
             const response = await fetch(`/api/admin/categories?id=${categoryToDelete}`, {
-                method: "DELETE"
+                method: "DELETE",
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
 
             if (!response.ok) {
@@ -175,12 +184,8 @@ export default function AdminCategoriesPage() {
                 throw new Error(errorData.error || "Deletion failed");
             }
 
-            // Log the action
-            const { logAction } = await import("@/lib/logger");
-            await logAction({
-                action_type: "category_delete",
-                details: { id: categoryToDelete }
-            });
+            // Categories are now logged on the server within the API route
+            // removed logAction call from client to prevent spoofing
 
             toast.success("Category deleted");
             refetch();

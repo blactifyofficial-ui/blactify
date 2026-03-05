@@ -5,9 +5,11 @@ import { Resend } from "resend";
 import { SELLER_CONFIG } from "@/lib/config";
 import { SupportTicketSchema } from "@/lib/schemas";
 import { z } from "zod";
+import { verifyActionAuth, verifyActionAdminAuth } from "@/lib/auth-server";
 
 export async function createTicket(formData: z.infer<typeof SupportTicketSchema>) {
     try {
+        const auth = await verifyActionAuth();
         const validatedData = SupportTicketSchema.safeParse(formData);
         if (!validatedData.success) {
             return {
@@ -16,6 +18,9 @@ export async function createTicket(formData: z.infer<typeof SupportTicketSchema>
             };
         }
         const data = validatedData.data;
+        if (auth.uid !== data.userId) {
+            return { success: false, error: "Forbidden: You can only create tickets for yourself." };
+        }
 
         const { error } = await supabaseAdmin
             .from("support_tickets")
@@ -90,6 +95,7 @@ export async function createTicket(formData: z.infer<typeof SupportTicketSchema>
 
 export async function respondToTicket(ticketId: string, response: string, userEmail?: string, orderId?: string) {
     try {
+        await verifyActionAdminAuth();
         if (!ticketId || !response) throw new Error("Missing required fields");
         if (response.length < 5) throw new Error("Response is too short");
 
@@ -106,9 +112,9 @@ export async function respondToTicket(ticketId: string, response: string, userEm
                 throw new Error("System could not retrieve the customer's email address.");
             }
             // Handle both object and array response from Supabase
-            targetEmail = Array.isArray(ticketData.profiles)
-                ? ticketData.profiles[0]?.email
-                : (ticketData.profiles as any)?.email;
+            const profiles = ticketData.profiles as unknown as { email: string | null } | { email: string | null }[];
+            const profile = Array.isArray(profiles) ? profiles[0] : profiles;
+            targetEmail = profile?.email ?? undefined;
         }
 
         if (!targetEmail) throw new Error("Customer email is missing or invalid.");
@@ -168,6 +174,7 @@ export async function respondToTicket(ticketId: string, response: string, userEm
 
 export async function getTickets() {
     try {
+        await verifyActionAdminAuth();
         const { data, error } = await supabaseAdmin
             .from("support_tickets")
             .select("*, profiles(email, full_name)")
@@ -182,6 +189,7 @@ export async function getTickets() {
 
 export async function getTicketById(id: string) {
     try {
+        await verifyActionAdminAuth();
         const { data, error } = await supabaseAdmin
             .from("support_tickets")
             .select("*, profiles(email, full_name), orders(*)")
@@ -197,6 +205,7 @@ export async function getTicketById(id: string) {
 
 export async function closeTicket(id: string) {
     try {
+        await verifyActionAdminAuth();
         const { error } = await supabaseAdmin
             .from("support_tickets")
             .update({ status: "closed" })

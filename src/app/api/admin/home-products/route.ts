@@ -2,8 +2,11 @@ import { NextResponse } from "next/server";
 export const preferredRegion = "sin1";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { revalidatePath } from "next/cache";
+import { verifyAdminAuth } from "@/lib/auth-server";
 
-export async function GET() {
+export async function GET(request: Request) {
+    const auth = await verifyAdminAuth(request);
+    if (auth.error) return auth.error;
     try {
         const { data, error } = await supabaseAdmin
             .from("products")
@@ -20,6 +23,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    const auth = await verifyAdminAuth(request);
+    if (auth.error) return auth.error;
     try {
         const { productIds } = await request.json(); // Array of up to 6 product IDs in order
 

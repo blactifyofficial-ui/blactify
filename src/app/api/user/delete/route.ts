@@ -3,6 +3,7 @@ export const preferredRegion = "sin1";
 import { deleteFromCloudinary } from '@/lib/cloudinary';
 import { NextResponse } from 'next/server';
 import { z } from "zod";
+import { verifyAuth } from "@/lib/auth-server";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -13,6 +14,9 @@ const DeleteUserSchema = z.object({
 });
 
 export async function POST(req: Request) {
+    const auth = await verifyAuth(req);
+    if (auth.error) return auth.error;
+
     try {
         const body = await req.json();
         const validated = DeleteUserSchema.safeParse(body);
@@ -22,6 +26,7 @@ export async function POST(req: Request) {
         }
 
         const { userId } = validated.data;
+        if (auth.uid !== userId) return NextResponse.json({ error: "Forbidden: You can only delete your own account" }, { status: 403 });
 
         // 1. Get user profile to check for avatar_url (Fetch before delete)
         const { data: profile, error: getError } = await supabaseServer

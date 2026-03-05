@@ -1,8 +1,11 @@
 import { cloudinary } from '@/lib/cloudinary';
 export const preferredRegion = "sin1";
 import { NextResponse } from 'next/server';
+import { verifyAdminAuth } from '@/lib/auth-server';
 
 export async function POST(req: Request) {
+    const auth = await verifyAdminAuth(req);
+    if (auth.error) return auth.error;
     try {
         const body = await req.json() as { image?: string };
         const image = body.image;

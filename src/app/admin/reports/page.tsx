@@ -14,6 +14,7 @@ import {
 import { AdminLoading, AdminPageHeader, AdminCard } from "@/components/admin/AdminUI";
 import { cn } from "@/lib/utils";
 import { testSheetSync, getAllOrdersForReport } from "@/app/actions/orders";
+import { auth } from "@/lib/firebase";
 
 export default function AdminReportsPage() {
     const [orders, setOrders] = useState<Record<string, unknown>[]>([]);
@@ -55,7 +56,7 @@ export default function AdminReportsPage() {
         const csvRows = [
             headers.join(","),
             ...orders.map(o => {
-                const customer = o.customer_details as any;
+                const customer = o.customer_details as { name?: string; email?: string; phone?: string };
                 return [
                     o.id,
                     new Date(o.created_at as string).toLocaleDateString(),
@@ -139,9 +140,13 @@ export default function AdminReportsPage() {
                         onClick={async () => {
                             // Log the export action
                             try {
+                                const token = await auth.currentUser?.getIdToken();
                                 await fetch("/api/admin/log-report", {
                                     method: "POST",
-                                    headers: { "Content-Type": "application/json" },
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "Authorization": `Bearer ${token}`
+                                    },
                                     body: JSON.stringify({ type: filterType })
                                 });
                             } catch { /* ignore */ }

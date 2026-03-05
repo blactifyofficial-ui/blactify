@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { logAction } from "@/lib/logger";
+import { verifyAdminAuth } from "@/lib/auth-server";
 
 export const preferredRegion = "sin1";
 
 export async function POST(request: Request) {
+    const auth = await verifyAdminAuth(request);
+    if (auth.error) return auth.error;
     try {
         const body = await request.json();
         const { type } = body;
@@ -11,6 +14,7 @@ export async function POST(request: Request) {
         await logAction({
             action_type: "report_export",
             details: { type },
+            user_email: auth.email,
             severity: "info"
         });
 

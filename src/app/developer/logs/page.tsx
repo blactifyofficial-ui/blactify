@@ -3,7 +3,6 @@
 import { useAuth } from "@/store/AuthContext";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 import {
     Terminal,
     ShieldAlert,
@@ -19,6 +18,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { getDeveloperLogs } from "@/actions/developer";
+import { auth } from "@/lib/firebase";
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -76,13 +77,15 @@ export default function DeveloperLogsPage() {
     async function fetchLogs() {
         setLoading(true);
         try {
-            const { data, error } = await supabase
-                .from("developer_logs")
-                .select("*")
-                .order("created_at", { ascending: false });
+            const token = await auth.currentUser?.getIdToken();
+            if (!token) throw new Error("No auth token");
 
-            if (error) throw error;
-            setLogs(data || []);
+            const result = await getDeveloperLogs(token);
+            if (result.success) {
+                setLogs(result.logs as LogEntry[]);
+            } else {
+                throw new Error(result.error);
+            }
         } catch (error) {
             console.error("Error fetching logs:", error);
         } finally {

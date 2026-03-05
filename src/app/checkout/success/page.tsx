@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import confetti from "canvas-confetti";
 import { useSearchParams, useRouter } from "next/navigation";
+import { auth } from "@/lib/firebase";
 
 interface OrderDetail {
     id: string;
@@ -95,10 +96,13 @@ export default function CheckoutSuccessPage() {
                 setNotified(true);
 
                 // Trigger Server-side Notification (Email)
-
+                const token = await auth.currentUser?.getIdToken();
                 const response = await fetch("/api/notify", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
                     body: JSON.stringify({ order: data }),
                 });
 
