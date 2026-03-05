@@ -18,6 +18,9 @@
 # production
 /build
 
+# unlighthouse
+.unlighthouse
+
 # misc
 .DS_Store
 *.pem

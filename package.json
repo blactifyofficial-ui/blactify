@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "unlighthouse": "unlighthouse --site http://localhost:3000 --desktop",
+    "unlighthouse:mobile": "unlighthouse --site http://localhost:3000 --mobile"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -45,6 +47,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "unlighthouse": "^0.17.7"
   }
 }
