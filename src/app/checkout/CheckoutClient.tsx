@@ -133,7 +133,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
         : getSubtotal();
 
     const shipping = isDirect
-        ? (subtotal === 0 ? 0 : (subtotal < 2999 ? (formData.state === "Kerala" ? 59 : 79) : 0))
+        ? (subtotal === 0 ? 0 : (discountCode === "FREE SHIP" || discountCode === "FREESHIP" ? 0 : (subtotal < 2999 ? (formData.state === "Kerala" ? 59 : 79) : 0)))
         : getShippingCharge(formData.state);
 
     const total = isDirect
@@ -354,6 +354,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                 handler: async function (razorpayResponse: RazorpaySuccessResponse) {
                     // Payment Success
                     try {
+                        const token = await auth.currentUser?.getIdToken();
                         // Save order to Supabase
                         const saveResult = await saveOrder({
                             razorpay_order_id: razorpayResponse.razorpay_order_id,
@@ -394,7 +395,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                 method: "Razorpay",
                                 timestamp: new Date().toISOString()
                             }
-                        });
+                        }, token);
 
                         if (saveResult.success) {
                             if (discountCode === "WELCOME10" && user) {
@@ -602,8 +603,9 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                if (discountInput === "WELCOME10") {
-                                                    applyDiscount("WELCOME10");
+                                                const code = discountInput.trim().toUpperCase();
+                                                if (code === "WELCOME10" || code === "FREE SHIP" || code === "FREESHIP") {
+                                                    applyDiscount(code);
                                                     setDiscountInput("");
                                                 } else {
                                                     toast.error("Invalid discount code");
@@ -978,8 +980,9 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                             <button
                                 type="button"
                                 onClick={() => {
-                                    if (discountInput === "WELCOME10") {
-                                        applyDiscount("WELCOME10");
+                                    const code = discountInput.trim().toUpperCase();
+                                    if (code === "WELCOME10" || code === "FREE SHIP" || code === "FREESHIP") {
+                                        applyDiscount(code);
                                         setDiscountInput("");
                                     } else {
                                         toast.error("Invalid discount code");
