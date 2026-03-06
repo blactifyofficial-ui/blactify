@@ -133,7 +133,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
         : getSubtotal();
 
     const shipping = isDirect
-        ? (subtotal === 0 ? 0 : (discountCode === "FREE SHIP" || discountCode === "FREESHIP" ? 0 : (subtotal < 2999 ? (formData.state === "Kerala" ? 59 : 79) : 0)))
+        ? (subtotal === 0 ? 0 : (subtotal < 2999 ? (formData.state === "Kerala" ? 59 : 79) : 0))
         : getShippingCharge(formData.state);
 
     const total = isDirect
@@ -603,9 +603,8 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                const code = discountInput.trim().toUpperCase();
-                                                if (code === "WELCOME10" || code === "FREE SHIP" || code === "FREESHIP") {
-                                                    applyDiscount(code);
+                                                if (discountInput === "WELCOME10") {
+                                                    applyDiscount("WELCOME10");
                                                     setDiscountInput("");
                                                 } else {
                                                     toast.error("Invalid discount code");
@@ -980,9 +979,8 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                             <button
                                 type="button"
                                 onClick={() => {
-                                    const code = discountInput.trim().toUpperCase();
-                                    if (code === "WELCOME10" || code === "FREE SHIP" || code === "FREESHIP") {
-                                        applyDiscount(code);
+                                    if (discountInput === "WELCOME10") {
+                                        applyDiscount("WELCOME10");
                                         setDiscountInput("");
                                     } else {
                                         toast.error("Invalid discount code");

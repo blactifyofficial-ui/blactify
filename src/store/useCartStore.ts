@@ -150,7 +150,6 @@ export const useCartStore = create<CartStore>()(
             getShippingCharge: (state) => {
                 const subtotal = get().getSubtotal();
                 if (subtotal === 0) return 0;
-                if (get().discountCode === "FREE SHIP" || get().discountCode === "FREESHIP") return 0;
                 if (subtotal >= 2999) return 0; // Free shipping threshold
 
                 if (state === "Kerala") {
