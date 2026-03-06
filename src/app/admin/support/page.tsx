@@ -13,6 +13,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Ticket } from "@/types/database";
+import { auth } from "@/lib/firebase";
 
 export default function AdminSupportPage() {
     const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -23,7 +24,8 @@ export default function AdminSupportPage() {
     useEffect(() => {
         async function fetchTickets() {
             setLoading(true);
-            const result = await getTickets();
+            const token = await auth.currentUser?.getIdToken();
+            const result = await getTickets(token);
             if (result.success) {
                 setTickets(result.tickets || []);
             }

@@ -7,11 +7,12 @@ interface GetAdminOrdersProps {
     page: number;
     pageSize: number;
     searchTerm?: string;
+    token?: string;
 }
 
-export async function getAdminOrders({ page, pageSize, searchTerm }: GetAdminOrdersProps) {
+export async function getAdminOrders({ page, pageSize, searchTerm, token }: GetAdminOrdersProps) {
     try {
-        await verifyActionAdminAuth();
+        await verifyActionAdminAuth(token);
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
 
@@ -47,9 +48,9 @@ export async function getAdminOrders({ page, pageSize, searchTerm }: GetAdminOrd
     }
 }
 
-export async function getAdminOrderById(id: string) {
+export async function getAdminOrderById(id: string, token?: string) {
     try {
-        await verifyActionAdminAuth();
+        await verifyActionAdminAuth(token);
         const { data, error } = await supabaseAdmin
             .from("orders")
             .select("*")
@@ -73,9 +74,9 @@ export async function getAdminOrderById(id: string) {
     }
 }
 
-export async function updateAdminOrder(id: string, updates: Record<string, unknown>) {
+export async function updateAdminOrder(id: string, updates: Record<string, unknown>, token?: string) {
     try {
-        await verifyActionAdminAuth();
+        await verifyActionAdminAuth(token);
         const { data, error } = await supabaseAdmin
             .from("orders")
             .update(updates)
@@ -96,9 +97,9 @@ export async function updateAdminOrder(id: string, updates: Record<string, unkno
     }
 }
 
-export async function getAllOrdersForReport() {
+export async function getAllOrdersForReport(token?: string) {
     try {
-        await verifyActionAdminAuth();
+        await verifyActionAdminAuth(token);
         const { data, error } = await supabaseAdmin
             .from("orders")
             .select("*")
@@ -118,9 +119,9 @@ export async function getAllOrdersForReport() {
 
 import { appendOrderToSheet } from "@/lib/google-sheets";
 
-export async function testSheetSync() {
+export async function testSheetSync(token?: string) {
     try {
-        await verifyActionAdminAuth();
+        await verifyActionAdminAuth(token);
         await appendOrderToSheet({
             id: "TEST_SYNC_" + Math.random().toString(36).substring(7).toUpperCase(),
             items: [

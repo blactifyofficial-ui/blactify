@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { auth } from "@/lib/firebase";
 
 interface Ticket {
     id: string;
@@ -51,7 +52,8 @@ export default function AdminTicketDetailPage({ params }: { params: Promise<{ id
     useEffect(() => {
         async function fetchTicket() {
             setLoading(true);
-            const result = await getTicketById(id);
+            const token = await auth.currentUser?.getIdToken();
+            const result = await getTicketById(id, token);
             if (result.success) {
                 setTicket(result.ticket);
                 if (result.ticket.admin_response) {
@@ -74,11 +76,12 @@ export default function AdminTicketDetailPage({ params }: { params: Promise<{ id
 
         setIsSending(true);
         try {
-            const result = await respondToTicket(id, response, ticket?.profiles?.email || "", ticket?.order_id || "");
+            const token = await auth.currentUser?.getIdToken();
+            const result = await respondToTicket(id, response, ticket?.profiles?.email || "", ticket?.order_id || "", token);
             if (result.success) {
                 toast.success("Response sent successfully!");
                 // Refresh ticket status
-                const updated = await getTicketById(id);
+                const updated = await getTicketById(id, token);
                 if (updated.success) setTicket(updated.ticket);
             } else {
                 toast.error(result.error || "Failed to send response");
@@ -95,10 +98,11 @@ export default function AdminTicketDetailPage({ params }: { params: Promise<{ id
 
         setIsClosing(true);
         try {
-            const result = await closeTicket(id);
+            const token = await auth.currentUser?.getIdToken();
+            const result = await closeTicket(id, token);
             if (result.success) {
                 toast.success("Ticket closed successfully");
-                const updated = await getTicketById(id);
+                const updated = await getTicketById(id, token);
                 if (updated.success) setTicket(updated.ticket);
             } else {
                 toast.error(result.error || "Failed to close ticket");

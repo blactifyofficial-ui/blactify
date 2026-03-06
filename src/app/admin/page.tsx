@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { getStoreSettings, togglePurchaseStatus } from "@/app/actions/settings";
 import { toast } from "sonner";
+import { auth } from "@/lib/firebase";
 
 export default function AdminDashboardPage() {
     const { stats, loading } = useAdminStats();
@@ -46,7 +47,8 @@ export default function AdminDashboardPage() {
             // Enable directly
             setIsUpdatingSettings(true);
             await fetch("/api/admin/revalidate", { method: "POST" });
-            const result = await togglePurchaseStatus(true);
+            const token = await auth.currentUser?.getIdToken();
+            const result = await togglePurchaseStatus(true, token);
             setIsUpdatingSettings(false);
             if (result.success) {
                 setPurchasesEnabled(true);
@@ -63,7 +65,8 @@ export default function AdminDashboardPage() {
         setIsUpdatingSettings(true);
         try {
             await fetch("/api/admin/revalidate", { method: "POST" });
-            const result = await togglePurchaseStatus(false);
+            const token = await auth.currentUser?.getIdToken();
+            const result = await togglePurchaseStatus(false, token);
             if (result.success) {
                 setPurchasesEnabled(false);
                 setShowDisableModal(false);

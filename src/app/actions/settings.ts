@@ -38,9 +38,9 @@ export const getStoreSettings = unstable_cache(
     { revalidate: 3600, tags: ["settings"] }
 );
 
-export async function togglePurchaseStatus(status: boolean) {
+export async function togglePurchaseStatus(status: boolean, token?: string) {
     try {
-        const auth = await verifyActionAdminAuth();
+        const auth = await verifyActionAdminAuth(token);
         const { error } = await supabaseAdmin
             .from("store_settings")
             .upsert({ id: true, purchases_enabled: status });

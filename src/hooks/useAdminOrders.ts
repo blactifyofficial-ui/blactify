@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Order } from "@/types/database";
 import { toast } from "sonner";
 import { getAdminOrders } from "@/app/actions/orders";
+import { auth } from "@/lib/firebase";
 
 interface UseAdminOrdersProps {
     page: number;
@@ -21,10 +22,12 @@ export function useAdminOrders({ page, pageSize, searchTerm }: UseAdminOrdersPro
         setLoading(true);
         setError(null);
         try {
+            const token = await auth.currentUser?.getIdToken();
             const result = await getAdminOrders({
                 page,
                 pageSize,
-                searchTerm
+                searchTerm,
+                token
             });
 
             if (result.success) {

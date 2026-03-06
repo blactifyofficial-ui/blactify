@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Printer, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { auth } from "@/lib/firebase";
 
 interface OrderDetail {
     id: string;
@@ -54,7 +55,8 @@ export default function InvoicePage() {
 
         async function fetchOrder() {
             try {
-                const result = await getOrder(orderId);
+                const token = await auth.currentUser?.getIdToken();
+                const result = await getOrder(orderId, token);
 
                 if (result.success && result.order) {
                     setOrder(result.order as unknown as OrderDetail);

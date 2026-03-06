@@ -7,9 +7,9 @@ import { SupportTicketSchema } from "@/lib/schemas";
 import { z } from "zod";
 import { verifyActionAuth, verifyActionAdminAuth } from "@/lib/auth-server";
 
-export async function createTicket(formData: z.infer<typeof SupportTicketSchema>) {
+export async function createTicket(formData: z.infer<typeof SupportTicketSchema>, token?: string) {
     try {
-        const auth = await verifyActionAuth();
+        const auth = await verifyActionAuth(token);
         const validatedData = SupportTicketSchema.safeParse(formData);
         if (!validatedData.success) {
             return {
@@ -93,9 +93,9 @@ export async function createTicket(formData: z.infer<typeof SupportTicketSchema>
     }
 }
 
-export async function respondToTicket(ticketId: string, response: string, userEmail?: string, orderId?: string) {
+export async function respondToTicket(ticketId: string, response: string, userEmail?: string, orderId?: string, token?: string) {
     try {
-        await verifyActionAdminAuth();
+        await verifyActionAdminAuth(token);
         if (!ticketId || !response) throw new Error("Missing required fields");
         if (response.length < 5) throw new Error("Response is too short");
 
@@ -172,9 +172,9 @@ export async function respondToTicket(ticketId: string, response: string, userEm
     }
 }
 
-export async function getTickets() {
+export async function getTickets(token?: string) {
     try {
-        await verifyActionAdminAuth();
+        await verifyActionAdminAuth(token);
         const { data, error } = await supabaseAdmin
             .from("support_tickets")
             .select("*, profiles(email, full_name)")
@@ -187,9 +187,9 @@ export async function getTickets() {
     }
 }
 
-export async function getTicketById(id: string) {
+export async function getTicketById(id: string, token?: string) {
     try {
-        await verifyActionAdminAuth();
+        await verifyActionAdminAuth(token);
         const { data, error } = await supabaseAdmin
             .from("support_tickets")
             .select("*, profiles(email, full_name), orders(*)")
@@ -203,9 +203,9 @@ export async function getTicketById(id: string) {
     }
 }
 
-export async function closeTicket(id: string) {
+export async function closeTicket(id: string, token?: string) {
     try {
-        await verifyActionAdminAuth();
+        await verifyActionAdminAuth(token);
         const { error } = await supabaseAdmin
             .from("support_tickets")
             .update({ status: "closed" })

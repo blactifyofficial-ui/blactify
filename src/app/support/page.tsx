@@ -52,7 +52,8 @@ export default function SupportPage() {
             if (!user) return;
             setOrdersLoading(true);
             try {
-                const result = await getUserOrders(user.uid);
+                const token = await user.getIdToken();
+                const result = await getUserOrders(user.uid, token);
                 if (result.success && result.orders) {
                     setOrders(result.orders);
                     if (result.orders.length > 0) {
@@ -92,13 +93,14 @@ export default function SupportPage() {
 
         setLoading(true);
         try {
+            const token = await user.getIdToken();
             const result = await createTicket({
                 userId: user.uid,
                 orderId: formData.category === "order_related" ? formData.orderId : undefined,
                 category: formData.category,
                 phone: formData.phone,
                 message: formData.message,
-            });
+            }, token);
 
             if (result.success) {
                 setSubmitted(true);

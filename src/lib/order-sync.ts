@@ -7,9 +7,9 @@ import { z } from "zod";
 import { verifyActionAuth } from "./auth-server";
 import crypto from "crypto";
 
-export async function saveOrder(orderData: z.infer<typeof OrderSyncSchema>) {
+export async function saveOrder(orderData: z.infer<typeof OrderSyncSchema>, token?: string) {
     try {
-        const auth = await verifyActionAuth();
+        const auth = await verifyActionAuth(token);
         const validatedData = OrderSyncSchema.safeParse(orderData);
         if (!validatedData.success) {
             return {
@@ -129,9 +129,9 @@ export async function saveOrder(orderData: z.infer<typeof OrderSyncSchema>) {
     }
 }
 
-export async function getOrder(orderId: string) {
+export async function getOrder(orderId: string, token?: string) {
     try {
-        await verifyActionAuth();
+        await verifyActionAuth(token);
         const { data, error } = await supabaseAdmin
             .from("orders")
             .select("*")
@@ -148,9 +148,9 @@ export async function getOrder(orderId: string) {
     }
 }
 
-export async function getUserOrders(userId: string) {
+export async function getUserOrders(userId: string, token?: string) {
     try {
-        const auth = await verifyActionAuth();
+        const auth = await verifyActionAuth(token);
         if (auth.uid !== userId) throw new Error("Forbidden: You can only view your own orders.");
         const { data, error } = await supabaseAdmin
             .from("orders")

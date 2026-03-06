@@ -2,9 +2,11 @@
 
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { Order } from "@/types/database";
+import { verifyActionAdminAuth } from "@/lib/auth-server";
 
-export async function getAdminStats() {
+export async function getAdminStats(token?: string) {
     try {
+        await verifyActionAdminAuth(token);
         // Fetch all orders for revenue and order count
         const { data: orders, error: ordersError } = await supabaseAdmin
             .from("orders")

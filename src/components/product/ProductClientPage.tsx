@@ -91,7 +91,8 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
 
             setIsCheckingPurchase(true);
             try {
-                const result = await getUserOrders(user.uid);
+                const token = await user.getIdToken();
+                const result = await getUserOrders(user.uid, token);
                 if (result.success && result.orders) {
                     // Check if any order contains this product
                     const purchased = result.orders.some((order: { items?: { id: string }[] }) =>

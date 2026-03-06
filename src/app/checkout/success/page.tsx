@@ -83,7 +83,8 @@ export default function CheckoutSuccessPage() {
             try {
                 // Use Server Action to fetch order (bypasses RLS issues)
                 const { getOrder } = await import("@/lib/order-sync");
-                const result = await getOrder(orderId);
+                const token = await auth.currentUser?.getIdToken();
+                const result = await getOrder(orderId, token);
 
                 if (!result.success || !result.order) {
                     throw new Error(result.error || "Order not found");
@@ -96,7 +97,6 @@ export default function CheckoutSuccessPage() {
                 setNotified(true);
 
                 // Trigger Server-side Notification (Email)
-                const token = await auth.currentUser?.getIdToken();
                 const response = await fetch("/api/notify", {
                     method: "POST",
                     headers: {

@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Order } from "@/types/database";
 import { toast } from "sonner";
 import { getAdminStats } from "@/app/actions/stats";
+import { auth } from "@/lib/firebase";
 
 export interface DashboardStats {
     totalRevenue: number;
@@ -39,7 +40,8 @@ export function useAdminStats() {
         setLoading(true);
         setError(null);
         try {
-            const result = await getAdminStats();
+            const token = await auth.currentUser?.getIdToken();
+            const result = await getAdminStats(token);
 
             if (!result.success || !result.stats) {
                 throw new Error(String(result.error) || "Failed to fetch stats");

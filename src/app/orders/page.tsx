@@ -42,7 +42,8 @@ export default function OrdersPage() {
             setLoading(true);
 
             try {
-                const result = await getUserOrders(user.uid);
+                const token = await user.getIdToken();
+                const result = await getUserOrders(user.uid, token);
 
                 if (result.success) {
                     setOrders((result.orders as Order[]) || []);

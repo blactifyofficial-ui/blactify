@@ -24,7 +24,8 @@ export default function AdminReportsPage() {
     useEffect(() => {
         async function fetchOrders() {
             try {
-                const result = await getAllOrdersForReport();
+                const token = await auth.currentUser?.getIdToken();
+                const result = await getAllOrdersForReport(token);
                 if (result.success) {
                     setOrders(result.orders as Record<string, unknown>[]);
                 } else {
@@ -160,7 +161,8 @@ export default function AdminReportsPage() {
                     <button
                         onClick={async () => {
                             const loadingToast = toast.loading("Sending test entry...");
-                            const result = await testSheetSync();
+                            const token = await auth.currentUser?.getIdToken();
+                            const result = await testSheetSync(token);
                             toast.dismiss(loadingToast);
                             if (result.success) {
                                 toast.success("Test entry added to Sheet!");

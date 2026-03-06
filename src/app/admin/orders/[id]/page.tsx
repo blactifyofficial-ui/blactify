@@ -4,6 +4,7 @@ import { useEffect, useState, use } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { getAdminOrderById, updateAdminOrder } from "@/app/actions/orders";
+import { auth } from "@/lib/firebase";
 import { Order } from "@/types/database";
 import {
     ArrowLeft,
@@ -56,7 +57,8 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
     useEffect(() => {
         async function fetchOrder() {
             try {
-                const result = await getAdminOrderById(id);
+                const token = await auth.currentUser?.getIdToken();
+                const result = await getAdminOrderById(id, token);
                 if (result.success && result.order) {
                     setOrder(result.order);
                     setTrackingId(result.order.tracking_id || "");
@@ -145,7 +147,8 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
         setStatusUpdating(true);
         const normalizedStatus = newStatus.toLowerCase();
         try {
-            const result = await updateAdminOrder(id, { status: normalizedStatus });
+            const token = await auth.currentUser?.getIdToken();
+            const result = await updateAdminOrder(id, { status: normalizedStatus }, token);
             if (!result.success) throw new Error(result.error);
 
             toast.success("Status Synchronized", {
@@ -163,7 +166,8 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
         if (!order || (!trackingId.trim() && !order.tracking_id)) return;
         setStatusUpdating(true);
         try {
-            const result = await updateAdminOrder(id, { tracking_id: trackingId });
+            const token = await auth.currentUser?.getIdToken();
+            const result = await updateAdminOrder(id, { tracking_id: trackingId }, token);
             if (!result.success) throw new Error(result.error);
 
             toast.success("Logistics Updated", { description: "Tracking sequence finalized." });
