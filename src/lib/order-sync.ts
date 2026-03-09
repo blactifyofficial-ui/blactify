@@ -27,15 +27,16 @@ export async function saveOrder(orderData: z.infer<typeof OrderSyncSchema>, toke
 
         // --- PAYMENT VERIFICATION ---
         if (data.status === "paid") {
-            const razorpay_order_id = data.razorpay_order_id;
-            const razorpay_payment_id = data.razorpay_payment_id;
-            const razorpay_signature = data.payment_details?.razorpay_signature as string;
+            const razorpay_order_id = data.razorpay_order_id?.trim();
+            const razorpay_payment_id = data.razorpay_payment_id?.trim();
+            const razorpay_signature = (data.payment_details?.razorpay_signature as string)?.trim();
 
             if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+                console.error("Missing payment verification details:", { razorpay_order_id, razorpay_payment_id, hasSignature: !!razorpay_signature });
                 return { success: false, error: { message: "Missing payment verification details." } };
             }
 
-            const key_secret = process.env.RAZORPAY_KEY_SECRET;
+            const key_secret = process.env.RAZORPAY_KEY_SECRET?.trim();
             if (!key_secret) {
                 console.error("RAZORPAY_KEY_SECRET is not configured");
                 return { success: false, error: { message: "Payment verification failed: secret missing." } };
@@ -47,6 +48,12 @@ export async function saveOrder(orderData: z.infer<typeof OrderSyncSchema>, toke
                 .digest("hex");
 
             if (expected_signature !== razorpay_signature) {
+                console.error("Invalid Razorpay signature mismatch.", {
+                    order_id: razorpay_order_id,
+                    payment_id: razorpay_payment_id,
+                    received: razorpay_signature?.substring(0, 5) + "...",
+                    expected: expected_signature?.substring(0, 5) + "..."
+                });
                 return { success: false, error: { message: "Invalid payment signature. Verification failed." } };
             }
         }

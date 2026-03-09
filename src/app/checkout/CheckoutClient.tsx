@@ -328,6 +328,8 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                     amount: total,
                     currency: "INR",
                     receipt: `receipt_${Date.now()}`,
+                    userId: user?.uid,
+                    email: formData.email
                 }),
             });
 
@@ -356,8 +358,13 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                     try {
                         const token = await auth.currentUser?.getIdToken();
                         // Save order to Supabase
+                        console.log("Payment successful, saving order...", {
+                            order_id: razorpayResponse.razorpay_order_id || order.id,
+                            payment_id: razorpayResponse.razorpay_payment_id
+                        });
+
                         const saveResult = await saveOrder({
-                            razorpay_order_id: razorpayResponse.razorpay_order_id,
+                            razorpay_order_id: razorpayResponse.razorpay_order_id || order.id,
                             razorpay_payment_id: razorpayResponse.razorpay_payment_id,
                             user_id: user?.uid || "guest",
                             amount: total,
@@ -389,7 +396,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                 secondary_phone: formData.secondaryPhone || undefined
                             },
                             payment_details: {
-                                razorpay_order_id: razorpayResponse.razorpay_order_id,
+                                razorpay_order_id: razorpayResponse.razorpay_order_id || order.id,
                                 razorpay_payment_id: razorpayResponse.razorpay_payment_id,
                                 razorpay_signature: razorpayResponse.razorpay_signature,
                                 method: "Razorpay",
