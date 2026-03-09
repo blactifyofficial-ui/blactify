@@ -96,6 +96,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
     const [showOrderSummary, setShowOrderSummary] = useState(false);
     const [discountInput, setDiscountInput] = useState("");
     const [stockErrors, setStockErrors] = useState<Record<string, string>>({});
+    const [priceErrors, setPriceErrors] = useState<Record<string, string>>({});
     const storeEnabled = initialSettings?.purchases_enabled ?? true;
 
     const searchParams = useSearchParams();
@@ -172,7 +173,25 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                 console.error("Failed to parse saved form data", err);
             }
         }
+
+        // Initial validation
+        validateCartState();
     }, [user]);
+
+    // Re-validate state periodically or on significant form changes
+    useEffect(() => {
+        if (activeItems.length > 0) {
+            validateCartState();
+        }
+
+        const timer = setInterval(() => {
+            if (activeItems.length > 0) {
+                validateCartState();
+            }
+        }, 60000); // Re-verify every 60 seconds
+
+        return () => clearInterval(timer);
+    }, [activeItems, formData.state]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -250,25 +269,27 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
         return Object.keys(newErrors).length === 0;
     };
 
-    const validateCartStock = async () => {
+    const validateCartState = async () => {
         try {
             const productIds = activeItems.map(item => item.id);
             const { data: currentProducts, error } = await supabase
                 .from("products")
-                .select("id, name, product_variants(size, stock)")
+                .select("id, name, price_base, price_offer, product_variants(size, stock)")
                 .in("id", productIds);
 
             if (error) throw error;
 
             const newStockErrors: Record<string, string> = {};
+            const newPriceErrors: Record<string, string> = {};
             let hasErrors = false;
 
             activeItems.forEach(item => {
-                const currentProduct = currentProducts?.find((p: ProductWithVariants) => p.id === item.id);
+                const currentProduct = currentProducts?.find((p: any) => p.id === item.id);
                 if (!currentProduct) {
                     newStockErrors[item.cartId] = "Product no longer available";
                     hasErrors = true;
                 } else {
+                    // 1. Stock Check
                     let availableStock = 0;
                     if (item.size) {
                         const variant = currentProduct.product_variants?.find((v: ProductVariant) => v.size === item.size);
@@ -283,13 +304,23 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                             : `Only ${availableStock} left`;
                         hasErrors = true;
                     }
+
+                    // 2. Price Check
+                    const currentPriceBase = Number(currentProduct.price_base);
+                    const currentPriceOffer = currentProduct.price_offer ? Number(currentProduct.price_offer) : undefined;
+
+                    if (currentPriceBase !== item.price_base || currentPriceOffer !== item.price_offer) {
+                        newPriceErrors[item.cartId] = "Price has changed";
+                        hasErrors = true;
+                    }
                 }
             });
 
             setStockErrors(newStockErrors);
+            setPriceErrors(newPriceErrors);
             return !hasErrors;
         } catch (err: unknown) {
-            toast.error("Stock Verification Error", { description: getFriendlyErrorMessage(err) });
+            toast.error("Verification Error", { description: getFriendlyErrorMessage(err) });
             return true; // Proceed if error occurs, but log it
         }
     };
@@ -311,11 +342,10 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
             return;
         }
 
-        // 2. Validate Stock again right before payment
-        const isStockValid = await validateCartStock();
-        if (!isStockValid) {
-            toast.error("Stock Verification Error", { description: "Failed to confirm availability." });
-            toast.error("Some items in your bag are no longer available in the requested quantity.");
+        // 2. Validate Cart State (Stock & Price) right before payment
+        const isValid = await validateCartState();
+        if (!isValid) {
+            toast.error("Cart Verification Error", { description: "Stock or prices have changed. Please review your bag." });
             return;
         }
 
@@ -598,6 +628,11 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                             {stockErrors[item.cartId] && (
                                                 <p className="text-[10px] text-red-500 font-bold mt-1 uppercase italic">
                                                     {stockErrors[item.cartId]}
+                                                </p>
+                                            )}
+                                            {priceErrors[item.cartId] && (
+                                                <p className="text-[10px] text-orange-600 font-bold mt-1 uppercase italic text-center">
+                                                    {priceErrors[item.cartId]}
                                                 </p>
                                             )}
                                         </div>
@@ -979,6 +1014,11 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                 {stockErrors[item.cartId] && (
                                     <p className="text-[10px] text-red-500 font-bold mt-1 uppercase italic">
                                         {stockErrors[item.cartId]}
+                                    </p>
+                                )}
+                                {priceErrors[item.cartId] && (
+                                    <p className="text-[10px] text-orange-600 font-bold mt-1 uppercase italic">
+                                        {priceErrors[item.cartId]}
                                     </p>
                                 )}
                             </div>

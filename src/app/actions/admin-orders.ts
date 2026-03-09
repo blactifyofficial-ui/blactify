@@ -94,58 +94,32 @@ export async function createManualOrder(data: ManualOrderData, token?: string) {
         const shippingCharge = subtotal >= 2999 ? 0 : (data.shipping_address.state === "Kerala" ? 59 : 79);
         const totalAmount = subtotal + shippingCharge;
 
-        // 1. Insert Order
-        const { error: orderError } = await supabaseAdmin
-            .from("orders")
-            .insert({
-                id: manualOrderId,
-                user_id: data.user_id || null,
-                amount: totalAmount,
-                status: data.payment.status,
-                payment_id: data.payment.id || `MANUAL_${data.payment.method.toUpperCase()}`,
-                currency: 'INR',
-                customer_details: data.customer_details,
-                shipping_address: data.shipping_address,
-                items: data.items, // JSONB backup
-                payment_details: {
-                    method: data.payment.method,
-                    id: data.payment.id,
-                    manual: true,
-                    created_by: "admin"
-                }
-            });
+        // 1. Call the atomic RPC for order creation and stock decrement
+        const { data: result, error: rpcError } = await supabaseAdmin.rpc('create_order_v2', {
+            p_order_id: manualOrderId,
+            p_user_id: data.user_id || 'guest',
+            p_amount: totalAmount,
+            p_currency: 'INR',
+            p_status: data.payment.status,
+            p_shipping_address: data.shipping_address,
+            p_customer_details: data.customer_details,
+            p_payment_details: {
+                method: data.payment.method,
+                id: data.payment.id,
+                manual: true,
+                created_by: "admin"
+            },
+            p_items: data.items.map(item => ({
+                id: item.product_id,
+                size: item.size,
+                quantity: item.quantity,
+                price_base: item.price, // Map manual price to base/offer
+                price_offer: null
+            }))
+        });
 
-        if (orderError) throw orderError;
-
-        // 2. Insert Order Items
-        const orderItems = data.items.map(item => ({
-            order_id: manualOrderId,
-            product_id: item.product_id,
-            variant_id: item.variant_id,
-            quantity: item.quantity,
-            price_at_purchase: item.price
-        }));
-
-        const { error: itemsError } = await supabaseAdmin
-            .from("order_items")
-            .insert(orderItems);
-
-        if (itemsError) throw itemsError;
-
-        // 3. Update Stock
-        for (const item of data.items) {
-            const { data: variant, error: vError } = await supabaseAdmin
-                .from("product_variants")
-                .select("stock")
-                .eq("id", item.variant_id)
-                .single();
-
-            if (!vError && variant) {
-                await supabaseAdmin
-                    .from("product_variants")
-                    .update({ stock: Math.max(0, variant.stock - item.quantity) })
-                    .eq("id", item.variant_id);
-            }
+        if (rpcError || !result?.success) {
+            throw new Error(rpcError?.message || result?.error || "Order creation failed at DB level");
         }
 
         revalidatePath("/admin/orders");

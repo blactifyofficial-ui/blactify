@@ -400,16 +400,31 @@ DECLARE
     v_item RECORD;
     v_current_stock INTEGER;
     v_variant_id UUID;
+    v_product_price_base NUMERIC;
+    v_product_price_offer NUMERIC;
     v_final_user_id TEXT;
 BEGIN
     -- 0. Handle Guest User (null instead of "guest")
     v_final_user_id := CASE WHEN p_user_id = 'guest' THEN NULL ELSE p_user_id END;
 
-    -- 1. Validate items and decrement stock (Atomicity & Consistency)
-    -- We'll also store the variant_ids in a temp variable or just fetch them as we go
+    -- 1. Validate items, price and decrement stock (Atomicity & Consistency)
     FOR v_item IN SELECT * FROM jsonb_to_recordset(p_items) AS x(id TEXT, size TEXT, quantity INTEGER, price_base NUMERIC, price_offer NUMERIC)
     LOOP
-        -- Lock the row for update to prevent race conditions (Isolation)
+        -- a. Check Product Price for consistency
+        SELECT price_base, price_offer INTO v_product_price_base, v_product_price_offer
+        FROM products
+        WHERE id = v_item.id;
+
+        IF v_product_price_base IS NULL THEN
+            RAISE EXCEPTION 'Product not found: %', v_item.id;
+        END IF;
+
+        IF v_product_price_base != v_item.price_base OR COALESCE(v_product_price_offer, 0) != COALESCE(v_item.price_offer, 0) THEN
+            RAISE EXCEPTION 'Price mismatch for product %. Our price: %/%, Your price: %/%', 
+                v_item.id, v_product_price_base, v_product_price_offer, v_item.price_base, v_item.price_offer;
+        END IF;
+
+        -- b. Lock the row for update to prevent race conditions (Isolation)
         SELECT id, stock INTO v_variant_id, v_current_stock
         FROM product_variants
         WHERE product_id = v_item.id AND (size = v_item.size OR (v_item.size IS NULL AND size = 'no size'))
@@ -424,10 +439,10 @@ BEGIN
                 v_item.id, v_item.size, v_current_stock, v_item.quantity;
         END IF;
 
-        -- Update stock
+        -- c. Update stock
         UPDATE product_variants
         SET stock = stock - v_item.quantity
-        WHERE id = v_variant_id; -- Use the specific variant ID we just locked
+        WHERE id = v_variant_id;
     END LOOP;
 
     -- 2. Insert the Order Record
@@ -448,10 +463,9 @@ BEGIN
         NOW()
     );
 
-    -- 3. Insert Order Items (Standardized records)
+    -- 3. Insert Order Items
     FOR v_item IN SELECT * FROM jsonb_to_recordset(p_items) AS x(id TEXT, size TEXT, quantity INTEGER, price_base NUMERIC, price_offer NUMERIC)
     LOOP
-        -- Re-fetch variant_id (or we could have stored them in a temp table, but this is simple enough for small orders)
         SELECT id INTO v_variant_id
         FROM product_variants
         WHERE product_id = v_item.id AND (size = v_item.size OR (v_item.size IS NULL AND size = 'no size'));
@@ -471,7 +485,6 @@ BEGIN
 
 EXCEPTION
     WHEN OTHERS THEN
-        -- PostgreSQL automatically rolls back the transaction on exception (Durability)
         RETURN jsonb_build_object('success', false, 'error', SQLERRM);
 END;
 $$;
