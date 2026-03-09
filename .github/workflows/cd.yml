@@ -79,6 +79,12 @@ jobs:
             # Use the SHA from the workflow that triggered this one
             export IMAGE_TAG=${{ github.event.workflow_run.head_sha }}
             
-            docker-compose down --remove-orphans
-            docker-compose pull
-            docker-compose up -d
+            # Ensure Docker Compose v2 plugin is installed (fixes ContainerConfig KeyError with old v1)
+            DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+            mkdir -p $DOCKER_CONFIG/cli-plugins
+            curl -SL https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
+            chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+
+            docker compose down --remove-orphans
+            docker compose pull
+            docker compose up -d
