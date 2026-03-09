@@ -52,7 +52,7 @@ export function useAdminProducts({ page, pageSize, searchTerm, showOnHome }: Use
             }
 
             const { data, error: supabaseError, count } = await query
-                .order("created_at", { ascending: false })
+                .order("updated_at", { ascending: false })
                 .range(from, to);
 
             if (supabaseError) throw supabaseError;

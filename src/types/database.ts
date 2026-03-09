@@ -14,6 +14,7 @@ export interface Category {
         measurement_types: MeasurementType;
     }[];
     created_at?: string;
+    updated_at?: string;
 }
 
 export interface ProductImage {
@@ -53,6 +54,7 @@ export interface Product {
     price_offer?: number;
     category_id?: string;
     created_at?: string;
+    updated_at?: string;
     categories?: {
         name: string;
     };

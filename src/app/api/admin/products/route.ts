@@ -12,7 +12,10 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { id, name, handle, price_base, price_offer, category_id, description, variants, images } = body;
 
-        // 1. Insert Product
+        // 1. Calculate Total Stock from variants in body
+        const totalStock = variants?.reduce((acc: number, v: { stock: number }) => acc + v.stock, 0) || 0;
+
+        // 2. Insert Product
         const { error: productError } = await supabaseAdmin
             .from("products")
             .insert([{
@@ -22,7 +25,9 @@ export async function POST(request: Request) {
                 price_base,
                 price_offer,
                 category_id,
-                description
+                description,
+                out_of_stock_at: totalStock <= 0 ? new Date().toISOString() : null,
+                updated_at: new Date().toISOString()
             }]);
 
         if (productError) throw productError;
@@ -62,14 +67,7 @@ export async function POST(request: Request) {
             }
         }
 
-        // 3. Update out_of_stock_at based on total stock
-        const totalStock = variants?.reduce((acc: number, v: { stock: number }) => acc + v.stock, 0) || 0;
-        await supabaseAdmin
-            .from("products")
-            .update({
-                out_of_stock_at: totalStock <= 0 ? new Date().toISOString() : null
-            })
-            .eq("id", id);
+
 
         // 4. Handle Images
         if (images && images.length > 0) {
@@ -106,7 +104,10 @@ export async function PUT(request: Request) {
         const body = await request.json();
         const { id, name, handle, price_base, price_offer, category_id, description, variants, images } = body;
 
-        // 1. Update Product
+        // 1. Calculate Total Stock from variants in body
+        const totalStock = variants?.reduce((acc: number, v: { stock: number }) => acc + v.stock, 0) || 0;
+
+        // 2. Update Product
         const { error: productError } = await supabaseAdmin
             .from("products")
             .update({
@@ -115,7 +116,9 @@ export async function PUT(request: Request) {
                 price_base,
                 price_offer,
                 category_id,
-                description
+                description,
+                out_of_stock_at: totalStock <= 0 ? new Date().toISOString() : null,
+                updated_at: new Date().toISOString()
             })
             .eq("id", id);
 
@@ -170,14 +173,7 @@ export async function PUT(request: Request) {
             }
         }
 
-        // 3. Update out_of_stock_at based on total stock
-        const totalStock = variants?.reduce((acc: number, v: { stock: number }) => acc + v.stock, 0) || 0;
-        await supabaseAdmin
-            .from("products")
-            .update({
-                out_of_stock_at: totalStock <= 0 ? new Date().toISOString() : null
-            })
-            .eq("id", id);
+
 
         // 4. Handle Images
         if (images) {

@@ -38,7 +38,7 @@ export const getAllCachedProducts = unstable_cache(
                     product_images(url),
                     product_variants(stock)
                 `)
-                .order('created_at', { ascending: false });
+                .order('updated_at', { ascending: false });
 
             if (error) throw error;
             return (data || []) as Product[];
@@ -107,7 +107,7 @@ export async function getProducts(options?: GetProductsOptions) {
     } else if (sortBy === "price-high") {
         filteredProducts.sort((a, b) => b.price_base - a.price_base);
     } else if (sortBy === "newest") {
-        filteredProducts.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+        filteredProducts.sort((a, b) => new Date(b.updated_at || b.created_at || 0).getTime() - new Date(a.updated_at || a.created_at || 0).getTime());
     }
 
     // Sort out-of-stock items to the bottom

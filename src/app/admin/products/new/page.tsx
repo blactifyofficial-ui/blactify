@@ -270,7 +270,16 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
 
         if (!formData.name?.trim()) newErrors.name = "Product name is required";
         if (!isEditing && !formData.id?.trim()) newErrors.id = "Product ID is required";
-        if (!formData.price_base) newErrors.price_base = "Base price is required";
+        if (!formData.price_base) {
+            newErrors.price_base = "Base price is required";
+        } else if (parseFloat(String(formData.price_base)) < 0) {
+            newErrors.price_base = "Price cannot be negative";
+        }
+
+        if (formData.price_offer && parseFloat(String(formData.price_offer)) < 0) {
+            newErrors.price_offer = "Price cannot be negative";
+        }
+
         if (!formData.category_id) newErrors.category_id = "Please select a category";
         if (!formData.main_image) newErrors.main_image = "Main product image is required";
 
@@ -576,6 +585,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                 <input
                                     type="number"
                                     required
+                                    min="0"
                                     placeholder="0"
                                     value={formData.price_base}
                                     onChange={(e) => {
@@ -594,11 +604,16 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                 <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={16} />
                                 <input
                                     type="number"
+                                    min="0"
                                     placeholder="Optional"
                                     value={formData.price_offer}
-                                    onChange={(e) => setFormData({ ...formData, price_offer: e.target.value })}
-                                    className="w-full pl-12 pr-6 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-bold text-green-600 placeholder:text-zinc-400"
+                                    onChange={(e) => {
+                                        setFormData({ ...formData, price_offer: e.target.value });
+                                        if (errors.price_offer) setErrors(prev => ({ ...prev, price_offer: "" }));
+                                    }}
+                                    className={`w-full pl-12 pr-6 py-4 bg-zinc-50 border ${errors.price_offer ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-bold text-green-600 placeholder:text-zinc-400`}
                                 />
+                                {errors.price_offer && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.price_offer}</p>}
                             </div>
                         </label>
 

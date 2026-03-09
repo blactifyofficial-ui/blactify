@@ -28,13 +28,14 @@ CREATE TABLE products (
     name TEXT NOT NULL,
     handle TEXT UNIQUE NOT NULL, -- SEO slug
     description TEXT,
-    price_base NUMERIC NOT NULL,
-    price_offer NUMERIC,
+    price_base NUMERIC NOT NULL CHECK (price_base >= 0),
+    price_offer NUMERIC CHECK (price_offer >= 0),
     category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
     show_on_home BOOLEAN DEFAULT FALSE,
     featured_at TIMESTAMPTZ,
     home_order INTEGER,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 4. Product Images
