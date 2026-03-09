@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@supabase/supabase-js";
-import { revalidatePath, unstable_cache } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { Resend } from "resend";
 import { SELLER_CONFIG } from "@/lib/config";
 import { verifyActionAdminAuth } from "@/lib/auth-server";
@@ -16,27 +16,23 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
     }
 });
 
-export const getStoreSettings = unstable_cache(
-    async () => {
-        try {
-            const { data, error } = await supabaseAdmin
-                .from("store_settings")
-                .select("*")
-                .eq("id", true)
-                .single();
+export async function getStoreSettings() {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from("store_settings")
+            .select("*")
+            .eq("id", true)
+            .single();
 
-            if (error) {
-                return { purchases_enabled: true };
-            }
-
-            return data;
-        } catch {
+        if (error) {
             return { purchases_enabled: true };
         }
-    },
-    ["store-settings"],
-    { revalidate: 3600, tags: ["settings"] }
-);
+
+        return data;
+    } catch {
+        return { purchases_enabled: true };
+    }
+}
 
 export async function togglePurchaseStatus(status: boolean, token?: string) {
     try {
@@ -102,7 +98,9 @@ export async function togglePurchaseStatus(status: boolean, token?: string) {
             }
         }
 
-        revalidatePath("/shop"); // Just in case we add indicators there
+        revalidatePath("/checkout", "page");
+        revalidatePath("/shop", "page");
+        revalidatePath("/", "layout");
 
         // Log the action
         const { logAction } = await import("@/lib/logger");

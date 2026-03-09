@@ -5,8 +5,8 @@ import { z } from "zod";
 import { verifyAuth } from "@/lib/auth-server";
 
 const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID?.trim()!,
-    key_secret: process.env.RAZORPAY_KEY_SECRET?.trim()!,
+    key_id: (process.env.RAZORPAY_KEY_ID || "").trim(),
+    key_secret: (process.env.RAZORPAY_KEY_SECRET || "").trim(),
 });
 
 const CheckoutSchema = z.object({

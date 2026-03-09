@@ -46,15 +46,20 @@ export default function AdminDashboardPage() {
         } else {
             // Enable directly
             setIsUpdatingSettings(true);
-            await fetch("/api/admin/revalidate", { method: "POST" });
-            const token = await auth.currentUser?.getIdToken();
-            const result = await togglePurchaseStatus(true, token);
-            setIsUpdatingSettings(false);
-            if (result.success) {
-                setPurchasesEnabled(true);
-                toast.success("Store purchases enabled successfully");
-            } else {
-                toast.error("Failed to enable purchases");
+            try {
+                const token = await auth.currentUser?.getIdToken();
+                const result = await togglePurchaseStatus(true, token);
+                if (result.success) {
+                    setPurchasesEnabled(true);
+                    toast.success("Store purchases enabled successfully");
+                } else {
+                    toast.error("Failed to enable purchases");
+                }
+            } catch (err) {
+                console.error("Failed to enable purchases", err);
+                toast.error("An error occurred while enabling purchases");
+            } finally {
+                setIsUpdatingSettings(false);
             }
         }
     };
@@ -64,7 +69,6 @@ export default function AdminDashboardPage() {
 
         setIsUpdatingSettings(true);
         try {
-            await fetch("/api/admin/revalidate", { method: "POST" });
             const token = await auth.currentUser?.getIdToken();
             const result = await togglePurchaseStatus(false, token);
             if (result.success) {
@@ -75,7 +79,8 @@ export default function AdminDashboardPage() {
             } else {
                 toast.error("Failed to disable purchases");
             }
-        } catch {
+        } catch (err) {
+            console.error("Failed to disable purchases", err);
             toast.error("Cloud synchronization failed");
         } finally {
             setIsUpdatingSettings(false);

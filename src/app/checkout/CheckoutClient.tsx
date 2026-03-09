@@ -96,7 +96,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
     const [showOrderSummary, setShowOrderSummary] = useState(false);
     const [discountInput, setDiscountInput] = useState("");
     const [stockErrors, setStockErrors] = useState<Record<string, string>>({});
-    const [storeEnabled] = useState(initialSettings?.purchases_enabled ?? true);
+    const storeEnabled = initialSettings?.purchases_enabled ?? true;
 
     const searchParams = useSearchParams();
     const isDirect = searchParams.get("direct") === "true";
