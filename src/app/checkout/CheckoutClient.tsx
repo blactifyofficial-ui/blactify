@@ -133,7 +133,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
         : getSubtotal();
 
     const shipping = isDirect
-        ? (subtotal === 0 ? 0 : (subtotal < 2999 ? (formData.state === "Kerala" ? 59 : 79) : 0))
+        ? (subtotal === 0 || discountCode === "FREE-SHIPPING" ? 0 : (subtotal < 2999 ? (formData.state === "Kerala" ? 59 : 79) : 0))
         : getShippingCharge(formData.state);
 
     const total = isDirect
@@ -393,7 +393,8 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                 razorpay_payment_id: razorpayResponse.razorpay_payment_id,
                                 razorpay_signature: razorpayResponse.razorpay_signature,
                                 method: "Razorpay",
-                                timestamp: new Date().toISOString()
+                                timestamp: new Date().toISOString(),
+                                discount_code: discountCode
                             }
                         }, token);
 
@@ -603,8 +604,9 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                if (discountInput === "WELCOME10") {
-                                                    applyDiscount("WELCOME10");
+                                                const normalizedInput = discountInput.trim().toUpperCase();
+                                                if (normalizedInput === "WELCOME10" || normalizedInput === "FREE-SHIPPING") {
+                                                    applyDiscount(normalizedInput);
                                                     setDiscountInput("");
                                                 } else {
                                                     toast.error("Invalid discount code");
@@ -636,7 +638,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                         <span>₹{subtotal.toFixed(2)}</span>
                                     </div>
 
-                                    {discountCode && (
+                                    {discountCode && discountAmount > 0 && (
                                         <div className="flex justify-between text-sm text-blue-600">
                                             <span>Discount ({discountCode})</span>
                                             <span>-₹{discountAmount.toFixed(2)}</span>
@@ -979,8 +981,9 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                             <button
                                 type="button"
                                 onClick={() => {
-                                    if (discountInput === "WELCOME10") {
-                                        applyDiscount("WELCOME10");
+                                    const normalizedInput = discountInput.trim().toUpperCase();
+                                    if (normalizedInput === "WELCOME10" || normalizedInput === "FREE-SHIPPING") {
+                                        applyDiscount(normalizedInput);
                                         setDiscountInput("");
                                     } else {
                                         toast.error("Invalid discount code");
@@ -1015,7 +1018,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                             <span>Subtotal</span>
                             <span className="font-medium text-zinc-900">₹{subtotal.toFixed(2)}</span>
                         </div>
-                        {discountCode && (
+                        {discountCode && discountAmount > 0 && (
                             <div className="flex justify-between text-blue-600">
                                 <span>Discount ({discountCode})</span>
                                 <span>-₹{discountAmount.toFixed(2)}</span>

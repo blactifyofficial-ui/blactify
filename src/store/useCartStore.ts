@@ -149,7 +149,10 @@ export const useCartStore = create<CartStore>()(
             },
             getShippingCharge: (state) => {
                 const subtotal = get().getSubtotal();
+                const discountCode = get().discountCode;
+
                 if (subtotal === 0) return 0;
+                if (discountCode === "FREE-SHIPPING") return 0;
                 if (subtotal >= 2999) return 0; // Free shipping threshold
 
                 if (state === "Kerala") {
@@ -159,8 +162,9 @@ export const useCartStore = create<CartStore>()(
             },
             discountCode: null,
             applyDiscount: (code) => {
-                set({ discountCode: code });
-                toast.success(`Coupon code ${code} applied`);
+                const normalizedCode = code.trim().toUpperCase();
+                set({ discountCode: normalizedCode });
+                toast.success(`Coupon code ${normalizedCode} applied`);
             },
             removeDiscount: () => {
                 const code = get().discountCode;
