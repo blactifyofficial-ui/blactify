@@ -79,5 +79,6 @@ jobs:
             # Use the SHA from the workflow that triggered this one
             export IMAGE_TAG=${{ github.event.workflow_run.head_sha }}
             
+            docker-compose down --remove-orphans
             docker-compose pull
             docker-compose up -d
