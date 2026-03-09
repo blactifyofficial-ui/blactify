@@ -1,8 +1,8 @@
-name: Continuous Deployment (CD)
+name: Continuous Deployment (CD) - DISABLED
 
 on:
   workflow_run:
-    workflows: ["Continuous Integration (CI)"]
+    workflows: ["__disabled__"]
     types:
       - completed
     branches:
