@@ -11,7 +11,6 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { Magnetic } from "@/components/ui/Magnetic";
 import { Product } from "@/types/database";
-import { optimizeCloudinaryUrl } from "@/lib/cloudinary-client";
 
 export type { Product }; // Re-export for compatibility
 
@@ -52,7 +51,7 @@ export function ProductCard({ product, className, onImageLoad, hidePrice, priori
                 <Link href={`/product/${product.handle || product.id}`} className="relative block h-full w-full bg-zinc-50">
                     {(product.product_images?.[0]?.url || product.main_image) ? (
                         <Image
-                            src={optimizeCloudinaryUrl(product.product_images?.[0]?.url || product.main_image, 800) || ""}
+                            src={(product.product_images?.[0]?.url || product.main_image) || ""}
                             alt={product.name}
                             fill
                             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"

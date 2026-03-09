@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { optimizeCloudinaryUrl } from "@/lib/cloudinary-client";
 
 interface HeroProps {
     images: string[];
@@ -82,7 +81,7 @@ export function Hero({ images }: HeroProps) {
                         )}
                     >
                         <Image
-                            src={optimizeCloudinaryUrl(img, 1200)}
+                            src={img}
                             alt={`Hero Collection Image ${i + 1}`}
                             fill
                             sizes="100vw"

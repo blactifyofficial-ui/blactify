@@ -13,7 +13,6 @@ import { type Product } from "@/components/ui/ProductCard";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { getFriendlyErrorMessage } from "@/lib/error-messages";
-import { optimizeCloudinaryUrl } from "@/lib/cloudinary-client";
 
 interface Review {
     id: string;
@@ -279,9 +278,10 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                             {productImages.map((img, index) => (
                                 <div key={index} className="relative h-full w-full flex-shrink-0">
                                     <Image
-                                        src={optimizeCloudinaryUrl(img, 1200) || ""}
+                                        src={img || ""}
                                         alt={`${product.name} - ${index}`}
                                         fill
+                                        sizes="(max-width: 1024px) 100vw, 50vw"
                                         className="object-cover"
                                         priority={index === 0}
                                     />

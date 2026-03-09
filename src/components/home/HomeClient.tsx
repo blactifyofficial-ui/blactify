@@ -6,7 +6,6 @@ import { Hero } from "@/components/ui/Hero";
 import { ProductCard, type Product } from "@/components/ui/ProductCard";
 import Link from "next/link";
 import Image from "next/image";
-import { optimizeCloudinaryUrl } from "@/lib/cloudinary-client";
 
 interface CategoryWithImage {
     name: string;
@@ -74,7 +73,7 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
                                 >
                                     <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
                                         <Image
-                                            src={optimizeCloudinaryUrl(cat.image, 500)}
+                                            src={cat.image}
                                             alt={cat.name}
                                             fill
                                             sizes="(max-width: 768px) 220px, 260px"
