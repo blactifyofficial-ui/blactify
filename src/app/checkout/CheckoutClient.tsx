@@ -88,7 +88,7 @@ function SafeImage({ src, alt, className }: { src: string | null; alt: string; c
 }
 
 function CheckoutContent({ initialSettings }: { initialSettings: { purchases_enabled: boolean; free_shipping_enabled: boolean } | null }) {
-    const { items, getSubtotal, getTotalPrice, getShippingCharge, clearCart, removeItem, discountCode, applyDiscount, removeDiscount, setFreeShippingEnabled } = useCartStore();
+    const { items, getSubtotal, getTotalPrice, getShippingCharge, clearCart, removeItem, discountCode, applyDiscount, removeDiscount, setFreeShippingEnabled, syncItemPrice } = useCartStore();
     const router = useRouter();
     const { user } = useAuth();
     const [isMounted, setIsMounted] = useState(false);
@@ -310,18 +310,33 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                     const currentPriceOffer = currentProduct.price_offer ? Number(currentProduct.price_offer) : undefined;
 
                     if (currentPriceBase !== item.price_base || currentPriceOffer !== item.price_offer) {
-                        newPriceErrors[item.cartId] = "Price has changed";
-                        hasErrors = true;
+                        // Automatically sync the price in the store
+                        if (isDirect) {
+                            setDirectItem(prev => prev ? { ...prev, price_base: currentPriceBase, price_offer: currentPriceOffer } : null);
+                        } else {
+                            syncItemPrice(item.cartId, currentPriceBase, currentPriceOffer);
+                        }
+
+                        toast.info("Price Updated", {
+                            description: `The price for ${item.name} has been updated to the latest value.`,
+                            duration: 5000
+                        });
+
+                        // We mark it but DON'T set hasErrors to true for price changes
+                        // as we have already synced them.
+                        newPriceErrors[item.cartId] = "Price synced";
                     }
                 }
             });
 
             setStockErrors(newStockErrors);
             setPriceErrors(newPriceErrors);
-            return !hasErrors;
+
+            // Return true if no FATAL errors (like stock or missing product)
+            return { isValid: !hasErrors, currentProducts };
         } catch (err: unknown) {
             toast.error("Verification Error", { description: getFriendlyErrorMessage(err) });
-            return true; // Proceed if error occurs, but log it
+            return { isValid: true, currentProducts: [] }; // Proceed if error occurs, but log it
         }
     };
 
@@ -343,15 +358,39 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
         }
 
         // 2. Validate Cart State (Stock & Price) right before payment
-        const isValid = await validateCartState();
+        const { isValid, currentProducts } = await validateCartState();
         if (!isValid) {
-            toast.error("Cart Verification Error", { description: "Stock or prices have changed. Please review your bag." });
+            toast.error("Cart Verification Error", { description: "Stock levels have changed. Please review your bag." });
             return;
         }
 
         setIsProcessing(true);
 
         try {
+            // Derive the most accurate items list from validation snapshot
+            // This ensures price changes are immediate within this function execution
+            const latestItems = activeItems.map(item => {
+                const liveProduct = currentProducts?.find(p => p.id === item.id);
+                if (liveProduct) {
+                    return {
+                        ...item,
+                        price_base: Number(liveProduct.price_base),
+                        price_offer: liveProduct.price_offer ? Number(liveProduct.price_offer) : undefined
+                    };
+                }
+                return item;
+            });
+
+            const currentSubtotal = latestItems.reduce((acc, item) => acc + (item.price_offer || item.price_base) * item.quantity, 0);
+
+            const currentShipping = (currentSubtotal === 0 || (discountCode === "FREE-SHIPPING" && initialSettings?.free_shipping_enabled))
+                ? 0
+                : (currentSubtotal < 2999 ? (formData.state === "Kerala" ? 59 : 79) : 0);
+
+            let latestTotal = currentSubtotal;
+            if (discountCode === "WELCOME10") latestTotal = currentSubtotal * 0.9;
+            latestTotal += currentShipping;
+
             // 1. Create order on server
             const token = await auth.currentUser?.getIdToken();
             const response = await fetch("/api/checkout", {
@@ -361,7 +400,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                     "Authorization": `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    amount: total,
+                    amount: latestTotal,
                     currency: "INR",
                     receipt: `receipt_${Date.now()}`,
                     userId: user?.uid,
@@ -403,9 +442,9 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                             razorpay_order_id: razorpayResponse.razorpay_order_id || order.id,
                             razorpay_payment_id: razorpayResponse.razorpay_payment_id,
                             user_id: user?.uid || "guest",
-                            amount: total,
+                            amount: latestTotal,
                             currency: "INR",
-                            items: activeItems.map(item => ({
+                            items: latestItems.map(item => ({
                                 id: item.id,
                                 name: item.name,
                                 size: item.size,
@@ -948,10 +987,17 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
 
                         {/* Footer Actions */}
                         <div className="flex flex-col gap-4 pt-4">
-                            {(Object.keys(stockErrors).length > 0 || Object.keys(priceErrors).length > 0) && (
+                            {Object.keys(stockErrors).length > 0 && (
                                 <div className="p-4 bg-red-50 border border-red-100 rounded-lg">
                                     <p className="text-xs text-red-600 font-medium">
-                                        Please {Object.keys(priceErrors).length > 0 ? "refresh the page to update prices" : "remove out-of-stock items"} or adjust your bag to continue.
+                                        Please remove out-of-stock items or adjust your bag to continue.
+                                    </p>
+                                </div>
+                            )}
+                            {Object.keys(priceErrors).length > 0 && (
+                                <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg">
+                                    <p className="text-xs text-blue-600 font-medium italic">
+                                        Note: Some product prices were updated to match current store values.
                                     </p>
                                 </div>
                             )}
@@ -962,10 +1008,10 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                 </Link>
                                 <button
                                     type="submit"
-                                    disabled={isProcessing || Object.keys(stockErrors).length > 0 || Object.keys(priceErrors).length > 0}
+                                    disabled={isProcessing || Object.keys(stockErrors).length > 0}
                                     className={cn(
                                         "w-full md:w-auto px-8 py-4 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors shadow-sm",
-                                        (isProcessing || Object.keys(stockErrors).length > 0 || Object.keys(priceErrors).length > 0) && "opacity-70 cursor-not-allowed"
+                                        (isProcessing || Object.keys(stockErrors).length > 0) && "opacity-70 cursor-not-allowed"
                                     )}
                                 >
                                     {isProcessing

@@ -27,6 +27,7 @@ interface CartStore {
     removeDiscount: () => void;
     freeShippingEnabled: boolean;
     setFreeShippingEnabled: (enabled: boolean) => void;
+    syncItemPrice: (cartId: string, base: number, offer?: number) => void;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -176,6 +177,13 @@ export const useCartStore = create<CartStore>()(
             },
             freeShippingEnabled: false,
             setFreeShippingEnabled: (enabled: boolean) => set({ freeShippingEnabled: enabled }),
+            syncItemPrice: (cartId, base, offer) => {
+                set({
+                    items: get().items.map((item) =>
+                        item.cartId === cartId ? { ...item, price_base: base, price_offer: offer } : item
+                    ),
+                });
+            },
         }),
         {
             name: "blactify-cart-storage",
