@@ -3,7 +3,7 @@ export const preferredRegion = "sin1";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { verifyAdminAuth } from "@/lib/auth-server";
 import { logAction } from "@/lib/logger";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export async function POST(request: Request) {
     const auth = await verifyAdminAuth(request);
@@ -57,6 +57,9 @@ export async function POST(request: Request) {
         revalidatePath("/", "layout");
         revalidatePath("/shop", "page");
         revalidatePath("/product/[id]", "page");
+        revalidateTag("shop-categories", "max");
+        revalidateTag("categories", "max");
+
 
         return NextResponse.json(categoryData);
     } catch {
@@ -156,6 +159,9 @@ export async function PUT(request: Request) {
         revalidatePath("/", "layout");
         revalidatePath("/shop", "page");
         revalidatePath("/product/[id]", "page");
+        revalidateTag("shop-categories", "max");
+        revalidateTag("categories", "max");
+
 
         return NextResponse.json(categoryData);
     } catch {
@@ -191,6 +197,9 @@ export async function DELETE(request: Request) {
         revalidatePath("/", "layout");
         revalidatePath("/shop", "page");
         revalidatePath("/product/[id]", "page");
+        revalidateTag("shop-categories", "max");
+        revalidateTag("categories", "max");
+
 
         return NextResponse.json({ success: true });
     } catch {

@@ -3,7 +3,7 @@ export const preferredRegion = "sin1";
 import { deleteFromCloudinary } from "@/lib/cloudinary";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { verifyAdminAuth } from "@/lib/auth-server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export async function POST(request: Request) {
     const auth = await verifyAdminAuth(request);
@@ -90,6 +90,8 @@ export async function POST(request: Request) {
         revalidatePath("/", "layout");
         revalidatePath("/shop", "page");
         revalidatePath("/product/[id]", "page");
+        revalidateTag("shop-products", "max");
+        revalidateTag("products", "max");
 
         return NextResponse.json({ success: true });
     } catch (dbErr: unknown) {
@@ -217,6 +219,8 @@ export async function PUT(request: Request) {
         revalidatePath("/", "layout");
         revalidatePath("/shop", "page");
         revalidatePath("/product/[id]", "page");
+        revalidateTag("shop-products", "max");
+        revalidateTag("products", "max");
 
         return NextResponse.json({ success: true });
     } catch (dbErr: unknown) {
@@ -260,6 +264,8 @@ export async function DELETE(request: Request) {
         revalidatePath("/", "layout");
         revalidatePath("/shop", "page");
         revalidatePath("/product/[id]", "page");
+        revalidateTag("shop-products", "max");
+        revalidateTag("products", "max");
 
         return NextResponse.json({ success: true });
     } catch (dbErr: unknown) {

@@ -7,7 +7,7 @@ import { ScrollToTop } from "@/components/ui/ScrollToTop";
 
 import Filters from "./DynamicFilters";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 export const preferredRegion = "sin1";
 
 export const metadata = {

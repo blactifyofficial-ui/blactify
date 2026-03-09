@@ -90,7 +90,7 @@ export function useAdminProducts({ page, pageSize, searchTerm, showOnHome }: Use
     }, [page, pageSize, searchTerm, showOnHome]);
 
     // Helper to process raw supabase data
-    const processProductData = (data: any[]) => {
+    const processProductData = (data: Product[]) => {
         return data.map(product => {
             const images = product.product_images || [];
             const mainImg = images.find((img: { position: number; url: string }) => img.position === 0) || images[0];

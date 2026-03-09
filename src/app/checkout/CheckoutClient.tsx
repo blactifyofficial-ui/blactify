@@ -6,7 +6,7 @@ import { ChevronDown, ChevronUp, ShoppingBag, ArrowLeft, Smartphone, ShieldCheck
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useCallback, useMemo } from "react";
 import { useAuth } from "@/store/AuthContext";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -40,16 +40,9 @@ interface CartItem {
     main_image: string | null; // For direct checkout items
 }
 
-interface ProductVariant {
-    size: string;
-    stock: number;
-}
 
-interface ProductWithVariants {
-    id: string;
-    name: string;
-    product_variants: ProductVariant[];
-}
+
+
 
 interface RazorpaySuccessResponse {
     razorpay_payment_id: string;
@@ -132,7 +125,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
         secondaryPhone: ""
     });
 
-    const activeItems = (isDirect ? (directItem ? [directItem] : []) : items) as CartItem[];
+    const activeItems = useMemo(() => (isDirect ? (directItem ? [directItem] : []) : items) as CartItem[], [isDirect, directItem, items]);
 
     // Derived values
     const subtotal = isDirect
@@ -140,7 +133,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
         : getSubtotal();
 
     const shipping = isDirect
-        ? (subtotal === 0 || discountCode === "FREE-SHIPPING" ? 0 : (subtotal < 2999 ? (formData.state === "Kerala" ? 59 : 79) : 0))
+        ? (subtotal === 0 || (discountCode === "FREE-SHIPPING" && initialSettings?.free_shipping_enabled) ? 0 : (subtotal < 2999 ? (formData.state === "Kerala" ? 59 : 79) : 0))
         : getShippingCharge(formData.state);
 
     const total = isDirect
@@ -156,6 +149,85 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
         : (subtotal - (total - shipping));
 
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    interface ValidatedProduct {
+        id: string;
+        name: string;
+        price_base: number;
+        price_offer?: number;
+        product_variants: { size: string; stock: number }[];
+    }
+
+    const validateCartState = useCallback(async () => {
+        try {
+            const productIds = activeItems.map(item => item.id);
+            const { data: currentProducts, error } = await supabase
+                .from("products")
+                .select("id, name, price_base, price_offer, product_variants(size, stock)")
+                .in("id", productIds);
+
+            if (error) throw error;
+
+            const newStockErrors: Record<string, string> = {};
+            const newPriceErrors: Record<string, string> = {};
+            let hasErrors = false;
+
+            activeItems.forEach(item => {
+                const currentProduct = (currentProducts as ValidatedProduct[] | null)?.find((p: ValidatedProduct) => p.id === item.id);
+                if (!currentProduct) {
+                    newStockErrors[item.cartId] = "Product no longer available";
+                    hasErrors = true;
+                } else {
+                    // 1. Stock Check
+                    let availableStock = 0;
+                    if (item.size) {
+                        const variant = currentProduct.product_variants?.find((v: { size: string; stock: number }) => v.size === item.size);
+                        availableStock = variant?.stock ?? 0;
+                    } else {
+                        availableStock = currentProduct.product_variants?.reduce((acc: number, v: { stock: number }) => acc + v.stock, 0) || 0;
+                    }
+
+                    if (availableStock < item.quantity) {
+                        newStockErrors[item.cartId] = availableStock === 0
+                            ? "Out of stock"
+                            : `Only ${availableStock} left`;
+                        hasErrors = true;
+                    }
+
+                    // 2. Price Check
+                    const currentPriceBase = Number(currentProduct.price_base);
+                    const currentPriceOffer = currentProduct.price_offer ? Number(currentProduct.price_offer) : undefined;
+
+                    if (currentPriceBase !== item.price_base || currentPriceOffer !== item.price_offer) {
+                        // Automatically sync the price in the store
+                        if (isDirect) {
+                            setDirectItem(prev => prev ? { ...prev, price_base: currentPriceBase, price_offer: currentPriceOffer } : null);
+                        } else {
+                            syncItemPrice(item.cartId, currentPriceBase, currentPriceOffer);
+                        }
+
+                        toast.info("Price Updated", {
+                            description: `The price for ${item.name} has been updated to the latest value.`,
+                            duration: 5000
+                        });
+
+                        // We mark it but DON'T set hasErrors to true for price changes
+                        // as we have already synced them.
+                        newPriceErrors[item.cartId] = "Price synced";
+                    }
+                }
+            });
+
+            setStockErrors(newStockErrors);
+            setPriceErrors(newPriceErrors);
+
+            // Return true if no FATAL errors (like stock or missing product)
+            return { isValid: !hasErrors, currentProducts: currentProducts as ValidatedProduct[] };
+        } catch (err: unknown) {
+            toast.error("Verification Error", { description: getFriendlyErrorMessage(err) });
+            return { isValid: true, currentProducts: [] }; // Proceed if error occurs, but log it
+        }
+    }, [activeItems, isDirect, setDirectItem, syncItemPrice]);
 
     useEffect(() => {
         setIsMounted(true);
@@ -176,7 +248,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
 
         // Initial validation
         validateCartState();
-    }, [user]);
+    }, [user, validateCartState]);
 
     // Re-validate state periodically or on significant form changes
     useEffect(() => {
@@ -191,7 +263,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
         }, 60000); // Re-verify every 60 seconds
 
         return () => clearInterval(timer);
-    }, [activeItems, formData.state]);
+    }, [activeItems, formData.state, validateCartState]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -269,76 +341,6 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
         return Object.keys(newErrors).length === 0;
     };
 
-    const validateCartState = async () => {
-        try {
-            const productIds = activeItems.map(item => item.id);
-            const { data: currentProducts, error } = await supabase
-                .from("products")
-                .select("id, name, price_base, price_offer, product_variants(size, stock)")
-                .in("id", productIds);
-
-            if (error) throw error;
-
-            const newStockErrors: Record<string, string> = {};
-            const newPriceErrors: Record<string, string> = {};
-            let hasErrors = false;
-
-            activeItems.forEach(item => {
-                const currentProduct = currentProducts?.find((p: any) => p.id === item.id);
-                if (!currentProduct) {
-                    newStockErrors[item.cartId] = "Product no longer available";
-                    hasErrors = true;
-                } else {
-                    // 1. Stock Check
-                    let availableStock = 0;
-                    if (item.size) {
-                        const variant = currentProduct.product_variants?.find((v: ProductVariant) => v.size === item.size);
-                        availableStock = variant?.stock ?? 0;
-                    } else {
-                        availableStock = currentProduct.product_variants?.reduce((acc: number, v: ProductVariant) => acc + v.stock, 0) || 0;
-                    }
-
-                    if (availableStock < item.quantity) {
-                        newStockErrors[item.cartId] = availableStock === 0
-                            ? "Out of stock"
-                            : `Only ${availableStock} left`;
-                        hasErrors = true;
-                    }
-
-                    // 2. Price Check
-                    const currentPriceBase = Number(currentProduct.price_base);
-                    const currentPriceOffer = currentProduct.price_offer ? Number(currentProduct.price_offer) : undefined;
-
-                    if (currentPriceBase !== item.price_base || currentPriceOffer !== item.price_offer) {
-                        // Automatically sync the price in the store
-                        if (isDirect) {
-                            setDirectItem(prev => prev ? { ...prev, price_base: currentPriceBase, price_offer: currentPriceOffer } : null);
-                        } else {
-                            syncItemPrice(item.cartId, currentPriceBase, currentPriceOffer);
-                        }
-
-                        toast.info("Price Updated", {
-                            description: `The price for ${item.name} has been updated to the latest value.`,
-                            duration: 5000
-                        });
-
-                        // We mark it but DON'T set hasErrors to true for price changes
-                        // as we have already synced them.
-                        newPriceErrors[item.cartId] = "Price synced";
-                    }
-                }
-            });
-
-            setStockErrors(newStockErrors);
-            setPriceErrors(newPriceErrors);
-
-            // Return true if no FATAL errors (like stock or missing product)
-            return { isValid: !hasErrors, currentProducts };
-        } catch (err: unknown) {
-            toast.error("Verification Error", { description: getFriendlyErrorMessage(err) });
-            return { isValid: true, currentProducts: [] }; // Proceed if error occurs, but log it
-        }
-    };
 
     const handlePayment = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -370,7 +372,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
             // Derive the most accurate items list from validation snapshot
             // This ensures price changes are immediate within this function execution
             const latestItems = activeItems.map(item => {
-                const liveProduct = currentProducts?.find(p => p.id === item.id);
+                const liveProduct = (currentProducts as ValidatedProduct[] | null)?.find((p: ValidatedProduct) => p.id === item.id);
                 if (liveProduct) {
                     return {
                         ...item,
@@ -421,6 +423,19 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
             }
 
             // 3. Initialize Razorpay options
+            let paymentObject: { open: () => void; close: () => void; on: (event: string, handler: (res: { error: { description: string } }) => void) => void } | null = null;
+
+            const cleanupRazorpayModal = () => {
+                try {
+                    document.querySelectorAll('.razorpay-container').forEach(el => el.remove());
+                    if (document.body.style.overflow) {
+                        document.body.style.overflow = '';
+                    }
+                } catch (e) {
+                    // silently fail if cleanup fails
+                }
+            };
+
             const options = {
                 key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
                 amount: order.amount,
@@ -429,7 +444,15 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                 description: "Purchase from Blactify",
                 order_id: order.id,
                 handler: async function (razorpayResponse: RazorpaySuccessResponse) {
-                    // Payment Success
+                    // Payment Success - Close modal immediately to avoid it hanging
+                    if (paymentObject) {
+                        try {
+                            paymentObject.close();
+                        } catch (err) {
+                            console.error("Failed to close Razorpay modal:", err);
+                        }
+                    }
+
                     try {
                         const token = await auth.currentUser?.getIdToken();
                         // Save order to Supabase
@@ -494,6 +517,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
 
                             removeDiscount();
                             sessionStorage.removeItem("checkout-form-data");
+                            cleanupRazorpayModal();
                             router.push(`/checkout/success?order_id=${razorpayResponse.razorpay_order_id}`);
                         } else {
 
@@ -521,26 +545,32 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                         setIsProcessing(false);
                         const failureUrl = isDirect ? "/checkout/failure?direct=true" : "/checkout/failure";
                         sessionStorage.setItem("checkout-form-data", JSON.stringify(formData));
+                        cleanupRazorpayModal();
                         router.push(failureUrl);
                     },
                 },
             };
 
-            const paymentObject = new window.Razorpay(options);
-            paymentObject.open();
+            const Razorpay = (window as unknown as { Razorpay: new (options: unknown) => { open: () => void; close: () => void; on: (event: string, handler: (res: { error: { description: string } }) => void) => void } }).Razorpay;
+            paymentObject = new Razorpay(options);
+            if (paymentObject) {
+                paymentObject.open();
 
-            paymentObject.on("payment.failed", function () {
+                paymentObject.on("payment.failed", function (response: { error: { description: string } }) {
+                    console.error("Payment failed:", response.error);
 
-                // Attempt to close the modal programmatically
-                try {
-                    paymentObject.close();
-                } catch {
-                    // Ignore error if modal is already closed or cannot be closed
-                }
-                const failureUrl = isDirect ? "/checkout/failure?direct=true" : "/checkout/failure";
-                sessionStorage.setItem("checkout-form-data", JSON.stringify(formData));
-                router.push(failureUrl);
-            });
+                    // Attempt to close the modal programmatically
+                    try {
+                        if (paymentObject) paymentObject.close();
+                    } catch {
+                        // Ignore error if modal is already closed or cannot be closed
+                    }
+                    const failureUrl = isDirect ? "/checkout/failure?direct=true" : "/checkout/failure";
+                    sessionStorage.setItem("checkout-form-data", JSON.stringify(formData));
+                    cleanupRazorpayModal();
+                    router.push(failureUrl);
+                });
+            }
 
         } catch (err: unknown) {
 
