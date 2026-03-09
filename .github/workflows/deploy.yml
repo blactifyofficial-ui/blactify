@@ -128,29 +128,6 @@ jobs:
               -o $DOCKER_CONFIG/cli-plugins/docker-compose
             chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
 
-            # Write nginx config (ensures correct proxy to Next.js app, no default page)
-            mkdir -p ~/blactify/nginx
-            cat > ~/blactify/nginx/nginx.conf << 'NGINXEOF'
-            server {
-                listen 80;
-                server_name _;
-
-                location / {
-                    proxy_pass http://app:3000;
-                    proxy_http_version 1.1;
-                    proxy_set_header Upgrade $http_upgrade;
-                    proxy_set_header Connection 'upgrade';
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $scheme;
-                    proxy_cache_bypass $http_upgrade;
-                    proxy_read_timeout 60s;
-                }
-            }
-            NGINXEOF
-            sed -i 's/^[[:space:]]*//' ~/blactify/nginx/nginx.conf
-
             # Force-stop and remove ALL old containers (bypasses ContainerConfig bug)
             docker ps -aq | xargs -r docker stop || true
             docker ps -aq | xargs -r docker rm -f || true
