@@ -133,7 +133,7 @@ jobs:
             cat > ~/blactify/nginx/nginx.conf << 'NGINXEOF'
             server {
                 listen 80;
-                server_name _;
+                server_name blactify.com;
 
                 location / {
                     proxy_pass http://app:3000;
