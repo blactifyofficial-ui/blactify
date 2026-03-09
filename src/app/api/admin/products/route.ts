@@ -3,6 +3,7 @@ export const preferredRegion = "sin1";
 import { deleteFromCloudinary } from "@/lib/cloudinary";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { verifyAdminAuth } from "@/lib/auth-server";
+import { revalidatePath } from "next/cache";
 
 export async function POST(request: Request) {
     const auth = await verifyAdminAuth(request);
@@ -86,6 +87,11 @@ export async function POST(request: Request) {
             details: { id, name, price_base },
             user_email: auth.email
         });
+
+        // Revalidate Cache
+        revalidatePath("/", "layout");
+        revalidatePath("/shop", "page");
+        revalidatePath("/product/[id]", "page");
 
         return NextResponse.json({ success: true });
     } catch (dbErr: unknown) {
@@ -211,6 +217,11 @@ export async function PUT(request: Request) {
             user_email: auth.email
         });
 
+        // Revalidate Cache
+        revalidatePath("/", "layout");
+        revalidatePath("/shop", "page");
+        revalidatePath("/product/[id]", "page");
+
         return NextResponse.json({ success: true });
     } catch (dbErr: unknown) {
         return NextResponse.json({ error: dbErr instanceof Error ? dbErr.message : "Failed to update product" }, { status: 500 });
@@ -248,6 +259,11 @@ export async function DELETE(request: Request) {
             details: { id },
             user_email: auth.email
         });
+
+        // Revalidate Cache
+        revalidatePath("/", "layout");
+        revalidatePath("/shop", "page");
+        revalidatePath("/product/[id]", "page");
 
         return NextResponse.json({ success: true });
     } catch (dbErr: unknown) {

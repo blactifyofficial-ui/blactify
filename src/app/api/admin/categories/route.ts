@@ -3,6 +3,7 @@ export const preferredRegion = "sin1";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { verifyAdminAuth } from "@/lib/auth-server";
 import { logAction } from "@/lib/logger";
+import { revalidatePath } from "next/cache";
 
 export async function POST(request: Request) {
     const auth = await verifyAdminAuth(request);
@@ -52,6 +53,10 @@ export async function POST(request: Request) {
             details: { name, slug },
             user_email: auth.email
         });
+
+        revalidatePath("/", "layout");
+        revalidatePath("/shop", "page");
+        revalidatePath("/product/[id]", "page");
 
         return NextResponse.json(categoryData);
     } catch {
@@ -148,6 +153,10 @@ export async function PUT(request: Request) {
             user_email: auth.email
         });
 
+        revalidatePath("/", "layout");
+        revalidatePath("/shop", "page");
+        revalidatePath("/product/[id]", "page");
+
         return NextResponse.json(categoryData);
     } catch {
         return NextResponse.json({ error: "Failed to update category" }, { status: 500 });
@@ -178,6 +187,10 @@ export async function DELETE(request: Request) {
             details: { id },
             user_email: auth.email
         });
+
+        revalidatePath("/", "layout");
+        revalidatePath("/shop", "page");
+        revalidatePath("/product/[id]", "page");
 
         return NextResponse.json({ success: true });
     } catch {
