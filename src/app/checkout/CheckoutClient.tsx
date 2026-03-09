@@ -431,7 +431,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                     if (document.body.style.overflow) {
                         document.body.style.overflow = '';
                     }
-                } catch (e) {
+                } catch {
                     // silently fail if cleanup fails
                 }
             };
