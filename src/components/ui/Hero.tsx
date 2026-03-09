@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import gsap from "gsap";
+import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 
 interface HeroProps {

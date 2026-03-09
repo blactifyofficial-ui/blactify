@@ -7,8 +7,10 @@ import { useCartStore } from "@/store/useCartStore";
 import { Plus } from "lucide-react";
 import { useAuth } from "@/store/AuthContext";
 import { useRef } from "react";
-import gsap from "gsap";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+
 import { Magnetic } from "@/components/ui/Magnetic";
 import { Product } from "@/types/database";
 
@@ -28,6 +30,7 @@ export function ProductCard({ product, className, onImageLoad, hidePrice, priori
     const container = useRef<HTMLDivElement>(null);
 
     useGSAP(() => {
+        gsap.registerPlugin(ScrollTrigger);
         gsap.from(container.current, {
             y: 50,
             opacity: 0,

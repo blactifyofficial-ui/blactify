@@ -150,8 +150,9 @@ export async function createManualOrder(data: ManualOrderData, token?: string) {
 
         revalidatePath("/admin/orders");
         return { success: true, orderId: manualOrderId };
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("Create manual order failed:", err);
-        return { success: false, error: err.message || "Failed to create order" };
+        const errorMessage = err instanceof Error ? err.message : "Failed to create order";
+        return { success: false, error: errorMessage };
     }
 }

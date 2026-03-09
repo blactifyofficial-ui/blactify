@@ -20,6 +20,28 @@ import { searchUsers, searchProducts, createManualOrder } from "@/app/actions/ad
 import { toast } from "sonner";
 import { auth } from "@/lib/firebase";
 
+interface SearchUser {
+    id: string;
+    email: string;
+    full_name: string | null;
+}
+
+interface SearchProduct {
+    id: string;
+    name: string;
+    price_base: number;
+    price_offer: number | null;
+    product_variants: Array<{
+        id: string;
+        size: string;
+        stock: number;
+    }>;
+    product_images: Array<{
+        url: string;
+        position: number;
+    }>;
+}
+
 interface ProductItem {
     id: string;
     product_id: string;
@@ -40,8 +62,8 @@ export default function CreateOrderClient() {
 
     // Form State
     const [userQuery, setUserQuery] = useState("");
-    const [userResults, setUserResults] = useState<any[]>([]);
-    const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [userResults, setUserResults] = useState<SearchUser[]>([]);
+    const [selectedUser, setSelectedUser] = useState<SearchUser | null>(null);
 
     const [customerDetails, setCustomerDetails] = useState({
         name: "",
@@ -59,7 +81,7 @@ export default function CreateOrderClient() {
 
     const [orderItems, setOrderItems] = useState<ProductItem[]>([]);
     const [productQuery, setProductQuery] = useState("");
-    const [productResults, setProductResults] = useState<any[]>([]);
+    const [productResults, setProductResults] = useState<SearchProduct[]>([]);
 
     const [payment, setPayment] = useState({
         method: "razorpay",
@@ -110,7 +132,7 @@ export default function CreateOrderClient() {
     }, [productQuery]);
 
     // Handlers
-    const addProductToOrder = (product: any, variant: any) => {
+    const addProductToOrder = (product: SearchProduct, variant: SearchProduct["product_variants"][0]) => {
         if (variant.stock <= 0) {
             toast.error("Item is out of stock");
             return;
@@ -133,7 +155,7 @@ export default function CreateOrderClient() {
                 name: product.name,
                 size: variant.size,
                 // Sort by position to get the main image
-                image: product.product_images?.sort((a: any, b: any) => a.position - b.position)[0]?.url,
+                image: product.product_images?.sort((a: { position: number }, b: { position: number }) => a.position - b.position)[0]?.url,
                 price: product.price_offer || product.price_base,
                 quantity: 1,
                 stock: variant.stock
@@ -160,7 +182,7 @@ export default function CreateOrderClient() {
         }));
     };
 
-    const selectUser = (user: any) => {
+    const selectUser = (user: SearchUser) => {
         setSelectedUser(user);
         setCustomerDetails({
             name: user.full_name || "",
@@ -202,7 +224,8 @@ export default function CreateOrderClient() {
             } else {
                 toast.error(result.error || "Failed to create order");
             }
-        } catch (err) {
+        } catch (err: unknown) {
+            console.error(err);
             toast.error("An error occurred");
         } finally {
             setLoading(false);
@@ -372,7 +395,7 @@ export default function CreateOrderClient() {
                                                     <p className="text-xs font-black">₹{product.price_offer || product.price_base}</p>
                                                 </div>
                                                 <div className="flex flex-wrap gap-2">
-                                                    {product.product_variants?.map((v: any) => {
+                                                    {product.product_variants?.map((v: SearchProduct["product_variants"][0]) => {
                                                         const isOutOfStock = v.stock <= 0;
                                                         return (
                                                             <button
