@@ -25,12 +25,12 @@ export async function getStoreSettings() {
             .single();
 
         if (error) {
-            return { purchases_enabled: true };
+            return { purchases_enabled: true, free_shipping_enabled: false };
         }
 
         return data;
     } catch {
-        return { purchases_enabled: true };
+        return { purchases_enabled: true, free_shipping_enabled: false };
     }
 }
 
@@ -99,13 +99,51 @@ export async function togglePurchaseStatus(status: boolean, token?: string) {
         }
 
         revalidatePath("/checkout", "page");
+        revalidatePath("/checkout", "layout");
         revalidatePath("/shop", "page");
+        revalidatePath("/shop", "layout");
+        revalidatePath("/product", "layout");
+        revalidatePath("/product/[id]", "page");
+        revalidatePath("/product/[id]", "layout");
         revalidatePath("/", "layout");
 
         // Log the action
         const { logAction } = await import("@/lib/logger");
         await logAction({
             action_type: "purchase_toggle",
+            details: { enabled: status },
+            user_email: auth.email
+        });
+
+        return { success: true };
+    } catch {
+        return { success: false, error: "Failed to update settings" };
+    }
+}
+export async function toggleFreeShippingStatus(status: boolean, token?: string) {
+    try {
+        const auth = await verifyActionAdminAuth(token);
+        const { error } = await supabaseAdmin
+            .from("store_settings")
+            .upsert({ id: true, free_shipping_enabled: status });
+
+        if (error) {
+            return { success: false, error: error.message };
+        }
+
+        revalidatePath("/checkout", "page");
+        revalidatePath("/checkout", "layout");
+        revalidatePath("/shop", "page");
+        revalidatePath("/shop", "layout");
+        revalidatePath("/product", "layout");
+        revalidatePath("/product/[id]", "page");
+        revalidatePath("/product/[id]", "layout");
+        revalidatePath("/", "layout");
+
+        // Log the action
+        const { logAction } = await import("@/lib/logger");
+        await logAction({
+            action_type: "free_shipping_toggle",
             details: { enabled: status },
             user_email: auth.email
         });

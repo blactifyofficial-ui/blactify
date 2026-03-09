@@ -14,27 +14,31 @@ import {
     AlertTriangle,
     X,
     Lock,
-    Unlock
+    Unlock,
+    Truck
 } from "lucide-react";
 import { useAdminStats } from "@/hooks/useAdminStats";
 import { AdminLoading, AdminPageHeader, AdminCard } from "@/components/admin/AdminUI";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
-import { getStoreSettings, togglePurchaseStatus } from "@/app/actions/settings";
+import { getStoreSettings, togglePurchaseStatus, toggleFreeShippingStatus } from "@/app/actions/settings";
 import { toast } from "sonner";
 import { auth } from "@/lib/firebase";
 
 export default function AdminDashboardPage() {
     const { stats, loading } = useAdminStats();
     const [purchasesEnabled, setPurchasesEnabled] = useState(true);
+    const [freeShippingEnabled, setFreeShippingEnabled] = useState(false);
     const [showDisableModal, setShowDisableModal] = useState(false);
     const [confirmationText, setConfirmationText] = useState("");
     const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
+    const [isUpdatingFreeShipping, setIsUpdatingFreeShipping] = useState(false);
 
     useEffect(() => {
         getStoreSettings().then(settings => {
             if (settings) {
-                setPurchasesEnabled(settings.purchases_enabled);
+                setPurchasesEnabled(settings.purchases_enabled ?? true);
+                setFreeShippingEnabled(settings.free_shipping_enabled ?? false);
             }
         });
     }, []);
@@ -61,6 +65,26 @@ export default function AdminDashboardPage() {
             } finally {
                 setIsUpdatingSettings(false);
             }
+        }
+    };
+
+    const handleToggleFreeShipping = async () => {
+        setIsUpdatingFreeShipping(true);
+        const newStatus = !freeShippingEnabled;
+        try {
+            const token = await auth.currentUser?.getIdToken();
+            const result = await toggleFreeShippingStatus(newStatus, token);
+            if (result.success) {
+                setFreeShippingEnabled(newStatus);
+                toast.success(`Free shipping coupon ${newStatus ? 'enabled' : 'disabled'}`);
+            } else {
+                toast.error("Failed to update free shipping status");
+            }
+        } catch (err) {
+            console.error("Failed to toggle free shipping", err);
+            toast.error("An error occurred");
+        } finally {
+            setIsUpdatingFreeShipping(false);
         }
     };
 
@@ -132,38 +156,74 @@ export default function AdminDashboardPage() {
                 </div>
             </AdminPageHeader>
 
-            {/* Store Controls */}
-            <div className="bg-zinc-50 border border-zinc-200 rounded-[2rem] p-8 flex items-center justify-between">
-                <div>
-                    <h3 className="text-lg font-black text-zinc-900 flex items-center gap-2">
-                        <Store size={20} />
-                        Store Controls
-                    </h3>
-                    <p className="text-xs text-zinc-500 mt-1 font-medium">Control if customers can buy products.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                {/* Store Status Control */}
+                <div className="bg-zinc-50 border border-zinc-200 rounded-[2rem] p-8 flex items-center justify-between">
+                    <div>
+                        <h3 className="text-lg font-black text-zinc-900 flex items-center gap-2">
+                            <Store size={20} />
+                            Store Purchases
+                        </h3>
+                        <p className="text-xs text-zinc-500 mt-1 font-medium">Control if customers can buy products.</p>
+                    </div>
+                    <button
+                        onClick={handleTogglePurchases}
+                        disabled={isUpdatingSettings}
+                        className={cn(
+                            "px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2",
+                            purchasesEnabled
+                                ? "bg-red-50 text-red-600 hover:bg-red-100 border border-red-100"
+                                : "bg-green-50 text-green-600 hover:bg-green-100 border border-green-100",
+                            isUpdatingSettings && "opacity-50 cursor-wait"
+                        )}
+                    >
+                        {purchasesEnabled ? (
+                            <>
+                                <Lock size={14} />
+                                Disable
+                            </>
+                        ) : (
+                            <>
+                                <Unlock size={14} />
+                                Enable
+                            </>
+                        )}
+                    </button>
                 </div>
-                <button
-                    onClick={handleTogglePurchases}
-                    disabled={isUpdatingSettings}
-                    className={cn(
-                        "px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2",
-                        purchasesEnabled
-                            ? "bg-red-50 text-red-600 hover:bg-red-100 border border-red-100"
-                            : "bg-green-50 text-green-600 hover:bg-green-100 border border-green-100",
-                        isUpdatingSettings && "opacity-50 cursor-wait"
-                    )}
-                >
-                    {purchasesEnabled ? (
-                        <>
-                            <Lock size={14} />
-                            Disable Purchases
-                        </>
-                    ) : (
-                        <>
-                            <Unlock size={14} />
-                            Enable Purchases
-                        </>
-                    )}
-                </button>
+
+                {/* Free Shipping Control */}
+                <div className="bg-zinc-50 border border-zinc-200 rounded-[2rem] p-8 flex items-center justify-between">
+                    <div>
+                        <h3 className="text-lg font-black text-zinc-900 flex items-center gap-2">
+                            <Truck size={20} />
+                            Free Shipping Coupon
+                        </h3>
+                        <p className="text-xs text-zinc-500 mt-1 font-medium">Control FREE-SHIPPING coupon usage.</p>
+                    </div>
+                    <button
+                        onClick={handleToggleFreeShipping}
+                        disabled={isUpdatingFreeShipping}
+                        className={cn(
+                            "px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2",
+                            freeShippingEnabled
+                                ? "bg-red-50 text-red-600 hover:bg-red-100 border border-red-100"
+                                : "bg-green-50 text-green-600 hover:bg-green-100 border border-green-100",
+                            isUpdatingFreeShipping && "opacity-50 cursor-wait"
+                        )}
+                    >
+                        {freeShippingEnabled ? (
+                            <>
+                                <Lock size={14} />
+                                Disable
+                            </>
+                        ) : (
+                            <>
+                                <Unlock size={14} />
+                                Enable
+                            </>
+                        )}
+                    </button>
+                </div>
             </div>
 
             {/* Stats Grid */}

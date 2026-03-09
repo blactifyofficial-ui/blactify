@@ -25,6 +25,8 @@ interface CartStore {
     discountCode: string | null;
     applyDiscount: (code: string) => void;
     removeDiscount: () => void;
+    freeShippingEnabled: boolean;
+    setFreeShippingEnabled: (enabled: boolean) => void;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -150,9 +152,10 @@ export const useCartStore = create<CartStore>()(
             getShippingCharge: (state) => {
                 const subtotal = get().getSubtotal();
                 const discountCode = get().discountCode;
+                const isFreeShippingCouponActive = get().freeShippingEnabled;
 
                 if (subtotal === 0) return 0;
-                if (discountCode === "FREE-SHIPPING") return 0;
+                if (discountCode === "FREE-SHIPPING" && isFreeShippingCouponActive) return 0;
                 if (subtotal >= 2999) return 0; // Free shipping threshold
 
                 if (state === "Kerala") {
@@ -171,6 +174,8 @@ export const useCartStore = create<CartStore>()(
                 set({ discountCode: null });
                 if (code) toast.success(`Coupon code ${code} removed`);
             },
+            freeShippingEnabled: false,
+            setFreeShippingEnabled: (enabled: boolean) => set({ freeShippingEnabled: enabled }),
         }),
         {
             name: "blactify-cart-storage",

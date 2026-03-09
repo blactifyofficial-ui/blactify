@@ -58,7 +58,7 @@ interface RazorpaySuccessResponse {
 }
 
 interface CheckoutClientProps {
-    initialSettings: { purchases_enabled: boolean } | null;
+    initialSettings: { purchases_enabled: boolean; free_shipping_enabled: boolean } | null;
 }
 
 export default function CheckoutClient({ initialSettings }: CheckoutClientProps) {
@@ -87,8 +87,8 @@ function SafeImage({ src, alt, className }: { src: string | null; alt: string; c
     );
 }
 
-function CheckoutContent({ initialSettings }: { initialSettings: { purchases_enabled: boolean } | null }) {
-    const { items, getSubtotal, getTotalPrice, getShippingCharge, clearCart, removeItem, discountCode, applyDiscount, removeDiscount } = useCartStore();
+function CheckoutContent({ initialSettings }: { initialSettings: { purchases_enabled: boolean; free_shipping_enabled: boolean } | null }) {
+    const { items, getSubtotal, getTotalPrice, getShippingCharge, clearCart, removeItem, discountCode, applyDiscount, removeDiscount, setFreeShippingEnabled } = useCartStore();
     const router = useRouter();
     const { user } = useAuth();
     const [isMounted, setIsMounted] = useState(false);
@@ -101,6 +101,12 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
     const searchParams = useSearchParams();
     const isDirect = searchParams.get("direct") === "true";
     const [directItem, setDirectItem] = useState<CartItem | null>(null);
+
+    useEffect(() => {
+        if (initialSettings) {
+            setFreeShippingEnabled(initialSettings.free_shipping_enabled);
+        }
+    }, [initialSettings, setFreeShippingEnabled]);
 
     useEffect(() => {
         if (isDirect) {
@@ -612,9 +618,16 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                             type="button"
                                             onClick={() => {
                                                 const normalizedInput = discountInput.trim().toUpperCase();
-                                                if (normalizedInput === "WELCOME10" || normalizedInput === "FREE-SHIPPING") {
+                                                if (normalizedInput === "WELCOME10") {
                                                     applyDiscount(normalizedInput);
                                                     setDiscountInput("");
+                                                } else if (normalizedInput === "FREE-SHIPPING") {
+                                                    if (initialSettings?.free_shipping_enabled) {
+                                                        applyDiscount(normalizedInput);
+                                                        setDiscountInput("");
+                                                    } else {
+                                                        toast.error("FREE-SHIPPING coupon is currently disabled");
+                                                    }
                                                 } else {
                                                     toast.error("Invalid discount code");
                                                 }
@@ -989,9 +1002,16 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                 type="button"
                                 onClick={() => {
                                     const normalizedInput = discountInput.trim().toUpperCase();
-                                    if (normalizedInput === "WELCOME10" || normalizedInput === "FREE-SHIPPING") {
+                                    if (normalizedInput === "WELCOME10") {
                                         applyDiscount(normalizedInput);
                                         setDiscountInput("");
+                                    } else if (normalizedInput === "FREE-SHIPPING") {
+                                        if (initialSettings?.free_shipping_enabled) {
+                                            applyDiscount(normalizedInput);
+                                            setDiscountInput("");
+                                        } else {
+                                            toast.error("FREE-SHIPPING coupon is currently disabled");
+                                        }
                                     } else {
                                         toast.error("Invalid discount code");
                                     }

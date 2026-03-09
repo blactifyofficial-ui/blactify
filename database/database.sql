@@ -170,6 +170,7 @@ CREATE POLICY "Authenticated users can post reviews" ON reviews
 CREATE TABLE IF NOT EXISTS store_settings (
     id BOOLEAN PRIMARY KEY DEFAULT TRUE,
     purchases_enabled BOOLEAN DEFAULT TRUE,
+    free_shipping_enabled BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     CONSTRAINT store_settings_id_check CHECK (id = TRUE)

@@ -12,6 +12,7 @@ export type ActionType =
     | "category_delete"
     | "admin_login"
     | "purchase_toggle"
+    | "free_shipping_toggle"
     | "report_export";
 
 export interface LogEntry {
