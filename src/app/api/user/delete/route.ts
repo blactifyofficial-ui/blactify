@@ -5,8 +5,8 @@ import { NextResponse } from 'next/server';
 import { z } from "zod";
 import { verifyAuth } from "@/lib/auth-server";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://dummy.supabase.co";
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "dummy";
 const supabaseServer = createClient(supabaseUrl, supabaseServiceKey);
 
 const DeleteUserSchema = z.object({
