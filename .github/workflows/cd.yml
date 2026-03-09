@@ -85,6 +85,11 @@ jobs:
             curl -SL https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
             chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
 
-            docker compose down --remove-orphans
+            # Force-stop and remove ALL running containers to avoid ContainerConfig errors
+            # from old docker-compose v1 managed containers (safe since we use compose v2 now)
+            docker ps -aq | xargs -r docker stop
+            docker ps -aq | xargs -r docker rm -f
+            docker network prune -f
+
             docker compose pull
             docker compose up -d
