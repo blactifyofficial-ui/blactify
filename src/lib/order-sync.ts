@@ -80,6 +80,8 @@ export async function saveOrder(orderData: z.infer<typeof OrderSyncSchema>, toke
                 userMessage = techMessage;
             } else if (techMessage.includes("variant not found")) {
                 userMessage = "One of the items in your bag is no longer available.";
+            } else if (techMessage.includes("Price mismatch")) {
+                userMessage = "The prices of some items in your bag have changed. Please refresh the page to see current pricing.";
             }
 
             return { success: false, error: { message: userMessage, technical: techMessage } };

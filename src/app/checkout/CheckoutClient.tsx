@@ -631,7 +631,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                                 </p>
                                             )}
                                             {priceErrors[item.cartId] && (
-                                                <p className="text-[10px] text-orange-600 font-bold mt-1 uppercase italic text-center">
+                                                <p className="text-[10px] text-orange-600 font-bold mt-1 uppercase italic">
                                                     {priceErrors[item.cartId]}
                                                 </p>
                                             )}
@@ -948,10 +948,10 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
 
                         {/* Footer Actions */}
                         <div className="flex flex-col gap-4 pt-4">
-                            {Object.keys(stockErrors).length > 0 && (
+                            {(Object.keys(stockErrors).length > 0 || Object.keys(priceErrors).length > 0) && (
                                 <div className="p-4 bg-red-50 border border-red-100 rounded-lg">
                                     <p className="text-xs text-red-600 font-medium">
-                                        Please remove out-of-stock items or adjust quantities to continue with your order.
+                                        Please {Object.keys(priceErrors).length > 0 ? "refresh the page to update prices" : "remove out-of-stock items"} or adjust your bag to continue.
                                     </p>
                                 </div>
                             )}
@@ -962,13 +962,17 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                 </Link>
                                 <button
                                     type="submit"
-                                    disabled={isProcessing || Object.keys(stockErrors).length > 0}
+                                    disabled={isProcessing || Object.keys(stockErrors).length > 0 || Object.keys(priceErrors).length > 0}
                                     className={cn(
                                         "w-full md:w-auto px-8 py-4 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors shadow-sm",
-                                        (isProcessing || Object.keys(stockErrors).length > 0) && "opacity-70 cursor-not-allowed"
+                                        (isProcessing || Object.keys(stockErrors).length > 0 || Object.keys(priceErrors).length > 0) && "opacity-70 cursor-not-allowed"
                                     )}
                                 >
-                                    {isProcessing ? "Processing..." : Object.keys(stockErrors).length > 0 ? "Remove items to proceed" : "Complete order"}
+                                    {isProcessing
+                                        ? "Processing..."
+                                        : (Object.keys(stockErrors).length > 0 || Object.keys(priceErrors).length > 0)
+                                            ? "Resolve bag issues"
+                                            : "Complete order"}
                                 </button>
                             </div>
                         </div>
