@@ -1,4 +1,4 @@
-name: Continuous Integration (CI)
+name: Deploy
 
 on:
   push:
@@ -133,7 +133,7 @@ jobs:
             cat > ~/blactify/nginx/nginx.conf << 'NGINXEOF'
             server {
                 listen 80;
-                server_name blactify.com;
+                server_name _;
 
                 location / {
                     proxy_pass http://app:3000;
