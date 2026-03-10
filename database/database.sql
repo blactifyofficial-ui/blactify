@@ -31,6 +31,7 @@ CREATE TABLE products (
     price_base NUMERIC NOT NULL CHECK (price_base >= 0),
     price_offer NUMERIC CHECK (price_offer >= 0),
     category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
+    out_of_stock_at TIMESTAMPTZ,
     show_on_home BOOLEAN DEFAULT FALSE,
     featured_at TIMESTAMPTZ,
     home_order INTEGER,
