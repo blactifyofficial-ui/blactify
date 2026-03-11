@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, use, useCallback } from "react";
+import { format } from "date-fns";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -20,7 +21,8 @@ import {
     Loader2,
     Plus,
     Trash2,
-    Crop
+    Crop,
+    Zap
 } from "lucide-react";
 import ImageCropper from "@/components/admin/ImageCropper";
 import { auth } from "@/lib/firebase";
@@ -29,6 +31,7 @@ import {
     ProductIdSchema,
     CategoryNameSchema
 } from "@/lib/validation";
+import { Drop } from "@/lib/drops-local";
 
 interface ProductVariant {
     id?: string;
@@ -59,7 +62,8 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
         image2: "",
         image3: "",
         description: "",
-        variants: [] as ProductVariant[]
+        variants: [] as ProductVariant[],
+        drop_id: ""
     });
 
     // Variant Input State
@@ -72,6 +76,9 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
     const [newCatName, setNewCatName] = useState("");
     const [newCatSizeFields, setNewCatSizeFields] = useState<string[]>([]);
     const [addingCat, setAddingCat] = useState(false);
+    
+    // Drops state
+    const [drops, setDrops] = useState<Drop[]>([]);
 
     // Validation state
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -96,6 +103,29 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
             `)
             .order("name");
         setCategories(data || []);
+    }, []);
+
+    const fetchDrops = useCallback(async () => {
+        try {
+            const res = await fetch("/api/admin/drops");
+            const data = await res.json();
+            setDrops(data || []);
+        } catch (error) {
+            console.error("Failed to fetch drops", error);
+        }
+    }, []);
+
+    const fetchMapping = useCallback(async (pid: string) => {
+        try {
+            const res = await fetch("/api/admin/drops/mappings");
+            const mappings = await res.json();
+            const mapping = mappings.find((m: { productId: string; dropId: string }) => m.productId === pid);
+            if (mapping) {
+                setFormData(prev => ({ ...prev, drop_id: mapping.dropId }));
+            }
+        } catch (error) {
+            console.error("Failed to fetch mapping", error);
+        }
     }, []);
 
     const handleQuickAddCategory = async () => {
@@ -193,7 +223,8 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
             const img2 = images.find((img: Record<string, unknown>) => (img.position as number) === 2);
             const img3 = images.find((img: Record<string, unknown>) => (img.position as number) === 3);
 
-            setFormData({
+            setFormData(prev => ({
+                ...prev,
                 id: (data.id || "") as string,
                 name: (data.name || "") as string,
                 handle: (data.handle || "") as string,
@@ -206,7 +237,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                 image3: (img3?.url || "") as string,
                 description: (data.description || "") as string,
                 variants: loadedVariants
-            });
+            }));
         } catch {
             toast.error("Failed to fetch product data");
         } finally {
@@ -344,6 +375,16 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                 throw new Error(errorData.error || "Failed to save product");
             }
 
+            // Save product-drop mapping
+            await fetch("/api/admin/drops/mappings", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    productId: finalId,
+                    dropId: formData.drop_id
+                })
+            });
+
             toast.success(isEditing ? "Product updated successfully!" : "Product created successfully!");
             router.push("/admin/products");
             router.refresh();
@@ -383,12 +424,14 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
 
     useEffect(() => {
         fetchCategories();
+        fetchDrops();
         if (isEditing && productId) {
             fetchProduct();
+            fetchMapping(productId);
         } else if (!isEditing) {
             generateNextId();
         }
-    }, [isEditing, productId, fetchCategories, fetchProduct, generateNextId]);
+    }, [isEditing, productId, fetchCategories, fetchProduct, generateNextId, fetchDrops, fetchMapping]);
 
     const addVariant = () => {
         if (!newVariantSize.trim()) return;
@@ -526,6 +569,34 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                         )}
                     </label>
 
+                </div>
+
+                {/* 1.5 Drop Section */}
+                <div className="bg-white p-8 rounded-[2rem] border border-zinc-100 shadow-sm space-y-6">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 flex items-center gap-2">
+                        <Zap size={14} />
+                        Product Drop
+                    </h3>
+                    <label className="block">
+                        <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block italic">Select Drop (Optional)</span>
+                        <div className="relative">
+                            <Zap className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={16} />
+                            <select
+                                value={formData.drop_id}
+                                onChange={(e) => setFormData({ ...formData, drop_id: e.target.value })}
+                                className="w-full pl-12 pr-10 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all cursor-pointer font-medium appearance-none"
+                            >
+                                <option value="">No Drop / Default</option>
+                                {drops.map((drop: Drop) => (
+                                    <option key={drop.id} value={drop.id}>
+                                        {drop.name} ({format(new Date(drop.publishDate), "MMM dd • hh:mm a")})
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-300 pointer-events-none" size={16} />
+                        </div>
+                        <p className="text-[9px] text-zinc-400 mt-2 italic">Select a drop to schedule this product&apos;s launch.</p>
+                    </label>
                 </div>
 
                 {/* 2. Product Information */}

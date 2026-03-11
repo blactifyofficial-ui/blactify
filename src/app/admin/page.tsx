@@ -1,6 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import {
     ShoppingBag,
     ArrowUpRight,
@@ -15,15 +17,87 @@ import {
     X,
     Lock,
     Unlock,
-    Truck
+    Truck,
+    Zap,
+    Clock,
+    Plus
 } from "lucide-react";
+import { Drop } from "@/lib/drops-local";
 import { useAdminStats } from "@/hooks/useAdminStats";
 import { AdminLoading, AdminPageHeader, AdminCard } from "@/components/admin/AdminUI";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
-import { getStoreSettings, togglePurchaseStatus, toggleFreeShippingStatus } from "@/app/actions/settings";
-import { toast } from "sonner";
 import { auth } from "@/lib/firebase";
+import { getStoreSettings, togglePurchaseStatus, toggleFreeShippingStatus } from "@/app/actions/settings";
+
+function DropTimerCard({ drop, onComplete }: { drop: Drop, onComplete: () => void }) {
+    const [timeLeft, setTimeLeft] = useState<{ d: number, h: number, m: number, s: number } | null>(null);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            const now = new Date().getTime();
+            const target = new Date(drop.publishDate).getTime();
+            const diff = target - now;
+
+            if (diff <= 0) {
+                clearInterval(timer);
+                onComplete();
+                return;
+            }
+
+            setTimeLeft({
+                d: Math.floor(diff / (1000 * 60 * 60 * 24)),
+                h: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+                m: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+                s: Math.floor((diff % (1000 * 60)) / 1000)
+            });
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [drop, onComplete]);
+
+    if (!timeLeft) return null;
+
+    return (
+        <div className="bg-zinc-50 border border-zinc-200 rounded-[2.5rem] p-8 h-[200px] flex flex-col justify-between group transition-all hover:shadow-xl hover:shadow-black/5">
+            <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                        <Zap className="text-[#000000] fill-yellow-500" size={14} />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">Next Scheduled Drop</span>
+                    </div>
+                    <h4 className="text-2xl font-black text-[#000000] tracking-tighter leading-none pt-1">
+                        {drop.name}
+                    </h4>
+                </div>
+                <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center">
+                    <Clock size={18} />
+                </div>
+            </div>
+
+            <div className="flex gap-4 items-end">
+                <div className="flex flex-col">
+                    <span className="text-3xl font-black tracking-tighter tabular-nums leading-none text-[#000000]">{timeLeft.d.toString().padStart(2, '0')}</span>
+                    <span className="text-[7px] font-black uppercase tracking-widest text-zinc-500 mt-1">Days</span>
+                </div>
+                <div className="text-2xl font-black text-zinc-300 mb-1">:</div>
+                <div className="flex flex-col">
+                    <span className="text-3xl font-black tracking-tighter tabular-nums leading-none text-[#000000]">{timeLeft.h.toString().padStart(2, '0')}</span>
+                    <span className="text-[7px] font-black uppercase tracking-widest text-zinc-500 mt-1">Hrs</span>
+                </div>
+                <div className="text-2xl font-black text-zinc-300 mb-1">:</div>
+                <div className="flex flex-col">
+                    <span className="text-3xl font-black tracking-tighter tabular-nums leading-none text-[#000000]">{timeLeft.m.toString().padStart(2, '0')}</span>
+                    <span className="text-[7px] font-black uppercase tracking-widest text-zinc-600 mt-1">Mins</span>
+                </div>
+                <div className="text-2xl font-black text-zinc-300 mb-1">:</div>
+                <div className="flex flex-col">
+                    <span className="text-3xl font-black tracking-tighter tabular-nums text-yellow-600 leading-none">{timeLeft.s.toString().padStart(2, '0')}</span>
+                    <span className="text-[7px] font-black uppercase tracking-widest text-zinc-600 mt-1">Secs</span>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 export default function AdminDashboardPage() {
     const { stats, loading } = useAdminStats();
@@ -33,6 +107,24 @@ export default function AdminDashboardPage() {
     const [confirmationText, setConfirmationText] = useState("");
     const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
     const [isUpdatingFreeShipping, setIsUpdatingFreeShipping] = useState(false);
+    const [upcomingDrops, setUpcomingDrops] = useState<Drop[]>([]);
+
+    const fetchDrops = async () => {
+        try {
+            const res = await fetch("/api/admin/drops");
+            const data: Drop[] = await res.json();
+            const now = new Date();
+            
+            // Show all upcoming drops
+            const futureDrops = data
+                .filter(d => new Date(d.publishDate).getTime() > now.getTime())
+                .sort((a, b) => new Date(a.publishDate).getTime() - new Date(b.publishDate).getTime());
+            
+            setUpcomingDrops(futureDrops);
+        } catch (error) {
+            console.error("Failed to fetch drops for dashboard", error);
+        }
+    };
 
     useEffect(() => {
         getStoreSettings().then(settings => {
@@ -41,6 +133,7 @@ export default function AdminDashboardPage() {
                 setFreeShippingEnabled(settings.free_shipping_enabled ?? false);
             }
         });
+        fetchDrops();
     }, []);
 
     const handleTogglePurchases = async () => {
@@ -156,73 +249,134 @@ export default function AdminDashboardPage() {
                 </div>
             </AdminPageHeader>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-                {/* Store Status Control */}
-                <div className="bg-zinc-50 border border-zinc-200 rounded-[2rem] p-8 flex items-center justify-between">
-                    <div>
-                        <h3 className="text-lg font-black text-zinc-900 flex items-center gap-2">
-                            <Store size={20} />
-                            Store Purchases
-                        </h3>
-                        <p className="text-xs text-zinc-500 mt-1 font-medium">Control if customers can buy products.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                {/* Upcoming Drops Pipeline - Horizontal Slider if 2+ */}
+                {upcomingDrops.length > 0 && (
+                    <div className="relative group/slider h-[200px]">
+                        <div className="flex h-full gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-4 -mb-4">
+                            {upcomingDrops.map((drop, idx) => (
+                                <div key={drop.id} className="min-w-full h-full snap-center relative">
+                                    <DropTimerCard drop={drop} onComplete={fetchDrops} />
+                                    {upcomingDrops.length > 1 && (
+                                        <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none flex flex-col items-center gap-1 opacity-20 group-hover/slider:opacity-100 transition-opacity">
+                                            {idx < upcomingDrops.length - 1 && (
+                                                <div className="flex flex-col items-center gap-1">
+                                                    <span className="text-[7px] font-black uppercase tracking-widest text-zinc-400 rotate-90">Next</span>
+                                                    <ArrowUpRight size={10} className="text-zinc-400 rotate-45" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                        {/* Multi-drop dot indicators */}
+                        {upcomingDrops.length > 1 && (
+                            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5 px-3 py-1 bg-zinc-50 rounded-full border border-zinc-100">
+                                {upcomingDrops.map((_, i) => (
+                                    <div key={i} className="w-1 h-1 rounded-full bg-zinc-400 opacity-30 last:mr-0 group-hover/slider:opacity-100" />
+                                ))}
+                            </div>
+                        )}
                     </div>
-                    <button
-                        onClick={handleTogglePurchases}
-                        disabled={isUpdatingSettings}
-                        className={cn(
-                            "px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2",
-                            purchasesEnabled
-                                ? "bg-red-50 text-red-600 hover:bg-red-100 border border-red-100"
-                                : "bg-green-50 text-green-600 hover:bg-green-100 border border-green-100",
-                            isUpdatingSettings && "opacity-50 cursor-wait"
-                        )}
-                    >
-                        {purchasesEnabled ? (
-                            <>
-                                <Lock size={14} />
-                                Disable
-                            </>
-                        ) : (
-                            <>
-                                <Unlock size={14} />
-                                Enable
-                            </>
-                        )}
-                    </button>
+                )}
+
+                {!upcomingDrops.length && (
+                    <div className="bg-zinc-50 border border-zinc-200 rounded-[2.5rem] p-8 h-[200px] flex flex-col justify-between group transition-all hover:border-black/5 hover:bg-white hover:shadow-xl hover:shadow-black/5">
+                        <div className="flex items-start justify-between">
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <Zap className="text-zinc-200" size={14} />
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Next Scheduled Drop</span>
+                                </div>
+                                <h4 className="text-2xl font-black text-zinc-200 tracking-tighter leading-none pt-1">
+                                    None Scheduled
+                                </h4>
+                            </div>
+                        </div>
+                        <Link 
+                            href="/admin/drops" 
+                            className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-black transition-colors"
+                        >
+                            Schedule Drop <Plus size={14} />
+                        </Link>
+                    </div>
+                )}
+
+                {/* Store Status Control */}
+                <div className="bg-zinc-50 border border-zinc-200 rounded-[2.5rem] p-8 h-[200px] flex flex-col justify-between group transition-all hover:shadow-xl hover:shadow-black/5">
+                    <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                                <Store className="text-[#000000]" size={14} />
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">System Infrastructure</span>
+                            </div>
+                            <h4 className="text-2xl font-black text-[#000000] tracking-tighter leading-none pt-1">Store Purchases</h4>
+                        </div>
+                        <div className={cn(
+                            "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
+                            purchasesEnabled ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"
+                        )}>
+                            {purchasesEnabled ? <Unlock size={18} /> : <Lock size={18} />}
+                        </div>
+                    </div>
+
+                    <div className="flex items-end justify-between">
+                        <p className="text-[10px] text-zinc-600 font-extrabold uppercase tracking-[0.1em] pr-4 leading-relaxed">
+                            {purchasesEnabled ? "Active & Live" : "Paused for Maintenance"}
+                        </p>
+                        <button
+                            onClick={handleTogglePurchases}
+                            disabled={isUpdatingSettings}
+                            className={cn(
+                                "px-5 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-sm",
+                                purchasesEnabled
+                                    ? "bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-100"
+                                    : "bg-green-50 text-green-600 hover:bg-green-600 hover:text-white border border-green-100",
+                                isUpdatingSettings && "opacity-50 cursor-wait"
+                            )}
+                        >
+                            {purchasesEnabled ? "Disable" : "Enable"}
+                        </button>
+                    </div>
                 </div>
 
                 {/* Free Shipping Control */}
-                <div className="bg-zinc-50 border border-zinc-200 rounded-[2rem] p-8 flex items-center justify-between">
-                    <div>
-                        <h3 className="text-lg font-black text-zinc-900 flex items-center gap-2">
-                            <Truck size={20} />
-                            Free Shipping Coupon
-                        </h3>
-                        <p className="text-xs text-zinc-500 mt-1 font-medium">Control FREE-SHIPPING coupon usage.</p>
+                <div className="bg-zinc-50 border border-zinc-200 rounded-[2.5rem] p-8 h-[200px] flex flex-col justify-between group transition-all hover:shadow-xl hover:shadow-black/5">
+                    <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                                <Truck className="text-[#000000]" size={14} />
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">Global Logistics</span>
+                            </div>
+                            <h4 className="text-2xl font-black text-[#000000] tracking-tighter leading-none pt-1">Free Shipping</h4>
+                        </div>
+                        <div className={cn(
+                            "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
+                            freeShippingEnabled ? "bg-green-50 text-green-600" : "bg-zinc-50 text-zinc-300"
+                        )}>
+                            <Truck size={18} />
+                        </div>
                     </div>
-                    <button
-                        onClick={handleToggleFreeShipping}
-                        disabled={isUpdatingFreeShipping}
-                        className={cn(
-                            "px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2",
-                            freeShippingEnabled
-                                ? "bg-red-50 text-red-600 hover:bg-red-100 border border-red-100"
-                                : "bg-green-50 text-green-600 hover:bg-green-100 border border-green-100",
-                            isUpdatingFreeShipping && "opacity-50 cursor-wait"
-                        )}
-                    >
-                        {freeShippingEnabled ? (
-                            <>
-                                <Lock size={14} />
-                                Disable
-                            </>
-                        ) : (
-                            <>
-                                <Unlock size={14} />
-                                Enable
-                            </>
-                        )}
-                    </button>
+
+                    <div className="flex items-end justify-between">
+                        <p className="text-[10px] text-zinc-600 font-extrabold uppercase tracking-[0.1em] pr-4 leading-relaxed">
+                            {freeShippingEnabled ? "Premium Active" : "Ineligible / Off"}
+                        </p>
+                        <button
+                            onClick={handleToggleFreeShipping}
+                            disabled={isUpdatingFreeShipping}
+                            className={cn(
+                                "px-5 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-sm",
+                                freeShippingEnabled
+                                    ? "bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-100"
+                                    : "bg-green-50 text-green-600 hover:bg-green-600 hover:text-white border border-green-100",
+                                isUpdatingFreeShipping && "opacity-50 cursor-wait"
+                            )}
+                        >
+                            {freeShippingEnabled ? "Disable" : "Enable"}
+                        </button>
+                    </div>
                 </div>
             </div>
 

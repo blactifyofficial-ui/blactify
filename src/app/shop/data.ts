@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { unstable_cache } from "next/cache";
 import type { Product, ProductVariant } from "@/types/database";
+import { getHiddenProductIds } from "@/lib/drops-local";
 
 export const getCategories = unstable_cache(
     async () => {
@@ -67,7 +68,12 @@ export async function getProducts(options?: GetProductsOptions) {
     const now = new Date();
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
+    const hiddenIds = getHiddenProductIds();
+
     filteredProducts = filteredProducts.filter((p) => {
+        // Filter out products that are part of a future drop
+        if (hiddenIds.has(p.id)) return false;
+
         if (!p.out_of_stock_at) return true;
         const outOfStockDate = new Date(p.out_of_stock_at);
         return outOfStockDate > sevenDaysAgo;

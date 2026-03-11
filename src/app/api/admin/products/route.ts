@@ -252,6 +252,16 @@ export async function DELETE(request: Request) {
         const { error } = await supabaseAdmin.from("products").delete().eq("id", id);
         if (error) throw error;
 
+        // Delete product-drop mapping
+        try {
+            const { getProductDropMappings, saveProductDropMappings } = await import("@/lib/drops-local");
+            let mappings = getProductDropMappings();
+            mappings = mappings.filter(m => m.productId !== id);
+            saveProductDropMappings(mappings);
+        } catch (e) {
+            console.error("Failed to delete mapping on product deletion", e);
+        }
+
         // Log the action
         const { logAction } = await import("@/lib/logger");
         await logAction({

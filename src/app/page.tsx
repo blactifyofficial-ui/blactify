@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import HomeClient from "@/components/home/HomeClient";
 
 import { unstable_cache } from "next/cache";
+import { getHiddenProductIds } from "@/lib/drops-local";
 
 export const dynamic = "force-dynamic";
 export const preferredRegion = "sin1";
@@ -23,13 +24,15 @@ const getInitialProducts = unstable_cache(
         .limit(6);
 
       if (error) return [];
-      return data || [];
+      
+      const hiddenIds = getHiddenProductIds();
+      return (data || []).filter(p => !hiddenIds.has(p.id));
     } catch {
       return [];
     }
   },
   ["initial-products"],
-  { revalidate: 3600, tags: ["products"] }
+  { revalidate: 60, tags: ["products"] }
 );
 
 const getCategories = unstable_cache(

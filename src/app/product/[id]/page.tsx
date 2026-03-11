@@ -61,6 +61,13 @@ export default async function Page({ params }: Props) {
         notFound();
     }
 
+    // Drop visibility check
+    const { getHiddenProductIds } = await import("@/lib/drops-local");
+    const hiddenIds = getHiddenProductIds();
+    if (hiddenIds.has(product.id)) {
+        notFound();
+    }
+
     const jsonLd = {
         "@context": "https://schema.org",
         "@type": "Product",

@@ -176,6 +176,23 @@ CREATE TABLE IF NOT EXISTS developer_logs (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 14. Drops Table
+CREATE TABLE IF NOT EXISTS drops (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    publish_date TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 15. Product Drop Mappings
+CREATE TABLE IF NOT EXISTS product_drop_mappings (
+    product_id TEXT REFERENCES products(id) ON DELETE CASCADE,
+    drop_id UUID REFERENCES drops(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    PRIMARY KEY (product_id, drop_id)
+);
+
 -- ---------------------------------------------------------
 -- INDEXES
 -- ---------------------------------------------------------
@@ -185,6 +202,8 @@ CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_product ON reviews(product_id);
 CREATE INDEX IF NOT EXISTS idx_signup_otps_email ON signup_otps (email);
 CREATE INDEX IF NOT EXISTS idx_signup_otps_expires_at ON signup_otps (expires_at);
+CREATE INDEX IF NOT EXISTS idx_drops_publish_date ON drops(publish_date);
+CREATE INDEX IF NOT EXISTS idx_product_drop_mappings_drop ON product_drop_mappings(drop_id);
 
 -- ---------------------------------------------------------
 -- ROW LEVEL SECURITY (RLS)
@@ -204,6 +223,8 @@ ALTER TABLE store_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE signup_otps ENABLE ROW LEVEL SECURITY;
 ALTER TABLE support_tickets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE developer_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE drops ENABLE ROW LEVEL SECURITY;
+ALTER TABLE product_drop_mappings ENABLE ROW LEVEL SECURITY;
 
 -- ---------------------------------------------------------
 -- POLICIES (Idempotent using DROP/CREATE)
@@ -273,6 +294,18 @@ BEGIN
     -- Support Tickets
     DROP POLICY IF EXISTS "Public Manage Tickets" ON support_tickets;
     CREATE POLICY "Public Manage Tickets" ON support_tickets FOR ALL USING (true) WITH CHECK (true);
+
+    -- Drops
+    DROP POLICY IF EXISTS "Public Read Drops" ON drops;
+    CREATE POLICY "Public Read Drops" ON drops FOR SELECT USING (true);
+    DROP POLICY IF EXISTS "Admin Manage Drops" ON drops;
+    CREATE POLICY "Admin Manage Drops" ON drops FOR ALL USING (true) WITH CHECK (true);
+
+    -- Product Drop Mappings
+    DROP POLICY IF EXISTS "Public Read Mappings" ON product_drop_mappings;
+    CREATE POLICY "Public Read Mappings" ON product_drop_mappings FOR SELECT USING (true);
+    DROP POLICY IF EXISTS "Admin Manage Mappings" ON product_drop_mappings;
+    CREATE POLICY "Admin Manage Mappings" ON product_drop_mappings FOR ALL USING (true) WITH CHECK (true);
 END $$;
 
 -- ---------------------------------------------------------
@@ -297,6 +330,9 @@ CREATE TRIGGER tr_profiles_updated_at BEFORE UPDATE ON profiles FOR EACH ROW EXE
 
 DROP TRIGGER IF EXISTS tr_products_updated_at ON products;
 CREATE TRIGGER tr_products_updated_at BEFORE UPDATE ON products FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS tr_drops_updated_at ON drops;
+CREATE TRIGGER tr_drops_updated_at BEFORE UPDATE ON drops FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- 2. OTP Self-Cleaning
 CREATE OR REPLACE FUNCTION delete_expired_otps() RETURNS trigger AS $$
