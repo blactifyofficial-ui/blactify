@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { X, ChevronRight, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/store/AuthContext";
@@ -16,6 +16,7 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const pathname = usePathname();
+    const searchParams = useSearchParams();
     const { user, signOut } = useAuth();
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -150,16 +151,24 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                             isStoreExpanded ? "grid-rows-[1fr] opacity-100 mt-2 mb-4" : "grid-rows-[0fr] opacity-0"
                                         )}>
                                             <div className="overflow-hidden space-y-1 border-l border-zinc-100 ml-2 pl-6">
-                                                {categories.map((cat) => (
-                                                    <Link
-                                                        key={cat}
-                                                        href={`/shop?category=${cat}`}
-                                                        onClick={onClose}
-                                                        className="block py-3 text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-black transition-colors"
-                                                    >
-                                                        {cat}
-                                                    </Link>
-                                                ))}
+                                                {categories.map((cat) => {
+                                                    const params = new URLSearchParams(searchParams.toString());
+                                                    if (cat === "All") {
+                                                        params.delete("category");
+                                                    } else {
+                                                        params.set("category", cat.trim());
+                                                    }
+                                                    return (
+                                                        <Link
+                                                            key={cat}
+                                                            href={`/shop?${params.toString()}`}
+                                                            onClick={onClose}
+                                                            className="block py-3 text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-black transition-colors"
+                                                        >
+                                                            {cat}
+                                                        </Link>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
                                     </div>

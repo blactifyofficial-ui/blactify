@@ -88,14 +88,15 @@ export async function getProducts(options?: GetProductsOptions) {
 
     const category = options?.category;
     if (category && category !== "All") {
+        const normalizedRequestedCategory = category.trim().toLowerCase();
         filteredProducts = filteredProducts.filter((p) => {
             const catField = p.categories as { name: string } | { name: string }[] | null;
             if (!catField) return false;
             if (Array.isArray(catField)) {
-                return catField.some(c => c.name === category);
+                return catField.some(c => c.name.trim().toLowerCase() === normalizedRequestedCategory);
             }
             if (typeof catField === 'object' && catField.name) {
-                return catField.name === category;
+                return catField.name.trim().toLowerCase() === normalizedRequestedCategory;
             }
             return false;
         });
