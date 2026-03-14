@@ -54,17 +54,13 @@ export default async function ShopPage({
     const sortBy = typeof params?.sortBy === 'string' ? params.sortBy : undefined;
 
     const limit = 8;
-    const [result, allCategories] = await Promise.all([
-        getProducts({ limit, search, category, sortBy, offset: 0 }),
-        getCategories()
-    ]);
+    const result = await getProducts({ limit, search, category, sortBy, offset: 0 });
 
     return (
         <Suspense fallback={<ShopSkeleton />}>
             <main className="min-h-screen bg-white pb-12 animate-in fade-in duration-700">
                 <div className="px-6">
                     <Filters
-                        categories={allCategories}
                         totalResults={result.total}
                         initialSearch={search}
                         initialCategory={category}

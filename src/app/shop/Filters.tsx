@@ -7,14 +7,13 @@ import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
 
 interface FiltersProps {
-    categories: string[];
     totalResults: number;
     initialSearch?: string;
     initialCategory?: string;
     initialSortBy?: string;
 }
 
-export default function Filters({ categories, totalResults, initialSearch = "", initialCategory = "All", initialSortBy = "mixed" }: FiltersProps) {
+export default function Filters({ totalResults, initialSearch = "", initialCategory = "All", initialSortBy = "mixed" }: FiltersProps) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -104,26 +103,6 @@ export default function Filters({ categories, totalResults, initialSearch = "", 
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full bg-zinc-50 border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-sans focus:ring-2 focus:ring-black outline-none transition-all"
                         />
-                    </div>
-                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 -mx-2 px-2 scroll-smooth">
-                        {categories.map((cat) => {
-                            const trimmedCat = cat.trim();
-                            const isSelected = selectedCategory.trim().toLowerCase() === trimmedCat.toLowerCase() || (trimmedCat === "All" && selectedCategory === "All");
-                            return (
-                                <button
-                                    key={cat}
-                                    onClick={() => setSelectedCategory(trimmedCat)}
-                                    className={cn(
-                                        "whitespace-nowrap px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95",
-                                        isSelected
-                                            ? "bg-black text-white shadow-lg shadow-black/10"
-                                            : "bg-zinc-50 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900"
-                                    )}
-                                >
-                                    {trimmedCat}
-                                </button>
-                            );
-                        })}
                     </div>
                 </div>
             </header>
