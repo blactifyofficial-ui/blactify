@@ -171,6 +171,62 @@ export async function POST(req: Request) {
             });
         }
 
+        // 2. Send Telegram Notification to Seller
+        if (SELLER_CONFIG.telegramToken && SELLER_CONFIG.telegramChatId) {
+            try {
+                const message = `
+📦 *New Order Received!*
+------------------------
+🆔 *Order ID:* #${orderId}
+💰 *Total Amount:* ₹${Number(order.amount).toLocaleString('en-IN')}
+
+👤 *Customer:* ${order.customer_details.name}
+📧 *Email:* ${order.customer_details.email}
+📞 *Phone:* ${order.customer_details.phone}${order.customer_details.secondary_phone ? `\n☎️ *Alt Phone:* ${order.customer_details.secondary_phone}` : ""}
+
+📍 *Shipping Address:*
+${order.shipping_address.address || (order.shipping_address as { address?: string; line1?: string }).line1}
+${(order.shipping_address.apartment || (order.shipping_address as { apartment?: string; line2?: string }).line2) ? `${order.shipping_address.apartment || (order.shipping_address as { apartment?: string; line2?: string }).line2}\n` : ""}${order.shipping_address.city}${order.shipping_address.district ? `, ${order.shipping_address.district}` : ""}
+${order.shipping_address.state} - ${order.shipping_address.pincode || (order.shipping_address as { pincode?: string; postal_code?: string }).postal_code}
+
+🛒 *Items:*
+${emailItems.map((item: Record<string, unknown>) => {
+    const measurementsStr = (item.measurements && Object.keys(item.measurements as Record<string, unknown>).length > 0) 
+        ? ` (${Object.entries(item.measurements as Record<string, unknown>).map(([k, v]) => `${k}: ${v}`).join(', ')})` 
+        : "";
+    return `• ${item.name}${measurementsStr} x${item.quantity}`;
+}).join('\n')}
+
+🔗 [View in Dashboard](https://blactify.com/admin/orders/${order.id})
+                `.trim();
+
+                const telegramUrl = `https://api.telegram.org/bot${SELLER_CONFIG.telegramToken}/sendMessage`;
+                const response = await fetch(telegramUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: SELLER_CONFIG.telegramChatId,
+                        text: message,
+                        parse_mode: 'Markdown',
+                    }),
+                });
+
+                const telegramData = await response.json();
+                if (!telegramData.ok) {
+                    results.push({ type: 'telegram', error: telegramData.description });
+                } else {
+                    results.push({ type: 'telegram', success: true });
+                }
+            } catch (teleErr: unknown) {
+                const error = teleErr instanceof Error ? teleErr : new Error(String(teleErr));
+                console.error("Telegram Notification Failure:", error);
+                results.push({
+                    type: 'telegram',
+                    error: error.message || "Unknown error during Telegram send"
+                });
+            }
+        }
+
         return NextResponse.json({
             success: true,
             results

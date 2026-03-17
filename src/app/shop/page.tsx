@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Image from "next/image";
-import { getProducts, getCategories } from "./data";
+import { getProducts } from "./data";
 import { ProductGrid } from "./ProductGrid";
 import { LoadMore } from "./LoadMore";
 import { ScrollToTop } from "@/components/ui/ScrollToTop";

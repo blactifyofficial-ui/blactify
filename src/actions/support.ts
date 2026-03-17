@@ -42,6 +42,45 @@ export async function createTicket(formData: z.infer<typeof SupportTicketSchema>
             };
         }
 
+        // Send Telegram notification to Admin
+        if (SELLER_CONFIG.telegramToken && SELLER_CONFIG.telegramChatId) {
+            try {
+                // Get user info for telegram
+                const { data: userData } = await supabaseAdmin
+                    .from("profiles")
+                    .select("full_name, email")
+                    .eq("id", data.userId)
+                    .single();
+
+                const telegramMessage = `
+🎫 *New Support Ticket*
+------------------------
+👤 *User:* ${userData?.full_name || "a user"} (${userData?.email || "N/A"})
+📞 *Phone:* ${data.phone}
+📂 *Category:* ${data.category.replace('_', ' ')}
+${data.orderId ? `📦 *Order ID:* #${data.orderId}` : ""}
+
+📝 *Message:*
+${data.message}
+
+🔗 [View in Admin Panel](https://blactify.com/admin/support)
+                `.trim();
+
+                const telegramUrl = `https://api.telegram.org/bot${SELLER_CONFIG.telegramToken}/sendMessage`;
+                await fetch(telegramUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: SELLER_CONFIG.telegramChatId,
+                        text: telegramMessage,
+                        parse_mode: 'Markdown',
+                    }),
+                });
+            } catch (teleErr) {
+                console.error("Telegram Support Notification Failure:", teleErr);
+            }
+        }
+
         // Send email to Admin
         if (SELLER_CONFIG.resendApiKey) {
             try {
