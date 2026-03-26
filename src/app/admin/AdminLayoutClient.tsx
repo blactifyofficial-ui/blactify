@@ -21,7 +21,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
         if (pathname === "/admin/orders") {
             setHasNewOrder(false);
         }
-    }, [pathname, setHasNewOrder]);
+    }, [pathname, setHasNewOrder]); 
 
     // Real-time listener for new orders
     useEffect(() => {
