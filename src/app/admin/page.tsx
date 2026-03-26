@@ -20,8 +20,10 @@ import {
     Truck,
     Zap,
     Clock,
-    Plus
+    Plus,
+    Bell
 } from "lucide-react";
+import { NotificationStatusCard } from "@/components/admin/NotificationStatusCard";
 import { Drop } from "@/lib/drops-local";
 import { useAdminStats } from "@/hooks/useAdminStats";
 import { AdminLoading, AdminPageHeader, AdminCard } from "@/components/admin/AdminUI";
@@ -280,6 +282,9 @@ export default function AdminDashboardPage() {
                         )}
                     </div>
                 )}
+
+                {/* Notification Status Control */}
+                <NotificationStatusCard />
 
                 {!upcomingDrops.length && (
                     <div className="bg-zinc-50 border border-zinc-200 rounded-[2.5rem] p-8 h-[200px] flex flex-col justify-between group transition-all hover:border-black/5 hover:bg-white hover:shadow-xl hover:shadow-black/5">
