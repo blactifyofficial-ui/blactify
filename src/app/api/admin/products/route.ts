@@ -4,13 +4,22 @@ import { deleteFromCloudinary } from "@/lib/cloudinary";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { verifyAdminAuth } from "@/lib/auth-server";
 import { revalidatePath, revalidateTag } from "next/cache";
+import { ProductSchema } from "@/lib/schemas";
 
 export async function POST(request: Request) {
     const auth = await verifyAdminAuth(request);
     if (auth.error) return auth.error;
     try {
-        const body = await request.json();
-        const { id, name, handle, price_base, price_offer, category_id, description, variants, images } = body;
+        const json = await request.json();
+        const validated = ProductSchema.safeParse(json);
+        if (!validated.success) {
+            return NextResponse.json({
+                error: "Invalid product data",
+                details: validated.error.issues[0].message
+            }, { status: 400 });
+        }
+
+        const { id, name, handle, price_base, price_offer, category_id, description, variants, images } = validated.data;
 
         // 1. Calculate Total Stock from variants in body
         const totalStock = variants?.reduce((acc: number, v: { stock: number }) => acc + v.stock, 0) || 0;
@@ -103,8 +112,16 @@ export async function PUT(request: Request) {
     const auth = await verifyAdminAuth(request);
     if (auth.error) return auth.error;
     try {
-        const body = await request.json();
-        const { id, name, handle, price_base, price_offer, category_id, description, variants, images } = body;
+        const json = await request.json();
+        const validated = ProductSchema.safeParse(json);
+        if (!validated.success) {
+            return NextResponse.json({ 
+                error: "Invalid product update data", 
+                details: validated.error.issues[0].message 
+            }, { status: 400 });
+        }
+        
+        const { id, name, handle, price_base, price_offer, category_id, description, variants, images } = validated.data;
 
         // 1. Calculate Total Stock from variants in body
         const totalStock = variants?.reduce((acc: number, v: { stock: number }) => acc + v.stock, 0) || 0;

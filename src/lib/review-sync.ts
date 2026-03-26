@@ -36,6 +36,14 @@ export async function postReview(reviewData: {
 }, token: string) {
     try {
         const auth = await verifyActionAuth(token);
+
+        // Rate Limiting: 5 reviews per 30 minutes
+        const { rateLimit } = await import("./rate-limit");
+        const limiter = await rateLimit(`post_review_${auth.uid}`, 5, 1800);
+        if (!limiter.success) {
+            return { success: false, error: "Too many reviews submitted. Please wait 30 minutes." };
+        }
+
         if (auth.uid !== reviewData.user_id) {
             return { success: false, error: "Forbidden: You can only post reviews as yourself." };
         }

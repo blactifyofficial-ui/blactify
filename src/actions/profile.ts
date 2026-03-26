@@ -3,8 +3,11 @@
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { verifyActionAuth } from "@/lib/auth-server";
 
-export async function getWelcomeDiscountStatus(userId: string) {
+export async function getWelcomeDiscountStatus(userId: string, token: string) {
     try {
+        const auth = await verifyActionAuth(token);
+        if (auth.uid !== userId) throw new Error("Forbidden");
+
         const { data, error } = await supabaseAdmin
             .from("profiles")
             .select("welcome_discount_used")

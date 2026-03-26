@@ -1,13 +1,18 @@
 import { NextResponse } from 'next/server';
 import { getDrops, saveDrops, Drop, isDropLocked } from '@/lib/drops-local';
 import { randomUUID } from 'crypto';
+import { verifyAdminAuth } from '@/lib/auth-server';
 
-export async function GET() {
+export async function GET(request: Request) {
+    const auth = await verifyAdminAuth(request);
+    if (auth.error) return auth.error;
     const drops = getDrops();
     return NextResponse.json(drops);
 }
 
 export async function POST(request: Request) {
+    const auth = await verifyAdminAuth(request);
+    if (auth.error) return auth.error;
     try {
         const body = await request.json();
         const { name, publishDate } = body;
@@ -34,6 +39,8 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+    const auth = await verifyAdminAuth(request);
+    if (auth.error) return auth.error;
     try {
         const body = await request.json();
         const { id, name, publishDate } = body;
@@ -68,6 +75,8 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+    const auth = await verifyAdminAuth(request);
+    if (auth.error) return auth.error;
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');

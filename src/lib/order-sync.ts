@@ -140,7 +140,7 @@ export async function saveOrder(orderData: z.infer<typeof OrderSyncSchema>, toke
 
 export async function getOrder(orderId: string, token?: string) {
     try {
-        await verifyActionAuth(token);
+        const auth = await verifyActionAuth(token);
         const { data, error } = await supabaseAdmin
             .from("orders")
             .select("*")
@@ -149,6 +149,10 @@ export async function getOrder(orderId: string, token?: string) {
 
         if (error) {
             throw error;
+        }
+
+        if (data.user_id !== auth.uid) {
+            throw new Error("Forbidden: This order does not belong to you.");
         }
 
         return { success: true, order: data };

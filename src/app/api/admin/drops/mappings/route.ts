@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server';
 import { getProductDropMappings, saveProductDropMappings } from '@/lib/drops-local';
+import { verifyAdminAuth } from '@/lib/auth-server';
 
-export async function GET() {
+export async function GET(request: Request) {
+    const auth = await verifyAdminAuth(request);
+    if (auth.error) return auth.error;
     const mappings = getProductDropMappings();
     return NextResponse.json(mappings);
 }
 
 export async function POST(request: Request) {
+    const auth = await verifyAdminAuth(request);
+    if (auth.error) return auth.error;
     try {
         const body = await request.json();
         const { productId, dropId } = body;

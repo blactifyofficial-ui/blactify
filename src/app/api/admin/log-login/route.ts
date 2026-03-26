@@ -6,6 +6,15 @@ export const preferredRegion = "sin1";
 
 export async function POST(request: Request) {
     try {
+        const { rateLimit } = await import("@/lib/rate-limit");
+        const { getClientIP } = await import("@/lib/auth-server");
+        const ip = await getClientIP();
+        
+        const limiter = await rateLimit(`login_log_${ip}`, 10, 300);
+        if (!limiter.success) {
+            return NextResponse.json({ error: "Too many logging requests." }, { status: 429 });
+        }
+
         const body = await request.json();
         const { email, success, error } = body;
         const userAgent = request.headers.get("user-agent");

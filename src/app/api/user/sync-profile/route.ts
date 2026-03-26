@@ -6,6 +6,14 @@ import { verifyAuth } from "@/lib/auth-server";
 export async function POST(request: Request) {
     const auth = await verifyAuth(request);
     if (auth.error) return auth.error;
+
+    // Rate Limiting: 5 per 5 minutes per user
+    const { rateLimit } = await import("@/lib/rate-limit");
+    const limiter = await rateLimit(`sync_profile_${auth.uid}`, 5, 300);
+    if (!limiter.success) {
+        return NextResponse.json({ error: "Too many profile updates. Please wait 5 minutes." }, { status: 429 });
+    }
+
     try {
         const body = await request.json();
         const { id, email, full_name, avatar_url } = body;

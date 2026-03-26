@@ -3,6 +3,7 @@ import { Resend } from "resend";
 export const preferredRegion = "sin1";
 import { SELLER_CONFIG } from "@/lib/config";
 import { verifyAuth } from "@/lib/auth-server";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
 
 
@@ -12,6 +13,17 @@ export async function POST(req: Request) {
     try {
         const { order } = await req.json();
         const orderId = order.id || "N/A";
+
+        // Verification: Ensure the order actually belongs to the authenticated user
+        const { data: dbOrder, error: checkError } = await supabaseAdmin
+            .from("orders")
+            .select("user_id")
+            .eq("id", orderId)
+            .single();
+
+        if (checkError || !dbOrder || dbOrder.user_id !== authResult.uid) {
+            return NextResponse.json({ success: false, error: "Forbidden: Access denied to this order" }, { status: 403 });
+        }
 
 
         if (!SELLER_CONFIG.resendApiKey) {

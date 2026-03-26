@@ -9,6 +9,15 @@ export type AuthContext = {
     error?: NextResponse;
 };
 
+export async function getClientIP() {
+    const headersList = await headers();
+    const xForwardedFor = headersList.get("x-forwarded-for");
+    if (xForwardedFor) {
+        return xForwardedFor.split(",")[0].trim();
+    }
+    return headersList.get("x-real-ip") || "unknown";
+}
+
 export async function verifyAuth(request: Request): Promise<AuthContext> {
     const authHeader = request.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {

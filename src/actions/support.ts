@@ -10,6 +10,14 @@ import { verifyActionAuth, verifyActionAdminAuth } from "@/lib/auth-server";
 export async function createTicket(formData: z.infer<typeof SupportTicketSchema>, token?: string) {
     try {
         const auth = await verifyActionAuth(token);
+
+        // Rate Limiting: 2 tickets per hour per user
+        const { rateLimit } = await import("@/lib/rate-limit");
+        const limiter = await rateLimit(`ticket_create_${auth.uid}`, 2, 3600);
+        if (!limiter.success) {
+            return { success: false, error: "Support limit reached. Please wait an hour before raising another ticket." };
+        }
+
         const validatedData = SupportTicketSchema.safeParse(formData);
         if (!validatedData.success) {
             return {

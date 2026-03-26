@@ -54,3 +54,36 @@ export const OrderSyncSchema = z.object({
     razorpay_payment_id: z.string().optional(),
     payment_details: z.record(z.string(), z.unknown()).optional(),
 });
+
+// --- PRODUCT SCHEMAS ---
+export const ProductVariantSchema = z.object({
+    size: z.string().min(1),
+    stock: z.number().int().min(0),
+    measurements: z.record(z.string(), z.string()).optional(),
+});
+
+export const ProductImageSchema = z.object({
+    url: z.string().url(),
+    position: z.number().int().min(0),
+});
+
+export const ProductSchema = z.object({
+    id: z.string().min(1),
+    name: z.string().min(2).max(100),
+    handle: z.string().min(2).max(100).regex(/^[a-z0-9-]+$/),
+    price_base: z.number().positive(),
+    price_offer: z.number().positive().nullable().optional(),
+    category_id: z.string().min(1),
+    description: z.string().optional(),
+    variants: z.array(ProductVariantSchema).optional(),
+    images: z.array(ProductImageSchema).optional(),
+});
+
+// --- CATEGORY SCHEMAS ---
+export const CategorySchema = z.object({
+    id: z.string().optional(),
+    name: z.string().min(2).max(50),
+    slug: z.string().min(2).max(50).regex(/^[a-z0-9-]+$/),
+    size_config: z.array(z.string()).optional(),
+    image_url: z.string().url().nullable().optional(),
+});

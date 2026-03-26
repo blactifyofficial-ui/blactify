@@ -4,12 +4,22 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import { verifyAdminAuth } from "@/lib/auth-server";
 import { logAction } from "@/lib/logger";
 import { revalidatePath, revalidateTag } from "next/cache";
+import { CategorySchema } from "@/lib/schemas";
 
 export async function POST(request: Request) {
     const auth = await verifyAdminAuth(request);
     if (auth.error) return auth.error;
     try {
-        const { name, slug, size_config, image_url } = await request.json();
+        const json = await request.json();
+        const validated = CategorySchema.safeParse(json);
+        if (!validated.success) {
+            return NextResponse.json({
+                error: "Invalid category data",
+                details: validated.error.issues[0].message
+            }, { status: 400 });
+        }
+
+        const { name, slug, size_config, image_url } = validated.data;
 
         // 1. Insert Category
         const { data: categoryData, error: insertError } = await supabaseAdmin
@@ -108,7 +118,17 @@ export async function PUT(request: Request) {
     const auth = await verifyAdminAuth(request);
     if (auth.error) return auth.error;
     try {
-        const { id, name, slug, size_config, image_url } = await request.json();
+        const json = await request.json();
+        const validated = CategorySchema.safeParse(json);
+        if (!validated.success) {
+            return NextResponse.json({ 
+                error: "Invalid category update data", 
+                details: validated.error.issues[0].message 
+            }, { status: 400 });
+        }
+        
+        const { id, name, slug, size_config, image_url } = validated.data;
+        if (!id) return NextResponse.json({ error: "Category ID is required" }, { status: 400 });
 
         // 1. Update Category
         const { data: categoryData, error: updateError } = await supabaseAdmin

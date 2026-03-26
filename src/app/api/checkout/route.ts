@@ -20,6 +20,19 @@ const CheckoutSchema = z.object({
 export async function POST(req: Request) {
     const authResult = await verifyAuth(req);
     if (authResult.error) return authResult.error;
+
+    // Rate Limiting: 3 per 5 mins per user
+    const { rateLimit } = await import("@/lib/rate-limit");
+    const { getClientIP } = await import("@/lib/auth-server");
+    const ip = await getClientIP();
+    
+    const userLimiter = await rateLimit(`checkout_user_${authResult.uid}`, 3, 300);
+    const ipLimiter = await rateLimit(`checkout_ip_${ip}`, 10, 300);
+
+    if (!userLimiter.success || !ipLimiter.success) {
+        return NextResponse.json({ error: "Too many checkout requests. Please try again later." }, { status: 429 });
+    }
+
     try {
         const body = await req.json();
         const validated = CheckoutSchema.safeParse(body);
@@ -29,6 +42,10 @@ export async function POST(req: Request) {
         }
 
         const { amount, currency, receipt, email, userId } = validated.data;
+
+        if (userId && userId !== authResult.uid) {
+            return NextResponse.json({ error: "Forbidden: User ID mismatch" }, { status: 403 });
+        }
 
         const order = await razorpay.orders.create({
             amount: Math.round(amount * 100), // convert to paise

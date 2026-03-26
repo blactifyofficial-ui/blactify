@@ -13,7 +13,8 @@ export type ActionType =
     | "admin_login"
     | "purchase_toggle"
     | "free_shipping_toggle"
-    | "report_export";
+    | "report_export"
+    | "rate_limit_exceeded";
 
 export interface LogEntry {
     action_type: ActionType;

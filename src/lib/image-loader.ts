@@ -3,8 +3,11 @@
  * This ensures Vercel's "Image Optimization" quota is not used.
  */
 export default function cloudinaryLoader({ src, width, quality }: { src: string; width: number; quality?: number }) {
-    // If it's not a Cloudinary URL, just return it as is (Next.js will use it directly)
-    if (!src.includes("res.cloudinary.com")) return src;
+    // If it's not a Cloudinary URL, just return it as is but append width to satisfy Next.js check
+    if (!src.includes("res.cloudinary.com")) {
+        const connector = src.includes('?') ? '&' : '?';
+        return `${src}${connector}w=${width}`;
+    }
 
     // 1. Clean up any existing transformations (including those added by optimizeCloudinaryUrl)
     // This looks for /upload/ and removes anything between it and the next slash that looks like a transformation

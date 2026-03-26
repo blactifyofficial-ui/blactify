@@ -22,15 +22,22 @@ export async function GET(request: Request) {
     }
 }
 
+import { z } from "zod";
+ 
 export async function POST(request: Request) {
     const auth = await verifyAdminAuth(request);
     if (auth.error) return auth.error;
     try {
-        const { productIds } = await request.json(); // Array of up to 6 product IDs in order
-
-        if (!Array.isArray(productIds) || productIds.length > 6) {
+        const json = await request.json();
+        const schema = z.object({
+            productIds: z.array(z.string()).max(6)
+        });
+        const validated = schema.safeParse(json);
+        if (!validated.success) {
             return NextResponse.json({ error: "Invalid product list. Maximum 6 products allowed." }, { status: 400 });
         }
+ 
+        const { productIds } = validated.data;
 
         // 1. Reset home_order and featured_at for all products that are currently featured
         const { error: resetError } = await supabaseAdmin
