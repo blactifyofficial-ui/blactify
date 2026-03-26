@@ -20,8 +20,7 @@ import {
     Truck,
     Zap,
     Clock,
-    Plus,
-    Bell
+    Plus
 } from "lucide-react";
 import { NotificationStatusCard } from "@/components/admin/NotificationStatusCard";
 import { Drop } from "@/lib/drops-local";

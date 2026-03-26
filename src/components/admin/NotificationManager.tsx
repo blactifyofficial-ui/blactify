@@ -97,21 +97,22 @@ export default function NotificationManager({ children }: { children: React.Reac
         }
     }, [isAdmin, user, syncTokenWithServer]);
 
-    const handleManualPermission = async () => {
+    const handleManualPermission = useCallback(async () => {
+        if (typeof window === 'undefined' || !('Notification' in window)) return;
         const result = await Notification.requestPermission();
         if (result === 'granted') {
             requestPermission();
         } else {
             toast.error("Permission denied. Please enable notifications in your browser settings.");
         }
-    };
+    }, [requestPermission]);
 
     useEffect(() => {
         if (!isMounted) return;
 
         // Log the check
-        if (isAdmin && user && typeof window !== 'undefined') {
-            const currentPerm = (window as any).Notification?.permission;
+        if (isAdmin && user && typeof window !== 'undefined' && 'Notification' in window) {
+            const currentPerm = Notification.permission;
             console.log("FCM: Current permission is:", currentPerm);
 
             if (currentPerm === 'default') {
@@ -130,7 +131,7 @@ export default function NotificationManager({ children }: { children: React.Reac
                 requestPermission();
             }
         }
-    }, [isAdmin, user, requestPermission, isMounted]);
+    }, [isAdmin, user, requestPermission, isMounted, handleManualPermission]);
 
     // Handle Foreground Messages
     useEffect(() => {

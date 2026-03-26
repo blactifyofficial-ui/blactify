@@ -57,7 +57,7 @@ export function NotificationStatusCard() {
             } else if (result === "denied") {
                 toast.error("Permission denied. Please enable in browser settings.");
             }
-        } catch (error) {
+        } catch {
             toast.error("Failed to request permission.");
         } finally {
             setIsUpdating(false);
