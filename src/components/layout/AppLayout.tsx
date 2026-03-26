@@ -21,6 +21,7 @@ import dynamic from "next/dynamic";
 import { Toaster } from "sonner";
 import { Suspense } from "react";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
+import { MaintenanceGuard } from "@/components/layout/MaintenanceGuard";
 
 const AuthModal = dynamic(() => import("@/components/ui/AuthModal").then(mod => mod.AuthModal), {
     ssr: false,
@@ -100,27 +101,29 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                     {!isRestricted && <TopNavbar onMenuClick={() => setIsSidebarOpen(true)} />}
                     {!isRestricted && <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />}
 
-                    <main className={cn(!isRestricted && pathname !== "/" && "pt-12 md:pt-14 pb-8")}>
-                        {children}
-                    </main>
-                    {!isRestricted && <Footer />}
-                    {!isRestricted && <WelcomeBanner />}
-                    {!isRestricted && <WelcomeAnimation />}
-                    {!isRestricted && (
-                        <>
-                            <FloatingCart onClick={() => setIsCartOpen(true)} />
-                        </>
-                    )}
-                    <ScrollToTop />
-                    <CartDrawer
-                        isOpen={isCartOpen}
-                        onClose={() => setIsCartOpen(false)}
-                        onAuthRequired={() => {
-                            setIsCartOpen(false);
-                            setIsAuthOpen(true);
-                        }}
-                    />
-                    <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
+                    <MaintenanceGuard>
+                        <main className={cn(!isRestricted && pathname !== "/" && "pt-12 md:pt-14 pb-8")}>
+                            {children}
+                        </main>
+                        {!isRestricted && <Footer />}
+                        {!isRestricted && <WelcomeBanner />}
+                        {!isRestricted && <WelcomeAnimation />}
+                        {!isRestricted && (
+                            <>
+                                <FloatingCart onClick={() => setIsCartOpen(true)} />
+                            </>
+                        )}
+                        <ScrollToTop />
+                        <CartDrawer
+                            isOpen={isCartOpen}
+                            onClose={() => setIsCartOpen(false)}
+                            onAuthRequired={() => {
+                                setIsCartOpen(false);
+                                setIsAuthOpen(true);
+                            }}
+                        />
+                        <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
+                    </MaintenanceGuard>
                 </div>
             </AuthProvider>
         </ErrorBoundary>

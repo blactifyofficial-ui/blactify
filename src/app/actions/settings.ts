@@ -25,12 +25,12 @@ export async function getStoreSettings() {
             .single();
 
         if (error) {
-            return { purchases_enabled: true, free_shipping_enabled: false };
+            return { purchases_enabled: true, free_shipping_enabled: false, maintenance_mode: false, maintenance_message: '' };
         }
 
         return data;
     } catch {
-        return { purchases_enabled: true, free_shipping_enabled: false };
+        return { purchases_enabled: true, free_shipping_enabled: false, maintenance_mode: false, maintenance_message: '' };
     }
 }
 
@@ -151,5 +151,102 @@ export async function toggleFreeShippingStatus(status: boolean, token?: string) 
         return { success: true };
     } catch {
         return { success: false, error: "Failed to update settings" };
+    }
+}
+
+// ── Maintenance Mode ─────────────────────────────────────────────
+
+export async function getMaintenanceStatus() {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from("store_settings")
+            .select("maintenance_mode, maintenance_message")
+            .eq("id", true)
+            .single();
+
+        if (error) {
+            return { maintenance_mode: false, maintenance_message: '' };
+        }
+
+        return {
+            maintenance_mode: data?.maintenance_mode ?? false,
+            maintenance_message: data?.maintenance_message ?? '',
+        };
+    } catch {
+        return { maintenance_mode: false, maintenance_message: '' };
+    }
+}
+
+export async function toggleMaintenanceMode(enabled: boolean, message: string, token?: string) {
+    try {
+        const auth = await verifyActionAdminAuth(token);
+
+        const { error } = await supabaseAdmin
+            .from("store_settings")
+            .upsert({
+                id: true,
+                maintenance_mode: enabled,
+                maintenance_message: message || 'We\'re performing scheduled maintenance. We\'ll be back shortly.',
+            });
+
+        if (error) {
+            return { success: false, error: error.message };
+        }
+
+        // Send email notification
+        if (SELLER_CONFIG.resendApiKey) {
+            try {
+                const resend = new Resend(SELLER_CONFIG.resendApiKey);
+                const statusText = enabled ? "ENABLED" : "DISABLED";
+                const statusColor = enabled ? "#ef4444" : "#10b981";
+                const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+
+                const html = `
+                    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eeeeee; border-radius: 12px; overflow: hidden;">
+                        <div style="background-color: #333639; padding: 30px; text-align: center;">
+                            <h1 style="color: #ffffff; margin: 0; text-transform: uppercase; letter-spacing: 0.2em; font-size: 24px;">BLACTIFY</h1>
+                        </div>
+                        <div style="padding: 40px; text-align: center;">
+                            <h2 style="margin: 0 0 20px; font-size: 20px; color: #111;">🔧 Maintenance Mode ${statusText}</h2>
+                            <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+                                <p style="margin: 0 0 10px; color: #64748b; font-size: 14px; text-transform: uppercase; font-weight: 700;">Status</p>
+                                <p style="margin: 0; color: ${statusColor}; font-size: 24px; font-weight: 900;">${statusText}</p>
+                            </div>
+                            <div style="text-align: left; background: #fcfcfc; padding: 20px; border-radius: 8px; font-size: 13px; color: #444;">
+                                <p style="margin: 0;"><strong>Message:</strong> ${message || 'Default maintenance message'}</p>
+                                <p style="margin: 5px 0 0;"><strong>By:</strong> ${auth.email}</p>
+                                <p style="margin: 5px 0 0;"><strong>Time:</strong> ${timestamp}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                await resend.emails.send({
+                    from: SELLER_CONFIG.fromEmail,
+                    to: [SELLER_CONFIG.email],
+                    subject: `[ALERT] Maintenance Mode ${statusText}`,
+                    html,
+                });
+            } catch {
+                // Ignore email errors
+            }
+        }
+
+        // Revalidate all user-facing paths
+        revalidatePath('/', 'layout');
+        revalidatePath('/shop', 'page');
+        revalidatePath('/checkout', 'page');
+
+        // Log the action
+        const { logAction } = await import("@/lib/logger");
+        await logAction({
+            action_type: 'maintenance_toggle',
+            details: { enabled, message },
+            user_email: auth.email,
+        });
+
+        return { success: true };
+    } catch {
+        return { success: false, error: 'Failed to update maintenance mode' };
     }
 }

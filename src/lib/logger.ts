@@ -13,6 +13,7 @@ export type ActionType =
     | "admin_login"
     | "purchase_toggle"
     | "free_shipping_toggle"
+    | "maintenance_toggle"
     | "report_export";
 
 export interface LogEntry {

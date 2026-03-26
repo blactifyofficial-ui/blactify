@@ -136,6 +136,8 @@ CREATE TABLE IF NOT EXISTS store_settings (
     id BOOLEAN PRIMARY KEY DEFAULT TRUE,
     purchases_enabled BOOLEAN DEFAULT TRUE,
     free_shipping_enabled BOOLEAN DEFAULT FALSE,
+    maintenance_mode BOOLEAN DEFAULT FALSE,
+    maintenance_message TEXT DEFAULT '',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     CONSTRAINT store_settings_id_check CHECK (id = TRUE)
@@ -406,5 +408,86 @@ EXCEPTION WHEN OTHERS THEN
 END;
 $$;
 
+-- 4. Order Confirmation RPC (v3) — Two-Phase Commit
+-- Called AFTER payment succeeds to atomically deduct stock and confirm the pending order.
+-- The entire function runs as a single Postgres transaction.
+CREATE OR REPLACE FUNCTION confirm_order_v3(
+    p_order_id TEXT,
+    p_payment_id TEXT,
+    p_payment_details JSONB,
+    p_items JSONB
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_item RECORD;
+    v_current_stock INTEGER;
+    v_variant_id UUID;
+    v_order_status TEXT;
+BEGIN
+    -- 1. Lock and check the pending order
+    SELECT status INTO v_order_status
+    FROM orders
+    WHERE id = p_order_id
+    FOR UPDATE;
+
+    IF v_order_status IS NULL THEN
+        RAISE EXCEPTION 'Pending order not found: %', p_order_id;
+    END IF;
+
+    -- Idempotency: if already paid, return success
+    IF v_order_status = 'paid' THEN
+        RETURN jsonb_build_object('success', true, 'order_id', p_order_id, 'already_confirmed', true);
+    END IF;
+
+    -- 2. Validate and deduct stock atomically
+    FOR v_item IN SELECT * FROM jsonb_to_recordset(p_items) AS x(id TEXT, size TEXT, quantity INTEGER, price_base NUMERIC, price_offer NUMERIC)
+    LOOP
+        -- Lock the variant row for update (prevents concurrent stock issues)
+        SELECT id, stock INTO v_variant_id, v_current_stock
+        FROM product_variants
+        WHERE product_id = v_item.id AND (size = v_item.size OR (v_item.size IS NULL AND size = 'no size'))
+        FOR UPDATE;
+
+        IF v_variant_id IS NULL THEN
+            RAISE EXCEPTION 'Variant not found: % size %', v_item.id, v_item.size;
+        END IF;
+
+        IF v_current_stock < v_item.quantity THEN
+            RAISE EXCEPTION 'Insufficient stock for %', v_item.id;
+        END IF;
+
+        -- Deduct stock
+        UPDATE product_variants SET stock = stock - v_item.quantity WHERE id = v_variant_id;
+    END LOOP;
+
+    -- 3. Update order status to "paid"
+    UPDATE orders
+    SET status = 'paid',
+        payment_id = p_payment_id,
+        payment_details = p_payment_details
+    WHERE id = p_order_id;
+
+    -- 4. Create order_items
+    FOR v_item IN SELECT * FROM jsonb_to_recordset(p_items) AS x(id TEXT, size TEXT, quantity INTEGER, price_base NUMERIC, price_offer NUMERIC)
+    LOOP
+        SELECT id INTO v_variant_id FROM product_variants
+        WHERE product_id = v_item.id AND (size = v_item.size OR (v_item.size IS NULL AND size = 'no size'));
+
+        INSERT INTO order_items (order_id, product_id, variant_id, quantity, price_at_purchase)
+        VALUES (p_order_id, v_item.id, v_variant_id, v_item.quantity, COALESCE(v_item.price_offer, v_item.price_base));
+    END LOOP;
+
+    RETURN jsonb_build_object('success', true, 'order_id', p_order_id);
+
+-- If ANY step above fails, the entire transaction rolls back.
+-- No stock is deducted, and the order stays in "pending" status.
+EXCEPTION WHEN OTHERS THEN
+    RETURN jsonb_build_object('success', false, 'error', SQLERRM);
+END;
+$$;
+
 -- Seed Data
-INSERT INTO store_settings (id, purchases_enabled) VALUES (TRUE, TRUE) ON CONFLICT (id) DO NOTHING;
+INSERT INTO store_settings (id, purchases_enabled, maintenance_mode, maintenance_message) VALUES (TRUE, TRUE, FALSE, '') ON CONFLICT (id) DO NOTHING;
