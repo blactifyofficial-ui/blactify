@@ -23,20 +23,26 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
   
-  const notificationTitle = payload.notification.title || "New Message";
-  const notificationOptions = {
-    body: payload.notification.body,
-    icon: payload.notification.icon || '/logo.webp',
-    data: payload.data,
-  };
-
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  // Standard FCM behavior: If message has 'notification', it's shown automatically.
+  // We only manually show it if it's a data-only massage.
+  if (!payload.notification && payload.data) {
+    const notificationTitle = payload.data.title || "New Message";
+    const notificationOptions = {
+        body: payload.data.body || "",
+        icon: '/logo.webp',
+        data: payload.data,
+    };
+    self.registration.showNotification(notificationTitle, notificationOptions);
+  }
 });
 
 // Click Action
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
-    const urlToOpen = new URL('/admin/orders', self.location.origin).href;
+    
+    // Use click_action from data if available, otherwise default to admin orders
+    const clickAction = event.notification.data?.click_action || '/admin/orders';
+    const urlToOpen = new URL(clickAction, self.location.origin).href;
 
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {

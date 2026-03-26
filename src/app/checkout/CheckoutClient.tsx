@@ -11,7 +11,7 @@ import { useAuth } from "@/store/AuthContext";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { loadRazorpay } from "@/lib/razorpay";
-import { saveOrder } from "@/lib/order-sync";
+import { createPendingOrder, confirmOrder } from "@/lib/order-sync";
 import { markWelcomeDiscountUsed } from "@/actions/profile";
 import { Tag } from "lucide-react";
 import { toast } from "sonner";
@@ -416,6 +416,49 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                 throw new Error("order-creation-failed");
             }
 
+            // ── PHASE 1: Create pending order in DB BEFORE payment ──
+            // This ensures we have a DB record. If the user pays but the
+            // client crashes, the Razorpay webhook can find and confirm this record.
+            const pendingResult = await createPendingOrder({
+                razorpay_order_id: order.id,
+                user_id: user?.uid || "guest",
+                amount: latestTotal,
+                currency: "INR",
+                items: latestItems.map(item => ({
+                    id: item.id,
+                    name: item.name,
+                    size: item.size,
+                    quantity: item.quantity,
+                    price_base: item.price_base,
+                    price_offer: item.price_offer,
+                    main_image: item.main_image,
+                    product_images: item.product_images
+                })),
+                shipping_address: {
+                    address: formData.address,
+                    apartment: formData.apartment || undefined,
+                    city: formData.city,
+                    district: formData.district,
+                    state: formData.state,
+                    pincode: formData.pincode,
+                    country: "India"
+                },
+                customer_details: {
+                    name: `${formData.firstName} ${formData.lastName}`.trim(),
+                    email: formData.email,
+                    phone: formData.phone,
+                    secondary_phone: formData.secondaryPhone || undefined
+                },
+                discount_code: discountCode || undefined,
+            }, token);
+
+            if (!pendingResult.success) {
+                console.error("Failed to create pending order:", pendingResult.error);
+                throw new Error("order-creation-failed");
+            }
+
+            console.log(`✅ Pending order created: ${order.id}`);
+
             // 2. Load Razorpay script
             const isLoaded = await loadRazorpay();
             if (!isLoaded) {
@@ -461,7 +504,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                             payment_id: razorpayResponse.razorpay_payment_id
                         });
 
-                        const saveResult = await saveOrder({
+                        const saveResult = await confirmOrder({
                             razorpay_order_id: razorpayResponse.razorpay_order_id || order.id,
                             razorpay_payment_id: razorpayResponse.razorpay_payment_id,
                             user_id: user?.uid || "guest",

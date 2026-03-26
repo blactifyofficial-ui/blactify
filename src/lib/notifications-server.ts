@@ -9,19 +9,35 @@ import { supabaseAdmin } from "./supabase-admin";
  */
 export async function sendMulticastAdminNotification(title: string, body: string, data?: Record<string, string>) {
     try {
-        console.log(`FCM: Fetching all active Admin tokens...`);
+        // Fetch tokens and filter duplicates/old ones
+        // We only want the LATEST token for each user_id to prevent "doubling"
+        // (e.g. if their PWA and browser both have active tokens)
         const { data: tokensList, error: fetchError } = await supabaseAdmin
             .from("admin_tokens")
-            .select("token, user_id");
+            .select("token, user_id, created_at")
+            .order('created_at', { ascending: false });
 
-        if (fetchError || !tokensList || tokensList.length === 0) {
-            console.log("No admin tokens found for notification.");
+        if (fetchError || !tokensList) {
+            console.error("FCM: Error fetching tokens or null response:", fetchError);
             return;
         }
 
-        const tokens = tokensList.map(t => t.token);
+        // Deduplicate by user_id: only take the most recent token per user
+        const uniqueUserTokens = new Map<string, string>();
+        tokensList.forEach((entry) => {
+            if (!uniqueUserTokens.has(entry.user_id)) {
+                uniqueUserTokens.set(entry.user_id, entry.token);
+            }
+        });
 
-        console.log(`FCM: Sending multicast message to ${tokens.length} devices...`);
+        const tokens = Array.from(uniqueUserTokens.values());
+        
+        if (tokens.length === 0) {
+            console.log("No unique admin tokens found for notification.");
+            return;
+        }
+        
+        console.log(`FCM: Sending multicast to ${tokens.length} users (most recent device each)...`);
 
         // Requirement Payload:
         // Image : LOGO
@@ -29,21 +45,29 @@ export async function sendMulticastAdminNotification(title: string, body: string
         // Body: "Order #[ID] for $[Total] just came in By [UserEmail-subheading]"
         // Data: { orderId: "[ID]", type: "new_order" }
 
+        // Ensure all data values are strings for FCM
+        const stringifiedData: Record<string, string> = {};
+        if (data) {
+            Object.entries(data).forEach(([key, value]) => {
+                stringifiedData[key] = typeof value === 'string' ? value : JSON.stringify(value);
+            });
+        }
+
         const message = {
             notification: {
                 title,
                 body,
-                imageUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://blactify.com'}/logo.webp`, // Logo as image/icon
+                image: `${process.env.NEXT_PUBLIC_APP_URL || 'https://blactify.com'}/logo.webp`, // Logo as image/icon
             },
             data: {
-                ...data,
+                ...stringifiedData,
                 click_action: "/admin/orders", // Matches SW click handle
             },
             tokens: tokens,
         };
 
         const response = await messagingAdmin.sendEachForMulticast(message);
-        
+
         console.log(`FCM: Successfully sent ${response.successCount} messages; ${response.failureCount} failed.`);
 
         if (response.failureCount > 0) {
