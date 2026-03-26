@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import { getToken, onMessage } from "firebase/messaging";
 import { messaging } from "@/lib/firebase";
 import { useAuth } from "@/store/AuthContext";
@@ -12,6 +12,11 @@ import { toast } from "sonner";
 export default function NotificationManager({ children }: { children: React.ReactNode }) {
     const { user, isAdmin } = useAuth();
     const isRegistering = useRef(false);
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     const syncTokenWithServer = useCallback(async (token: string) => {
         if (!user) return;
@@ -102,6 +107,8 @@ export default function NotificationManager({ children }: { children: React.Reac
     };
 
     useEffect(() => {
+        if (!isMounted) return;
+
         // Log the check
         if (isAdmin && user && typeof window !== 'undefined') {
             if (Notification.permission === 'default') {
