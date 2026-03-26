@@ -111,22 +111,26 @@ export default function NotificationManager({ children }: { children: React.Reac
 
         // Log the check
         if (isAdmin && user && typeof window !== 'undefined') {
-            if (Notification.permission === 'default') {
-                console.log("FCM: Permission is default. Will show prompt toast for user interaction.");
-                // Instead of auto-requesting (which fails on iOS), we show a toast with a button
-                toast("🔔 Enable Notifications", {
-                    description: "Get real-time alerts for new orders.",
+            const currentPerm = (window as any).Notification?.permission;
+            console.log("FCM: Current permission is:", currentPerm);
+
+            if (currentPerm === 'default') {
+                console.log("FCM: Permission is default. Triggering prompt...");
+                // Regular toast for maximum visibility
+                toast.success("🔔 Enable Push Notifications", {
+                    description: "Get real-time alerts for your orders on this device.",
                     action: {
                         label: "Enable",
                         onClick: handleManualPermission
                     },
-                    duration: 10000,
+                    duration: 30000, // 30 seconds
                 });
-            } else if (Notification.permission === 'granted') {
+            } else if (currentPerm === 'granted') {
+                console.log("FCM: Permission already granted. Syncing...");
                 requestPermission();
             }
         }
-    }, [isAdmin, user, requestPermission]);
+    }, [isAdmin, user, requestPermission, isMounted]);
 
     // Handle Foreground Messages
     useEffect(() => {
