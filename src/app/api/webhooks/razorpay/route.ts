@@ -35,10 +35,10 @@ export async function POST(req: Request) {
 
             console.log(`Processing ${event.event} for order: ${order_id}`);
 
-            // 1. Check if order exists and update its status
+            // 1. Check if order exists and its current status
             const { data: existingOrder, error: fetchError } = await supabaseAdmin
                 .from("orders")
-                .select("status")
+                .select("status, items")
                 .eq("id", order_id)
                 .single();
 
@@ -47,31 +47,84 @@ export async function POST(req: Request) {
             }
 
             if (existingOrder) {
-                if (existingOrder.status !== "paid") {
-                    const { error: updateError } = await supabaseAdmin
-                        .from("orders")
-                        .update({
-                            status: "paid",
-                            payment_id: payment_id,
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq("id", order_id);
-
-                    if (updateError) {
-                        console.error("Failed to update order status via webhook:", updateError);
-                    } else {
-                        console.log(`Order ${order_id} marked as paid via webhook.`);
-                    }
-                } else {
+                if (existingOrder.status === "paid") {
+                    // Already confirmed by client-side — nothing to do
                     console.log(`Order ${order_id} is already marked as paid.`);
+                } else if (existingOrder.status === "pending") {
+                    // ⚡ CRITICAL: Client-side confirmOrder failed or hasn't run yet.
+                    // The pending order exists but wasn't confirmed — we must do it now.
+                    console.log(`⚠️ Order ${order_id} is still PENDING. Confirming via webhook...`);
+
+                    const items = existingOrder.items as { id: string; size: string; quantity: number; price_base: number; price_offer?: number }[];
+
+                    const { data: rpcData, error: rpcError } = await supabaseAdmin.rpc('confirm_order_v3', {
+                        p_order_id: order_id,
+                        p_payment_id: payment_id,
+                        p_payment_details: {
+                            razorpay_order_id: order_id,
+                            razorpay_payment_id: payment_id,
+                            confirmed_by: "webhook",
+                            webhook_event: event.event,
+                            confirmed_at: new Date().toISOString(),
+                        },
+                        p_items: items,
+                    });
+
+                    if (rpcError || !rpcData?.success) {
+                        console.error(`Failed to confirm order ${order_id} via webhook:`, rpcError?.message || rpcData?.error);
+
+                        // Last resort: just update status to paid so the order isn't lost
+                        const { error: updateError } = await supabaseAdmin
+                            .from("orders")
+                            .update({
+                                status: "paid",
+                                payment_id: payment_id,
+                                payment_details: {
+                                    razorpay_order_id: order_id,
+                                    razorpay_payment_id: payment_id,
+                                    confirmed_by: "webhook_fallback",
+                                    error: rpcError?.message || rpcData?.error,
+                                    confirmed_at: new Date().toISOString(),
+                                },
+                            })
+                            .eq("id", order_id);
+
+                        if (updateError) {
+                            console.error(`CRITICAL: Could not even fallback-update order ${order_id}:`, updateError);
+                        } else {
+                            console.log(`Order ${order_id} marked as paid via webhook fallback (stock may not be deducted).`);
+                        }
+                    } else {
+                        console.log(`✅ Order ${order_id} confirmed via webhook successfully.`);
+
+                        // Send admin notification since client-side didn't do it
+                        try {
+                            const { sendMulticastAdminNotification } = await import("@/lib/notifications-server");
+                            const { data: orderData } = await supabaseAdmin
+                                .from("orders")
+                                .select("amount, customer_details")
+                                .eq("id", order_id)
+                                .single();
+
+                            if (orderData) {
+                                const customerEmail = (orderData.customer_details as { email?: string })?.email || "Unknown";
+                                sendMulticastAdminNotification(
+                                    "🚨 Order Confirmed via Webhook!",
+                                    `Order #${order_id} for ₹${orderData.amount} by ${customerEmail} (webhook confirmation)`,
+                                    { orderId: order_id, type: "new_order" }
+                                ).catch(() => { });
+                            }
+                        } catch {
+                            // Non-blocking
+                        }
+                    }
                 }
             } else {
-                // If the order doesn't exist yet, it means the client-side saveOrder hasn't run.
-                // In a more complex setup, we would try to create the order here if we had the context (stored in notes).
-                console.warn(`Order ${order_id} not found in database. The client-side sync may still be in progress or failed.`);
-
-                // NEW: We can try to get the metadata/notes from the payload if we start sending it.
-                // For now, we at least log it.
+                // Order doesn't exist at all — this shouldn't happen with two-phase commit
+                // but log it prominently for debugging
+                console.error(`🔴 CRITICAL: Order ${order_id} not found in database at all! Payment was captured but no pending order exists.`);
+                console.error(`Payment ID: ${payment_id}, Event: ${event.event}`);
+                console.error("Notes:", JSON.stringify(payload.notes || {}));
             }
         }
 
