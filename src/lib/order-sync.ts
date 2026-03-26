@@ -115,7 +115,19 @@ export async function saveOrder(orderData: z.infer<typeof OrderSyncSchema>, toke
         }
 
 
-        // 3. Sync to Google Sheets (Non-blocking)
+        // 3. Admin Notification (New Requirement)
+        const { sendMulticastAdminNotification } = await import("./notifications-server");
+        const orderId = orderIdToSave;
+        const totalAmount = data.amount;
+        const userEmail = data.customer_details?.email || "Unknown User";
+
+        sendMulticastAdminNotification(
+            "🚨 New Order Received!",
+            `Order #${orderId} for ₹${totalAmount} just came in By ${userEmail}`,
+            { orderId: orderId, type: "new_order" }
+        ).catch((err) => console.error("FCM: Trigger error:", err));
+
+        // 4. Sync to Google Sheets (Non-blocking)
         appendOrderToSheet({
             id: orderIdToSave,
             items: data.items,

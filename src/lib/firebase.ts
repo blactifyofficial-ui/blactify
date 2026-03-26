@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getAnalytics, isSupported } from "firebase/analytics";
+import { getMessaging, Messaging } from "firebase/messaging";
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -22,4 +23,10 @@ const analytics = typeof window !== 'undefined'
     ? isSupported().then(yes => yes ? getAnalytics(app) : null)
     : null;
 
-export { auth, googleProvider, analytics };
+// Initialize Messaging only on client side
+let messaging: Messaging | null = null;
+if (typeof window !== 'undefined') {
+    messaging = getMessaging(app);
+}
+
+export { auth, googleProvider, analytics, messaging };

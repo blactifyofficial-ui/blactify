@@ -6,6 +6,7 @@ import { AdminGuard } from "@/components/admin/AdminGuard";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { AdminMobileHeader } from "@/components/admin/AdminMobileHeader";
 import { AuthProvider } from "@/store/AuthContext";
+import NotificationManager from "@/components/admin/NotificationManager";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -57,17 +58,19 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
     return (
         <AuthProvider>
             <AdminGuard>
-                <div className="min-h-screen bg-zinc-50 flex flex-col md:flex-row font-inter text-zinc-900">
-                    <AdminMobileHeader onMenuClick={() => setIsSidebarOpen(true)} />
-                    <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+                <NotificationManager>
+                    <div className="min-h-screen bg-zinc-50 flex flex-col md:flex-row font-inter text-zinc-900">
+                        <AdminMobileHeader onMenuClick={() => setIsSidebarOpen(true)} />
+                        <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-                    <div className="flex-1 flex flex-col min-w-0 min-h-screen md:pl-72">
-                        {/* Main Content */}
-                        <main className="flex-1 p-4 md:p-10 w-full max-w-7xl mx-auto pt-[72px] md:pt-10 pb-10 overflow-x-hidden">
-                            {children}
-                        </main>
+                        <div className="flex-1 flex flex-col min-w-0 min-h-screen md:pl-72">
+                            {/* Main Content */}
+                            <main className="flex-1 p-4 md:p-10 w-full max-w-7xl mx-auto pt-[72px] md:pt-10 pb-10 overflow-x-hidden">
+                                {children}
+                            </main>
+                        </div>
                     </div>
-                </div>
+                </NotificationManager>
             </AdminGuard>
         </AuthProvider>
     );
