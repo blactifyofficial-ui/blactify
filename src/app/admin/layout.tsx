@@ -16,7 +16,8 @@ export const metadata: Metadata = {
     },
     icons: {
         apple: "/logo.png",
-    }
+    },
+    manifest: "/admin-manifest.json",
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
