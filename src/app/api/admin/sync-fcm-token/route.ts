@@ -25,13 +25,19 @@ export async function POST(request: Request) {
             });
 
         if (error) {
-            return NextResponse.json({ error: error.message }, { status: 500 });
+            console.error("FCM Token sync error:", error);
+            return NextResponse.json({
+                error: error.message,
+                code: error.code,
+                hint: "Ensure the admin_tokens table exists with a TEXT user_id column."
+            }, { status: 500 });
         }
 
         return NextResponse.json({ success: true, message: "Token synced" });
     } catch (err: unknown) {
-        console.error("FCM Token Sync Error:", err);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        const error = err instanceof Error ? err : new Error(String(err));
+        console.error("FCM Token sync catch error:", error);
+        return NextResponse.json({ error: error.message, stack: error.stack }, { status: 500 });
     }
 }
 

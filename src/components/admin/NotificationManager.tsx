@@ -37,38 +37,59 @@ export default function NotificationManager({ children }: { children: React.Reac
     }, [user]);
 
     const requestPermission = useCallback(async () => {
-        if (!messaging || typeof window === 'undefined' || !('Notification' in window)) return;
+        if (!messaging) {
+            console.error("FCM: messaging object is not initialized.");
+            return;
+        }
+        if (typeof window === 'undefined' || !('Notification' in window)) {
+            console.warn("FCM: Notifications NOT supported in this browser.");
+            return;
+        }
+
+        console.log("FCM: requestPermission called. isAdmin:", isAdmin, "user:", user?.email);
+        console.log("FCM: Current Notification permission:", Notification.permission);
 
         // If permission already granted, or we are in the middle of registration, skip.
         if (Notification.permission === 'granted') {
              // Continue to get token
         } else if (Notification.permission === 'denied') {
-             console.log("Notifications blocked by user.");
+             console.log("FCM: Notifications explicitly BLOCKED by user.");
              return;
         } else {
+             console.log("FCM: Requesting Permission...");
              const result = await Notification.requestPermission();
+             console.log("FCM: Permission result:", result);
              if (result !== 'granted') return;
         }
 
-        if (isRegistering.current) return;
+        if (isRegistering.current) {
+            console.log("FCM: Registration already in progress.");
+            return;
+        }
+        
         isRegistering.current = true;
 
         try {
+            console.log("FCM: Fetching token with VAPID Key...");
             const currentToken = await getToken(messaging, {
                 vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
             });
 
             if (currentToken) {
+                console.log("FCM: Token successfully retrieved:", currentToken.substring(0, 10) + "...");
                 await syncTokenWithServer(currentToken);
             } else {
-                console.log('No registration token available. Request permission to generate one.');
+                console.log('FCM: No registration token available.');
             }
-        } catch (err) {
-            console.error('An error occurred while retrieving token. ', err);
+        } catch (err: any) {
+            console.error('FCM: Error retrieving token: ', err);
+            if (err.message?.includes("Missing registration")) {
+                console.error("FCM: Missing service worker registration. Ensure the sw.js script exists.");
+            }
         } finally {
             isRegistering.current = false;
         }
-    }, [syncTokenWithServer]);
+    }, [isAdmin, user, syncTokenWithServer]);
 
     useEffect(() => {
         // Only request permission if user is ADMIN

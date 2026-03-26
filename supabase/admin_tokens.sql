@@ -1,7 +1,7 @@
 -- admin_tokens Table for FCM Push Notifications
 CREATE TABLE IF NOT EXISTS admin_tokens (
     token TEXT PRIMARY KEY,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL, -- Firebase UID
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
