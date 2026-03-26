@@ -23,22 +23,31 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
         }
     }, [pathname, setHasNewOrder]); 
 
+    // Register Service Worker manually for Admin side with scope
+    useEffect(() => {
+        if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+            const registerSW = async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register("/sw.js", {
+                        scope: "/admin",
+                    });
+                    console.log("Admin PWA: Service Worker registered with scope:", registration.scope);
+                } catch (err) {
+                    console.error("Admin PWA: Service Worker registration failed:", err);
+                }
+            };
+
+            if (document.readyState === "complete") {
+                registerSW();
+            } else {
+                window.addEventListener("load", registerSW);
+                return () => window.removeEventListener("load", registerSW);
+            }
+        }
+    }, []);
+
     // Real-time listener for new orders
     useEffect(() => {
-        // Register Service Worker manually for Admin side
-        if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-            window.addEventListener("load", () => {
-                navigator.serviceWorker.register("/sw.js").then(
-                    (registration) => {
-                        console.log("Admin PWA: Service Worker registered", registration.scope);
-                    },
-                    (err) => {
-                        console.error("Admin PWA: Service Worker registration failed", err);
-                    }
-                );
-            });
-        }
-
         const channel = supabase
             .channel('admin-orders-realtime')
             .on(
