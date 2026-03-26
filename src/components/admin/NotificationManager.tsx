@@ -81,9 +81,10 @@ export default function NotificationManager({ children }: { children: React.Reac
             } else {
                 console.log('FCM: No registration token available.');
             }
-        } catch (err: any) {
-            console.error('FCM: Error retrieving token: ', err);
-            if (err.message?.includes("Missing registration")) {
+        } catch (err: unknown) {
+            const error = err instanceof Error ? err : new Error(String(err));
+            console.error('FCM: Error retrieving token: ', error);
+            if (error.message?.includes("Missing registration")) {
                 console.error("FCM: Missing service worker registration. Ensure the sw.js script exists.");
             }
         } finally {
