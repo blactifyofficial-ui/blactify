@@ -25,6 +25,20 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
 
     // Real-time listener for new orders
     useEffect(() => {
+        // Register Service Worker manually for Admin side
+        if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker.register("/sw.js").then(
+                    (registration) => {
+                        console.log("Admin PWA: Service Worker registered", registration.scope);
+                    },
+                    (err) => {
+                        console.error("Admin PWA: Service Worker registration failed", err);
+                    }
+                );
+            });
+        }
+
         const channel = supabase
             .channel('admin-orders-realtime')
             .on(
