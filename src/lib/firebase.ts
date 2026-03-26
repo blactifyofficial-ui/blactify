@@ -1,7 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getAnalytics, isSupported } from "firebase/analytics";
-import { getMessaging, Messaging } from "firebase/messaging";
+import { getMessaging, Messaging, isSupported as isMessagingSupported } from "firebase/messaging";
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -23,10 +23,18 @@ const analytics = typeof window !== 'undefined'
     ? isSupported().then(yes => yes ? getAnalytics(app) : null)
     : null;
 
-// Initialize Messaging only on client side
+// Initialize Messaging safely
 let messaging: Messaging | null = null;
 if (typeof window !== 'undefined') {
-    messaging = getMessaging(app);
+    isMessagingSupported().then(supported => {
+        if (supported) {
+            try {
+                messaging = getMessaging(app);
+            } catch (err) {
+                console.warn("Firebase Messaging initialization failed:", err);
+            }
+        }
+    });
 }
 
 export { auth, googleProvider, analytics, messaging };
