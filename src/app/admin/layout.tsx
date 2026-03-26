@@ -15,7 +15,7 @@ export const metadata: Metadata = {
         title: "Blactify Admin",
     },
     icons: {
-        apple: "/logo.png",
+        apple: "/icon.png",
     },
     manifest: "/admin-manifest.json",
 };
