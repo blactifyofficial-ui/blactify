@@ -92,10 +92,32 @@ export default function NotificationManager({ children }: { children: React.Reac
         }
     }, [isAdmin, user, syncTokenWithServer]);
 
-    useEffect(() => {
-        // Only request permission if user is ADMIN
-        if (isAdmin && user) {
+    const handleManualPermission = async () => {
+        const result = await Notification.requestPermission();
+        if (result === 'granted') {
             requestPermission();
+        } else {
+            toast.error("Permission denied. Please enable notifications in your browser settings.");
+        }
+    };
+
+    useEffect(() => {
+        // Log the check
+        if (isAdmin && user && typeof window !== 'undefined') {
+            if (Notification.permission === 'default') {
+                console.log("FCM: Permission is default. Will show prompt toast for user interaction.");
+                // Instead of auto-requesting (which fails on iOS), we show a toast with a button
+                toast("🔔 Enable Notifications", {
+                    description: "Get real-time alerts for new orders.",
+                    action: {
+                        label: "Enable",
+                        onClick: handleManualPermission
+                    },
+                    duration: 10000,
+                });
+            } else if (Notification.permission === 'granted') {
+                requestPermission();
+            }
         }
     }, [isAdmin, user, requestPermission]);
 
