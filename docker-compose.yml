@@ -2,7 +2,8 @@ version: '3.8'
 
 services:
   app:
-    image: ${IMAGE_REGISTRY}/${IMAGE_REPO}:${IMAGE_TAG:-latest}
+    build: .
+    image: blactify-app:latest
     restart: always
     environment:
       - NODE_ENV=production
