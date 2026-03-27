@@ -88,7 +88,7 @@ export default function NotificationManager({ children }: { children: React.Reac
         } finally {
             isRegistering.current = false;
         }
-    }, [isAdmin, user, syncTokenWithServer]);
+    }, [syncTokenWithServer]);
 
     const handleManualPermission = useCallback(async () => {
         if (typeof window === 'undefined' || !('Notification' in window)) return;
