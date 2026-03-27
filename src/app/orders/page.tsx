@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/store/AuthContext";
-import { Package, ChevronLeft } from "lucide-react";
+import { Package, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { getUserOrders } from "@/lib/order-sync";
 import Link from "next/link";
@@ -36,33 +36,34 @@ export default function OrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        async function fetchOrders() {
-            if (!user) return;
-            setLoading(true);
+    const fetchOrders = useCallback(async (showLoading = true) => {
+        if (!user) return;
+        if (showLoading) setLoading(true);
 
-            try {
-                const token = await user.getIdToken();
-                const result = await getUserOrders(user.uid, token);
+        try {
+            const token = await user.getIdToken();
+            const result = await getUserOrders(user.uid, token);
 
-                if (result.success) {
-                    setOrders((result.orders as Order[]) || []);
-                } else {
-                    toast.error(getFriendlyErrorMessage(result.error));
-                }
-            } catch (err: unknown) {
-                toast.error(getFriendlyErrorMessage(err));
-            } finally {
-                setLoading(false);
+            if (result.success) {
+                setOrders((result.orders as Order[]) || []);
+                if (!showLoading) toast.success("Orders synced");
+            } else {
+                toast.error(getFriendlyErrorMessage(result.error));
             }
+        } catch (err: unknown) {
+            toast.error(getFriendlyErrorMessage(err));
+        } finally {
+            setLoading(false);
         }
+    }, [user]);
 
+    useEffect(() => {
         if (!authLoading && user) {
             fetchOrders();
         } else if (!authLoading && !user) {
             setLoading(false);
         }
-    }, [user, authLoading]);
+    }, [user, authLoading, fetchOrders]);
 
     if (authLoading || loading) {
         return (
@@ -88,11 +89,17 @@ export default function OrdersPage() {
         <main className="min-h-screen bg-white pb-20 pt-8 font-sans">
             <div className="px-6">
                 <header className="mb-10">
-                    <Link href="/profile" className="flex items-center gap-2 text-zinc-400 hover:text-black transition-colors mb-6 text-xs font-bold uppercase tracking-widest">
-                        <ChevronLeft size={16} />
-                        Back to Profile
-                    </Link>
-                    <h1 className="font-empire text-5xl">Your Orders</h1>
+                    <div className="flex items-end justify-between">
+                        <h1 className="font-empire text-5xl">Your Orders</h1>
+                        <button 
+                            onClick={() => fetchOrders(false)}
+                            disabled={loading}
+                            className="flex items-center gap-2 px-4 py-2 border border-zinc-100 rounded-full text-[9px] font-bold uppercase tracking-widest text-zinc-400 hover:text-black hover:border-black transition-all active:scale-95 disabled:opacity-50"
+                        >
+                            <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
+                            Sync
+                        </button>
+                    </div>
                 </header>
 
                 {orders.length === 0 ? (

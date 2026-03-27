@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, Calendar, CreditCard, ExternalLink } from "lucide-react";
+import { ChevronDown, Calendar, CreditCard, ExternalLink, MapPin } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,17 @@ interface Order {
     items: OrderItem[];
     payment_id: string;
     tracking_id?: string;
+    shipping_address?: {
+        address?: string;
+        line1?: string;
+        apartment?: string;
+        line2?: string;
+        city?: string;
+        district?: string;
+        state?: string;
+        pincode?: string;
+        postal_code?: string;
+    };
 }
 
 interface OrderCardProps {
@@ -136,6 +147,38 @@ export default function OrderCard({ order }: OrderCardProps) {
                                         </div>
                                         <div className="px-3 py-1.5 bg-black text-white text-[10px] font-bold uppercase tracking-widest rounded-full">
                                             In Transit
+                                        </div>
+                                    </div>
+                                )}
+
+                                {order.shipping_address && (
+                                    <div className="p-5 bg-zinc-50 rounded-3xl border border-zinc-100 relative overflow-hidden group/addr mt-2">
+                                        <div className="relative z-10">
+                                            <div className="flex items-center gap-2 mb-4">
+                                                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-zinc-100 group-hover/addr:bg-black group-hover/addr:text-white transition-colors">
+                                                    <MapPin size={14} />
+                                                </div>
+                                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">Delivery Vector</span>
+                                            </div>
+                                            
+                                            <div className="space-y-1 pl-10">
+                                                <p className="text-sm font-black tracking-tight text-black">
+                                                    {order.shipping_address.address || order.shipping_address.line1}
+                                                    {(order.shipping_address.apartment || order.shipping_address.line2) && (
+                                                        <span className="text-zinc-400 italic">, {order.shipping_address.apartment || order.shipping_address.line2}</span>
+                                                    )}
+                                                </p>
+                                                <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">
+                                                    {order.shipping_address.city}{order.shipping_address.district && <>, {order.shipping_address.district}</>}
+                                                </p>
+                                                <p className="text-[11px] font-black tracking-widest text-black/80">
+                                                    {order.shipping_address.state} — <span className="bg-white px-2 py-0.5 border border-zinc-100 rounded tracking-widest">{order.shipping_address.pincode || order.shipping_address.postal_code}</span>
+                                                </p>
+                                                
+                                                <div className="pt-4 mt-4 border-t border-zinc-100/50">
+                                                    <p className="text-[8px] font-black text-zinc-300 uppercase tracking-[0.2em] italic">Standardized Format: [STREET], [AREA], [CITY], [STATE] - [PINCODE]</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 )}

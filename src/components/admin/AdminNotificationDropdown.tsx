@@ -147,14 +147,14 @@ export function AdminNotificationDropdown() {
                                 <span className="text-[10px] font-black uppercase tracking-[0.4em] text-red-600">
                                     Administration
                                 </span >
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-3">
                                     <h3 className="text-2xl font-black uppercase tracking-tight text-black">
                                         Inbox
                                     </h3>
                                     {unreadCount > 0 && (
                                         <button 
                                             onClick={handleMarkAllRead}
-                                            className="px-3 py-1 rounded-full bg-zinc-50 border border-zinc-100 text-[8px] font-black uppercase tracking-widest text-zinc-400 hover:text-red-600 hover:border-red-100 transition-all active:scale-95"
+                                            className="px-4 py-1.5 rounded-full bg-red-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-black transition-all active:scale-90 shadow-lg shadow-red-200"
                                         >
                                             Clear All
                                         </button>

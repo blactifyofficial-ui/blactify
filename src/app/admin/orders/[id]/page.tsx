@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useCallback } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { getAdminOrderById, updateAdminOrder } from "@/app/actions/orders";
@@ -21,6 +21,7 @@ import {
     CreditCard,
     Box,
     Activity,
+    RefreshCw
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -54,24 +55,23 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
     const [itemMeasurements, setItemMeasurements] = useState<Record<string, Array<{ value: string; measurement_types: { name: string } }>>>({});
     const [itemImages, setItemImages] = useState<Record<string, string>>({});
 
-    useEffect(() => {
-        async function fetchOrder() {
-            try {
-                const token = await auth.currentUser?.getIdToken();
-                const result = await getAdminOrderById(id, token);
-                if (result.success && result.order) {
-                    setOrder(result.order);
-                    setTrackingId(result.order.tracking_id || "");
-                } else {
-                    throw new Error(result.error || "Order not found");
-                }
-            } catch {
-                toast.error("Protocol Error", { description: "Failure to retrieve mission parameters." });
-            } finally {
-                setLoading(false);
+    const fetchOrder = useCallback(async (showToast = false) => {
+        if (showToast) setLoading(true); // only show global loader on initial or forced full refresh
+        try {
+            const token = await auth.currentUser?.getIdToken();
+            const result = await getAdminOrderById(id, token);
+            if (result.success && result.order) {
+                setOrder(result.order);
+                setTrackingId(result.order.tracking_id || "");
+                if (showToast) toast.success("Data Synchronized");
+            } else {
+                throw new Error(result.error || "Order not found");
             }
+        } catch {
+            toast.error("Protocol Error", { description: "Failure to retrieve mission parameters." });
+        } finally {
+            setLoading(false);
         }
-        fetchOrder();
     }, [id]);
 
     useEffect(() => {
@@ -219,6 +219,15 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                 subtitle={`Registry Entry #${order.id.slice(0, 12)}...`}
             >
                 <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => fetchOrder(true)}
+                        disabled={loading || statusUpdating}
+                        className="p-3 bg-white border border-zinc-100 text-zinc-400 rounded-2xl hover:text-black hover:border-black/20 transition-all active:scale-90 disabled:opacity-50 shadow-sm"
+                        title="Refresh order details"
+                    >
+                        <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
+                    </button>
+
                     <div className="relative group">
                         <select
                             value={order.status?.toLowerCase() || ""}
@@ -311,15 +320,50 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                     </AdminCard>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                        <AdminCard title="Deployment Vector" icon={<MapPin size={18} />}>
-                            <div className="space-y-4">
-                                <div className="p-5 bg-zinc-50 rounded-[2rem] border border-zinc-100 italic">
-                                    <p className="text-lg font-black tracking-tight mb-3 text-black">{order.customer_details?.name}</p>
-                                    <div className="space-y-1 text-[11px] font-bold text-zinc-500 uppercase tracking-widest leading-loose">
-                                        <p>{order.shipping_address?.address || (order.shipping_address as { address?: string; line1?: string }).line1}{(order.shipping_address?.apartment || (order.shipping_address as { apartment?: string; line2?: string }).line2) && <>, {order.shipping_address.apartment || (order.shipping_address as { apartment?: string; line2?: string }).line2}</>}</p>
-                                        <p>{order.shipping_address?.city}{order.shipping_address?.district && <>, {order.shipping_address.district}</>}</p>
-                                        <p>{order.shipping_address?.state} — {order.shipping_address?.pincode || (order.shipping_address as { pincode?: string; postal_code?: string }).postal_code}</p>
+                        <AdminCard 
+                            title="Deployment Vector" 
+                            icon={<MapPin size={18} />}
+                            subtitle="Shipping Destination"
+                        >
+                            <div className="space-y-6">
+                                <div className="p-6 bg-zinc-50 rounded-[2rem] border border-zinc-100 relative overflow-hidden group">
+                                    <div className="relative z-10 space-y-4">
+                                        <div className="pb-4 border-b border-zinc-100 mb-2">
+                                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-red-600 mb-2 italic">Standardized Format</p>
+                                            <p className="text-xl font-black tracking-tight text-black">{order.customer_details?.name}</p>
+                                        </div>
+                                        
+                                        <div className="space-y-1.5">
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="text-[8px] font-black text-zinc-300 uppercase tracking-widest leading-none mb-1">[Street & Area]</span>
+                                                <p className="text-[12px] font-black tracking-tight text-zinc-900">
+                                                    {order.shipping_address?.address || (order.shipping_address as { address?: string; line1?: string }).line1}
+                                                    {(order.shipping_address?.apartment || (order.shipping_address as { apartment?: string; line2?: string }).line2) && (
+                                                        <span className="italic">, {order.shipping_address.apartment || (order.shipping_address as { apartment?: string; line2?: string }).line2}</span>
+                                                    )}
+                                                </p>
+                                            </div>
+
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="text-[8px] font-black text-zinc-300 uppercase tracking-widest leading-none mb-1">[City & Region]</span>
+                                                <p className="text-[12px] font-black tracking-tight text-zinc-900">
+                                                    {order.shipping_address?.city}{order.shipping_address?.district && <>, {order.shipping_address.district}</>}
+                                                </p>
+                                            </div>
+
+                                            <div className="flex flex-col gap-0.5 pt-2">
+                                                <span className="text-[8px] font-black text-zinc-300 uppercase tracking-widest leading-none mb-1">[Geographic Vector]</span>
+                                                <p className="text-[13px] font-black tracking-widest text-black flex items-center gap-2">
+                                                    <span className="uppercase">{order.shipping_address?.state}</span>
+                                                    <span className="text-zinc-200">—</span>
+                                                    <span className="bg-black text-white px-2 py-0.5 rounded text-[10px]">{order.shipping_address?.pincode || (order.shipping_address as { pincode?: string; postal_code?: string }).postal_code}</span>
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
+                                    
+                                    {/* Subtle decorative glow */}
+                                    <div className="absolute -right-4 -bottom-4 w-32 h-32 bg-white rounded-full blur-2xl opacity-50 group-hover:bg-red-50/50 transition-colors duration-500"></div>
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <div className="flex items-center gap-3 px-5 py-3 bg-zinc-50 rounded-2xl border border-zinc-100">

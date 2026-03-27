@@ -8,7 +8,8 @@ import {
     ChevronRight,
     Calendar,
     Clock,
-    ShoppingBag
+    ShoppingBag,
+    RefreshCw
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Pagination } from "@/components/ui/Pagination";
@@ -20,7 +21,7 @@ export default function AdminOrdersPage() {
     const [page, setPage] = useState(1);
     const pageSize = 10;
 
-    const { orders, totalCount, loading } = useAdminOrders({
+    const { orders, totalCount, loading, refetch } = useAdminOrders({
         page,
         pageSize,
         searchTerm
@@ -56,13 +57,25 @@ export default function AdminOrdersPage() {
                             className="pl-12 pr-6 py-3 bg-white border border-zinc-100 rounded-2xl w-full focus:outline-none focus:ring-4 focus:ring-black/5 focus:border-black/10 transition-all text-sm font-medium placeholder:text-zinc-300 shadow-sm"
                         />
                     </div>
-                    <Link
-                        href="/admin/orders/create"
-                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-black text-white rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-all active:scale-[0.98] shadow-lg shadow-black/5"
-                    >
-                        <Plus size={16} />
-                        Create Order
-                    </Link>
+                    
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                        <button
+                            onClick={() => refetch()}
+                            disabled={loading}
+                            className="p-3 bg-white border border-zinc-100 text-zinc-400 rounded-2xl hover:text-black hover:border-black/20 transition-all active:scale-90 disabled:opacity-50 shadow-sm"
+                            title="Refresh orders"
+                        >
+                            <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
+                        </button>
+                        
+                        <Link
+                            href="/admin/orders/create"
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-black text-white rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-all active:scale-[0.98] shadow-lg shadow-black/5 whitespace-nowrap"
+                        >
+                            <Plus size={16} />
+                            Create Order
+                        </Link>
+                    </div>
                 </div>
             </AdminPageHeader>
 

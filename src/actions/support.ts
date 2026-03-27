@@ -6,6 +6,7 @@ import { SELLER_CONFIG } from "@/lib/config";
 import { SupportTicketSchema } from "@/lib/schemas";
 import { z } from "zod";
 import { verifyActionAuth, verifyActionAdminAuth } from "@/lib/auth-server";
+import { sendMulticastAdminNotification } from "@/lib/notifications-server";
 
 export async function createTicket(formData: z.infer<typeof SupportTicketSchema>, token?: string) {
     try {
@@ -40,6 +41,23 @@ export async function createTicket(formData: z.infer<typeof SupportTicketSchema>
                 success: false,
                 error: "We encountered an issue while saving your ticket. Please check your connection and try again."
             };
+        }
+
+        // Send FCM Notification to Admins
+        try {
+            const { data: userData } = await supabaseAdmin
+                .from("profiles")
+                .select("full_name")
+                .eq("id", data.userId)
+                .single();
+
+            await sendMulticastAdminNotification(
+                "🚨 New Support Ticket!",
+                `${userData?.full_name || 'A user'} raised a ticket: ${data.category.replace('_', ' ')}`,
+                { type: "support", userId: data.userId }
+            );
+        } catch (fcmErr) {
+            console.error("FCM Support Notification Failure:", fcmErr);
         }
 
         // Send Telegram notification to Admin
