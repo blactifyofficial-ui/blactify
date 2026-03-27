@@ -182,16 +182,15 @@ export default function AdminReportsPage() {
 
             {/* Top Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <AdminCard className="group bg-black text-white border-white/5 shadow-2xl shadow-black/30 relative overflow-hidden">
+                <AdminCard className="group relative overflow-hidden">
                     <div className="relative z-10">
-                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-3 italic">Gross Revenue</p>
-                        <h3 className="text-4xl font-black tracking-tighter text-white">₹{totalRevenue.toLocaleString()}</h3>
-                        <div className="mt-8 flex items-center gap-3 bg-white/10 w-fit px-4 py-2 rounded-full border border-white/20">
+                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-3 italic">Gross Revenue</p>
+                        <h3 className="text-4xl font-black tracking-tighter text-black group-hover:translate-x-1 transition-transform duration-500">₹{totalRevenue.toLocaleString()}</h3>
+                        <div className="mt-8 flex items-center gap-3 bg-zinc-50 w-fit px-4 py-2 rounded-full border border-zinc-100 shadow-sm">
                             <TrendingUp size={14} className="text-green-500" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-white">+24.8% Growth</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600">+24.8% Growth</span>
                         </div>
                     </div>
-                    <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-white/5 rounded-full blur-[80px] group-hover:bg-white/10 transition-colors duration-1000"></div>
                 </AdminCard>
 
                 <AdminCard className="group" title="Order Volume">
