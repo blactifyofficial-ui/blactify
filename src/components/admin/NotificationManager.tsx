@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useCallback, useRef, useState } from "react";
-import { getToken, onMessage } from "firebase/messaging";
-import { messaging } from "@/lib/firebase";
+import { getToken, onMessage, Messaging } from "firebase/messaging";
+import { getMessagingInstance } from "@/lib/firebase";
 import { useAuth } from "@/store/AuthContext";
 import { useNotificationStore, type AdminNotification } from "@/store/useNotificationStore";
 import { toast } from "sonner";
@@ -14,9 +14,14 @@ export default function NotificationManager({ children }: { children: React.Reac
     const { user, isAdmin } = useAuth();
     const isRegistering = useRef(false);
     const [isMounted, setIsMounted] = useState(false);
+    const [messaging, setMessaging] = useState<Messaging | null>(null);
 
     useEffect(() => {
         setIsMounted(true);
+        // Initialize messaging
+        getMessagingInstance().then((instance) => {
+            if (instance) setMessaging(instance);
+        });
     }, []);
 
     const syncTokenWithServer = useCallback(async (token: string) => {
@@ -71,9 +76,14 @@ export default function NotificationManager({ children }: { children: React.Reac
         isRegistering.current = true;
 
         try {
+            // Ensure we use the correct service worker route
+            const swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+                scope: '/firebase-cloud-messaging-push-scope',
+            });
 
             const currentToken = await getToken(messaging, {
                 vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+                serviceWorkerRegistration: swRegistration,
             });
 
             if (currentToken) {
@@ -88,7 +98,7 @@ export default function NotificationManager({ children }: { children: React.Reac
         } finally {
             isRegistering.current = false;
         }
-    }, [syncTokenWithServer]);
+    }, [syncTokenWithServer, messaging]);
 
     const handleManualPermission = useCallback(async () => {
         if (typeof window === 'undefined' || !('Notification' in window)) return;
@@ -124,7 +134,7 @@ export default function NotificationManager({ children }: { children: React.Reac
                 requestPermission();
             }
         }
-    }, [isAdmin, user, requestPermission, isMounted, handleManualPermission]);
+    }, [isAdmin, user, requestPermission, isMounted, handleManualPermission, messaging]);
 
     // Handle Foreground Messages
     const { addNotification } = useNotificationStore();
@@ -133,9 +143,7 @@ export default function NotificationManager({ children }: { children: React.Reac
         if (!messaging) return;
 
         const unsubscribe = onMessage(messaging, (payload) => {
-
-            
-            // 1. Update the local store immediately so the bell count updates
+            // ... (Same logic as before)
             const newNotif: AdminNotification = {
                 id: payload.data?.id || Math.random().toString(36).substring(7),
                 title: payload.notification?.title || "New Notification",
@@ -147,7 +155,6 @@ export default function NotificationManager({ children }: { children: React.Reac
             };
             addNotification(newNotif);
 
-            // 2. Custom foreground toast
             toast(`🚨 ${payload.notification?.title || 'New Order!'}`, {
                 description: payload.notification?.body,
                 action: {
@@ -158,7 +165,7 @@ export default function NotificationManager({ children }: { children: React.Reac
         });
 
         return () => unsubscribe();
-    }, [addNotification]);
+    }, [addNotification, messaging]);
 
     return <>{children}</>;
 }

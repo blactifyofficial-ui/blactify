@@ -33,17 +33,25 @@ const analytics = typeof window !== 'undefined'
     : null;
 
 // Initialize Messaging safely
-let messaging: Messaging | null = null;
-if (typeof window !== 'undefined') {
-    isMessagingSupported().then(supported => {
-        if (supported) {
-            try {
-                messaging = getMessaging(app);
-            } catch (err) {
-                console.warn("Firebase Messaging initialization failed:", err);
-            }
-        }
-    });
-}
+let messagingInstance: Messaging | null = null;
 
-export { auth, googleProvider, analytics, messaging };
+export const getMessagingInstance = async () => {
+    if (typeof window === 'undefined') return null;
+    if (messagingInstance) return messagingInstance;
+    
+    const supported = await isMessagingSupported();
+    if (supported) {
+        try {
+            messagingInstance = getMessaging(app);
+            return messagingInstance;
+        } catch (err) {
+            console.warn("Firebase Messaging initialization failed:", err);
+            return null;
+        }
+    }
+    return null;
+};
+
+// For backward compatibility, keep the export but it might be null initially
+export { auth, googleProvider, analytics, messagingInstance as messaging };
+

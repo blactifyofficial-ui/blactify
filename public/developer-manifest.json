@@ -1,6 +1,6 @@
 {
   "name": "Blactify Developer",
-  "short_name": "DevPortal",
+  "short_name": "Blactify | Dev",
   "description": "Blactify Developer Mission Control",
   "id": "/developer",
   "start_url": "/developer",
@@ -10,15 +10,9 @@
   "theme_color": "#34D399",
   "icons": [
     {
-      "src": "/icon.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icon.png",
+      "src": "/logo.webp",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/webp",
       "purpose": "any"
     }
   ]

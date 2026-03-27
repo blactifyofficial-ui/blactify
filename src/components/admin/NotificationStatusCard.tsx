@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { Bell, BellOff, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
-import { getToken } from "firebase/messaging";
-import { messaging } from "@/lib/firebase";
+import { getToken, Messaging } from "firebase/messaging";
+import { getMessagingInstance } from "@/lib/firebase";
 import { useAuth } from "@/store/AuthContext";
 import { cn } from "@/lib/utils";
 
@@ -14,19 +14,31 @@ export function NotificationStatusCard() {
     const [isUpdating, setIsUpdating] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
 
+    const [messaging, setMessaging] = useState<Messaging | null>(null);
+
     useEffect(() => {
         setIsMounted(true);
         if (typeof window !== "undefined" && "Notification" in window) {
             setPermission(Notification.permission);
         }
+        // Initialize messaging
+        getMessagingInstance().then(instance => {
+            if (instance) setMessaging(instance);
+        });
     }, []);
 
     const syncToken = async () => {
         if (!messaging || !user || !isAdmin) return;
         
         try {
+            // Ensure we use the correct service worker route
+            const swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+                scope: '/firebase-cloud-messaging-push-scope',
+            });
+
             const token = await getToken(messaging, {
-                vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
+                vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+                serviceWorkerRegistration: swRegistration,
             });
             
             if (token) {
