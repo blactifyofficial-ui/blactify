@@ -8,7 +8,10 @@ import {
     Box,
     Tag,
     BarChart3,
-    LogOut
+    LogOut,
+    Zap,
+    Home,
+    MessageSquare
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "firebase/auth";
@@ -20,6 +23,9 @@ const NAV_ITEMS = [
     { name: "Dash", href: "/admin", icon: LayoutDashboard },
     { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
     { name: "Items", href: "/admin/products", icon: Box },
+    { name: "Drops", href: "/admin/drops", icon: Zap },
+    { name: "Home", href: "/admin/home-products", icon: Home },
+    { name: "Help", href: "/admin/support", icon: MessageSquare },
     { name: "Cats", href: "/admin/categories", icon: Tag },
     { name: "Stats", href: "/admin/reports", icon: BarChart3 },
 ];

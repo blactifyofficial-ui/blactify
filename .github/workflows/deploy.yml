@@ -126,6 +126,8 @@ jobs:
             OTP_SECRET_PEPPER=${{ secrets.OTP_SECRET_PEPPER }}
             UPSTASH_REDIS_REST_URL=${{ secrets.UPSTASH_REDIS_REST_URL }}
             UPSTASH_REDIS_REST_TOKEN=${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+            TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
+            TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
 
             ENVEOF
             sed -i 's/^[[:space:]]*//' .env.local
