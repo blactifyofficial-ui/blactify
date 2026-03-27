@@ -28,7 +28,7 @@ import {
     Filler,
 } from 'chart.js';
 import { Line } from "react-chartjs-2";
-import { useDevTheme } from "./layout";
+import { useDevTheme } from "./DevThemeContext";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler);
 

@@ -1,13 +1,13 @@
 {
-  "name": "Blactify Admin",
-  "short_name": "Admin",
-  "description": "Blactify Management Portal",
-  "id": "/admin",
-  "start_url": "/admin",
+  "name": "Blactify Developer",
+  "short_name": "DevPortal",
+  "description": "Blactify Developer Mission Control",
+  "id": "/developer",
+  "start_url": "/developer",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#0E0E10",
+  "theme_color": "#34D399",
   "icons": [
     {
       "src": "/icon.png",
