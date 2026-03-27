@@ -62,10 +62,10 @@ export async function middleware(request: NextRequest) {
     // 2. Security Headers
     const nonce = btoa(crypto.randomUUID());
     
-    // Hardened CSP
+    // Hardened CSP (Relaxed for cross-browser compatibility)
     const cspHeader = `
         default-src 'self';
-        script-src 'self' 'nonce-${nonce}' 'unsafe-eval' https://*.google.com https://*.firebaseapp.com https://*.razorpay.com https://cdn.shopify.com;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.google.com https://*.firebaseapp.com https://*.razorpay.com https://cdn.shopify.com;
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
         img-src 'self' blob: data: https://*.googleusercontent.com https://res.cloudinary.com https://cdn.shopify.com https://placehold.co https://*.razorpay.com;
         font-src 'self' https://fonts.gstatic.com;
@@ -75,7 +75,7 @@ export async function middleware(request: NextRequest) {
         object-src 'none';
         base-uri 'self';
         form-action 'self' https://api.razorpay.com;
-        frame-ancestors 'none';
+        frame-ancestors 'self';
         block-all-mixed-content;
         upgrade-insecure-requests;
     `.replace(/\s{2,}/g, ' ').trim();
