@@ -49,7 +49,7 @@ export default function AdminReportsPage() {
     const averageOrderValue = paidOrders.length > 0 ? totalRevenue / paidOrders.length : 0;
 
     const downloadCSV = () => {
-        if (orders.length === 0) {
+        if (paidOrders.length === 0) {
             toast.error("No data to export");
             return;
         }
@@ -57,7 +57,7 @@ export default function AdminReportsPage() {
         const headers = ["Order ID", "Date", "Customer", "Email", "Phone", "Amount", "Status"];
         const csvRows = [
             headers.join(","),
-            ...orders.map(o => {
+            ...paidOrders.map(o => {
                 const customer = o.customer_details as { name?: string; email?: string; phone?: string };
                 return [
                     o.id,

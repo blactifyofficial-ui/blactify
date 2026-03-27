@@ -115,6 +115,8 @@ export async function getAllOrdersForReport(token?: string) {
         const { data, error } = await supabaseAdmin
             .from("orders")
             .select("*")
+            .not("status", "eq", "pending")
+            .not("status", "eq", "failed")
             .order("created_at", { ascending: false });
 
         if (error) throw new Error(error.message);
