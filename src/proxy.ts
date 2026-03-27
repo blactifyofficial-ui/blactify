@@ -66,25 +66,24 @@ export async function proxy(request: NextRequest) {
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
         img-src 'self' blob: data: https://*.googleusercontent.com https://res.cloudinary.com https://cdn.shopify.com https://placehold.co https://*.razorpay.com;
         font-src 'self' https://fonts.gstatic.com;
-        frame-src 'self' https://*.razorpay.com https://*.google.com;
-        connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app https://*.supabase.co https://api.razorpay.com https://api.cloudinary.com;
+        frame-src 'self' https://*.razorpay.com https://*.google.com https://*.firebaseapp.com;
+        connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app https://*.supabase.co https://api.razorpay.com https://api.cloudinary.com https://*.firebaseapp.com;
         worker-src 'self' blob:;
         object-src 'none';
         base-uri 'self';
-        form-action 'self' https://api.razorpay.com;
-        frame-ancestors 'self';
+        form-action 'self' https://api.razorpay.com https://*.firebaseapp.com;
         block-all-mixed-content;
         upgrade-insecure-requests;
     `.replace(/\s{2,}/g, ' ').trim();
 
     const response = NextResponse.next();
 
-    // Standard Security Headers
+    // Standard Security Headers (Relaxed for Firebase Auth stability in Safari)
     response.headers.set('Content-Security-Policy', cspHeader);
     response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-    response.headers.set('X-Frame-Options', 'DENY');
+    // REMOVED X-Frame-Options to allow framing for Auth popups (CSP handles ancestors)
     response.headers.set('X-Content-Type-Options', 'nosniff');
-    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+    response.headers.set('Referrer-Policy', 'no-referrer-when-downgrade');
     response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), interest-cohort=()');
     response.headers.set('X-DNS-Prefetch-Control', 'on');
 
