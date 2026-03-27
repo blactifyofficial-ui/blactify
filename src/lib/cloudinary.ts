@@ -13,26 +13,23 @@ cloudinary.config({
 export async function deleteFromCloudinary(url: string) {
     if (!url || !url.includes('cloudinary.com')) return;
 
-    try {
-        const parts = url.split('/');
-        const uploadIndex = parts.indexOf('upload');
+    const parts = url.split('/');
+    const uploadIndex = parts.indexOf('upload');
 
-        if (uploadIndex !== -1) {
-            // The public_id starts 2 positions after 'upload' (skipping the version tag like v12345)
-            // It includes the folder and the filename without extension.
-            const publicIdParts = parts.slice(uploadIndex + 2);
-            const lastPart = publicIdParts[publicIdParts.length - 1];
+    if (uploadIndex !== -1) {
+        // The public_id starts 2 positions after 'upload' (skipping the version tag like v12345)
+        // It includes the folder and the filename without extension.
+        const publicIdParts = parts.slice(uploadIndex + 2);
+        const lastPart = publicIdParts[publicIdParts.length - 1];
 
-            // Remove the file extension
-            publicIdParts[publicIdParts.length - 1] = lastPart.split('.')[0];
-            const publicId = publicIdParts.join('/');
+        // Remove the file extension
+        publicIdParts[publicIdParts.length - 1] = lastPart.split('.')[0];
+        const publicId = publicIdParts.join('/');
 
-            const result = await cloudinary.uploader.destroy(publicId);
-            return result;
-        }
-    } catch (error) {
-        throw error;
+        const result = await cloudinary.uploader.destroy(publicId);
+        return result;
     }
+
 }
 
 export { cloudinary };

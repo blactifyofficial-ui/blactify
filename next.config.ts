@@ -11,8 +11,15 @@ const withPWA = withPWAInit({
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  poweredByHeader: false,
+  reactStrictMode: true,
+  productionBrowserSourceMaps: false,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
   // Next 16 Turbopack compatibility with next-pwa
   experimental: {
+
     // turbopack: {}, // Might need this depending on version
   },
   images: {
@@ -40,6 +47,31 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains; preload',
+          },
+        ],
+      },
+      {
         source: '/(.*)\\.(woff2|woff|ttf|png|jpg|jpeg|svg|webp|avif)',
         headers: [
           {
@@ -60,5 +92,6 @@ const nextConfig: NextConfig = {
     ];
   },
 };
+
 
 export default withPWA(nextConfig);

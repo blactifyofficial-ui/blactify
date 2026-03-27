@@ -21,10 +21,10 @@ export function MaintenanceGuard({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         if (isBypassRoute) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setChecked(true);
             return;
         }
+
 
         let mounted = true;
         const check = async () => {

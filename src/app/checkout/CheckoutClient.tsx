@@ -179,13 +179,14 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                     hasErrors = true;
                 } else {
                     // 1. Stock Check
-                    let availableStock = 0;
+                    let availableStock;
                     if (item.size) {
                         const variant = currentProduct.product_variants?.find((v: { size: string; stock: number }) => v.size === item.size);
                         availableStock = variant?.stock ?? 0;
                     } else {
                         availableStock = currentProduct.product_variants?.reduce((acc: number, v: { stock: number }) => acc + v.stock, 0) || 0;
                     }
+
 
                     if (availableStock < item.quantity) {
                         newStockErrors[item.cartId] = availableStock === 0

@@ -12,18 +12,18 @@ export function FloatingCart({ onClick }: { onClick: () => void }) {
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
 
+
     useEffect(() => {
         if (mounted && cartItemCount > 0) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsVisible(true);
         } else {
             setIsVisible(false);
         }
     }, [cartItemCount, mounted]);
+
 
     return (
         <button

@@ -268,9 +268,9 @@ function DeveloperShell({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const saved = localStorage.getItem("dev-theme") as DevTheme | null;
         if (saved === "light" || saved === "dark") {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setTheme(saved);
         }
+
     }, []);
 
     // Keyboard shortcuts

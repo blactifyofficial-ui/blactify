@@ -5,6 +5,8 @@ import { Resend } from "resend";
 import { SELLER_CONFIG } from "@/lib/config";
 import { EmailSchema, OTPSchema } from "@/lib/schemas";
 
+import crypto from 'node:crypto';
+
 // Helper to generate a 6-character alphanumeric OTP
 function generateOTP(): string {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -13,6 +15,12 @@ function generateOTP(): string {
         otp += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return otp;
+}
+
+function hashOTP(otp: string): string {
+    // Using a simple hash for this implementation. In production, use a secret pepper from env.
+    const pepper = process.env.OTP_SECRET_PEPPER || "blactify-default-pepper";
+    return crypto.createHash('sha256').update(otp.toUpperCase() + pepper).digest('hex');
 }
 
 export async function sendSignupOTP(email: string) {
@@ -39,6 +47,7 @@ export async function sendSignupOTP(email: string) {
         }
 
         const otp = generateOTP();
+        const otp_hash = hashOTP(otp);
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
 
         // Store OTP in Supabase
@@ -47,7 +56,7 @@ export async function sendSignupOTP(email: string) {
             .insert([
                 {
                     email: emailToProcess,
-                    otp_hash: otp, // Storing as plain text for simplicity in this demo, usually should be hashed
+                    otp_hash: otp_hash, // Scaled up: Hashed for security
                     expires_at: expiresAt.toISOString(),
                 }
             ]);
@@ -103,17 +112,19 @@ export async function verifySignupOTP(email: string, otp: string) {
 
         const emailToProcess = validatedEmail.data;
         const otpToProcess = validatedOTP.data;
+        const otp_hash = hashOTP(otpToProcess);
 
         // Fetch OTP from Supabase
         const { data, error: dbError } = await supabaseAdmin
             .from("signup_otps")
             .select("*")
             .eq("email", emailToProcess)
-            .eq("otp_hash", otpToProcess.toUpperCase()) // Case-insensitive match if stored as upper
+            .eq("otp_hash", otp_hash)
             .gt("expires_at", new Date().toISOString())
             .order("created_at", { ascending: false })
             .limit(1)
             .single();
+
 
         if (dbError || !data) {
             return { success: false, error: "Invalid or expired OTP" };

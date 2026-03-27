@@ -64,6 +64,8 @@ jobs:
             NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
             NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
             NEXT_PUBLIC_FIREBASE_VAPID_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_VAPID_KEY }}
+            OTP_SECRET_PEPPER=${{ secrets.OTP_SECRET_PEPPER }}
+
 
   deploy:
     needs: build-and-push
@@ -121,6 +123,10 @@ jobs:
             NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
             NEXT_PUBLIC_FIREBASE_VAPID_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_VAPID_KEY }}
             FIREBASE_VAPID_PRIVATE_KEY=${{ secrets.FIREBASE_VAPID_PRIVATE_KEY }}
+            OTP_SECRET_PEPPER=${{ secrets.OTP_SECRET_PEPPER }}
+            UPSTASH_REDIS_REST_URL=${{ secrets.UPSTASH_REDIS_REST_URL }}
+            UPSTASH_REDIS_REST_TOKEN=${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+
             ENVEOF
             sed -i 's/^[[:space:]]*//' .env.local
 

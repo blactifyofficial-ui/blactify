@@ -84,8 +84,9 @@ export default function AdminReportsPage() {
 
     const chartData = orders.reduce((acc: Record<string, number>, o) => {
         const date = new Date(o.created_at as string);
-        let key = '';
+        let key: string;
         if (filterType === 'daily') {
+
             key = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
         } else if (filterType === 'monthly') {
             key = date.toLocaleString('default', { month: 'short', year: '2-digit' });
