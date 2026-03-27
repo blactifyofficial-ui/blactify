@@ -4,6 +4,7 @@ import { useEffect, useCallback, useRef, useState } from "react";
 import { getToken, onMessage } from "firebase/messaging";
 import { messaging } from "@/lib/firebase";
 import { useAuth } from "@/store/AuthContext";
+import { useNotificationStore, type AdminNotification } from "@/store/useNotificationStore";
 import { toast } from "sonner";
 
 /**
@@ -134,13 +135,27 @@ export default function NotificationManager({ children }: { children: React.Reac
     }, [isAdmin, user, requestPermission, isMounted, handleManualPermission]);
 
     // Handle Foreground Messages
+    const { addNotification } = useNotificationStore();
+
     useEffect(() => {
         if (!messaging) return;
 
         const unsubscribe = onMessage(messaging, (payload) => {
             console.log('Message received. ', payload);
             
-            // Custom foreground toast
+            // 1. Update the local store immediately so the bell count updates
+            const newNotif: AdminNotification = {
+                id: payload.data?.id || Math.random().toString(36).substring(7),
+                title: payload.notification?.title || "New Notification",
+                body: payload.notification?.body || "",
+                type: payload.data?.type || "unknown",
+                data: payload.data || {},
+                is_read: false,
+                created_at: new Date().toISOString(),
+            };
+            addNotification(newNotif);
+
+            // 2. Custom foreground toast
             toast(`🚨 ${payload.notification?.title || 'New Order!'}`, {
                 description: payload.notification?.body,
                 action: {
@@ -148,13 +163,10 @@ export default function NotificationManager({ children }: { children: React.Reac
                     onClick: () => window.location.href = '/admin/orders',
                 },
             });
-
-            // Browser internal notification if tab is in focus?
-            // Usually not needed if we show a custom toast, but FCM allows it.
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [addNotification]);
 
     return <>{children}</>;
 }

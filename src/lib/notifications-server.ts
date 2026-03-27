@@ -57,11 +57,56 @@ export async function sendMulticastAdminNotification(title: string, body: string
             notification: {
                 title,
                 body,
-                image: `${process.env.NEXT_PUBLIC_APP_URL || 'https://blactify.com'}/logo.webp`, // Logo as image/icon
+                image: `${process.env.NEXT_PUBLIC_APP_URL || 'https://blactify.com'}/logo.webp`,
             },
             data: {
                 ...stringifiedData,
-                click_action: "/admin/orders", // Matches SW click handle
+                click_action: "/admin/orders",
+            },
+            android: {
+                priority: "high" as const,
+                notification: {
+                    sound: "default",
+                    channelId: "admin_alerts",
+                    icon: "@drawable/ic_notification", // standard android icon name
+                    color: "#DC2626", // Red
+                },
+            },
+            apns: {
+                payload: {
+                    aps: {
+                        sound: "default",
+                        badge: 1,
+                        "interruption-level": "active",
+                        // "content-available": 1, // Optional: wakes up the app
+                    },
+                },
+                fcm_options: {
+                    image: `${process.env.NEXT_PUBLIC_APP_URL || 'https://blactify.com'}/logo.webp`,
+                }
+            },
+            webpush: {
+                headers: {
+                    Urgency: "high",
+                },
+                notification: {
+                    title,
+                    body,
+                    icon: "/logo.webp",
+                    badge: "/logo.webp",
+                    tag: "admin-order",
+                    requireInteraction: true,
+                    actions: [
+                        {
+                            action: "view",
+                            title: "View Order",
+                            icon: "/logo.webp"
+                        }
+                    ]
+                },
+                fcm_options: {
+                    link: "/admin/orders"
+                }
             },
             tokens: tokens,
         };

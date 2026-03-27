@@ -12,35 +12,54 @@ export async function GET() {
 
     const script = `
 // Firebase Service Worker
-importScripts('https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.0.0/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging-compat.js');
 
 const firebaseConfig = ${JSON.stringify(firebaseConfig)};
 
 firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
+// SDK Background listener
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
   
-  // Standard FCM behavior: If message has 'notification', it's shown automatically.
-  // We only manually show it if it's a data-only massage.
+  // Handled by SDK automatically if payload.notification exists.
+  // Manual show for data-only messages.
   if (!payload.notification && payload.data) {
-    const notificationTitle = payload.data.title || "New Message";
-    const notificationOptions = {
+    self.registration.showNotification(payload.data.title || "New Alert", {
         body: payload.data.body || "",
         icon: '/logo.webp',
+        badge: '/logo.webp',
         data: payload.data,
-    };
-    self.registration.showNotification(notificationTitle, notificationOptions);
+    });
   }
 });
 
-// Click Action
+// Fallback Push Listener for Safari/iOS lock screen stability
+self.addEventListener('push', (event) => {
+    if (!event.data) return;
+    try {
+        const data = event.data.json();
+        console.log('[firebase-messaging-sw.js] Push event received:', data);
+        
+        // If it's a notification-style payload but SDK background handler hasn't fired yet
+        // note: FCM often nests things in 'notification' or 'data'
+        const notification = data.notification || (data.data && data.data.notification ? JSON.parse(data.data.notification) : null);
+        
+        if (notification) {
+            // We can optionally manually show here if we detect it's not being shown.
+            // But usually raw 'push' listener is just for logging/debugging on iOS.
+            // FCM SDK 'onBackgroundMessage' is better.
+        }
+    } catch (e) {
+        console.error('[firebase-messaging-sw.js] Push processing error', e);
+    }
+});
+
+// Click Interaction
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
-    
-    // Use click_action from data if available, otherwise default to admin orders
     const clickAction = event.notification.data?.click_action || '/admin/orders';
     const urlToOpen = new URL(clickAction, self.location.origin).href;
 

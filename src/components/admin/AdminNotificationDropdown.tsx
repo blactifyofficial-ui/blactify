@@ -12,7 +12,6 @@ export function AdminNotificationDropdown() {
     const [isOpen, setIsOpen] = useState(false);
     const { notifications, setNotifications, markAsRead } = useNotificationStore();
     const { user } = useAuth();
-    const [loading, setLoading] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     const unreadCount = notifications.filter(n => !n.is_read).length;
@@ -20,7 +19,6 @@ export function AdminNotificationDropdown() {
     useEffect(() => {
         const fetchNotifications = async () => {
             if (!user) return;
-            setLoading(true);
             try {
                 const idToken = await user.getIdToken();
                 const response = await fetch("/api/admin/notifications", {
@@ -34,8 +32,6 @@ export function AdminNotificationDropdown() {
                 }
             } catch (err) {
                 console.error("Failed to fetch notifications:", err);
-            } finally {
-                setLoading(false);
             }
         };
 

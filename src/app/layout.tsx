@@ -111,7 +111,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} ${outfit.variable} ${spaceGrotesk.variable} font-sans antialiased text-black`}>
         <script dangerouslySetInnerHTML={{ __html: `
-          if ('serviceWorker' in navigator) {
+          if ('serviceWorker' in navigator && !window.location.pathname.startsWith('/admin')) {
             navigator.serviceWorker.getRegistrations().then(registrations => {
               for(let registration of registrations) {
                 registration.unregister();
