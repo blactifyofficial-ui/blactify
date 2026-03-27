@@ -154,16 +154,53 @@ export function DeveloperShell({ children }: { children: React.ReactNode }) {
         if (saved === "light" || saved === "dark") setTheme(saved);
     }, []);
 
-    if (authLoading) {
-        return <div className="min-h-screen bg-[#F8F8FA] flex items-center justify-center">Loading...</div>;
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push("/admin/login");
+        }
+    }, [user, authLoading, router]);
+
+    if (authLoading || !user) {
+        return (
+            <div className="min-h-screen bg-white flex flex-col items-center justify-center">
+                <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">Authenticating</p>
+            </div>
+        );
     }
 
-    if (!user || user.email !== ALLOWED_EMAIL) {
+    if (user.email !== ALLOWED_EMAIL) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-[#F8F8FA]">
-                <ShieldAlert size={48} className="text-red-500 mb-4" />
-                <h1 className="text-2xl font-bold mb-2">Access Restricted</h1>
-                <button onClick={() => router.push("/")} className="mt-4 px-6 py-2 bg-black text-white rounded-lg">Return Home</button>
+            <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-white">
+                <div className="mb-12 relative">
+                    <div className="absolute inset-0 bg-red-500/10 blur-3xl rounded-full scale-150" />
+                    <ShieldAlert size={80} strokeWidth={1.5} className="text-red-500 relative animate-in zoom-in duration-500" />
+                </div>
+                <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tighter leading-none">Access Restricted</h1>
+                <p className="text-zinc-500 mb-10 max-w-md mx-auto text-sm md:text-base font-medium leading-relaxed">
+                    This sector is restricted to authorized developers only. <br className="hidden md:block" />
+                    If you believe this is an error, please contact the system administrator.
+                </p>
+                <div className="flex flex-col md:flex-row gap-4">
+                    <button 
+                        onClick={() => router.push("/")} 
+                        className="px-10 py-4 bg-black text-white rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all hover:bg-zinc-800 active:scale-95 shadow-xl shadow-black/10"
+                    >
+                        Return Home
+                    </button>
+                    <button 
+                        onClick={() => {
+                            import("@/lib/firebase").then(({ auth }) => {
+                                import("firebase/auth").then(({ signOut }) => {
+                                    signOut(auth).then(() => router.push("/admin/login"));
+                                });
+                            });
+                        }} 
+                        className="px-10 py-4 bg-zinc-100 text-black rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all hover:bg-zinc-200 active:scale-95"
+                    >
+                        Switch Account
+                    </button>
+                </div>
             </div>
         );
     }

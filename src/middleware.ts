@@ -13,6 +13,12 @@ export async function middleware(req: NextRequest) {
     // 1. If it's the developer domain, rewrite everything to the /developer folder
     if (hostname === devDomain) {
         let path = url.pathname;
+
+        // Allow admin-related paths (like login) on all domains
+        if (path.startsWith('/admin')) {
+            return NextResponse.next();
+        }
+
         // Prevent double-prefixing if someone uses /developer/ within the subdomain
         if (path.startsWith('/developer')) {
             path = path.replace('/developer', '');
