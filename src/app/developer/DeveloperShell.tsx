@@ -138,6 +138,7 @@ function DeveloperMobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
 }
 
 export function DeveloperShell({ children }: { children: React.ReactNode }) {
+    const pathname = usePathname();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [theme, setTheme] = useState<DevTheme>("light");
 
@@ -155,6 +156,12 @@ export function DeveloperShell({ children }: { children: React.ReactNode }) {
     }, []);
 
     const themeVars = THEME_VARS[theme];
+
+    // Exempt login page from the guarded layout to prevent redirect loops
+    // Supports both dev.blactify.com/login and blactify.com/developer/login
+    if (pathname === "/login" || pathname === "/developer/login") {
+        return <>{children}</>;
+    }
 
     return (
         <DeveloperGuard>

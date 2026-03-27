@@ -38,11 +38,15 @@ export function DeveloperGuard({ children }: { children: React.ReactNode }) {
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500 to-transparent translate-x-[-100%] animate-[shimmer_2s_infinite]" />
                     </div>
                 </div>
-                <style jsx>{`
+                <style dangerouslySetInnerHTML={{ __html: `
                     @keyframes shimmer {
+                        0% { transform: translateX(-100%); }
                         100% { transform: translateX(100%); }
                     }
-                `}</style>
+                    .animate-shimmer {
+                        animation: shimmer 2s infinite;
+                    }
+                ` }} />
             </div>
         );
     }
