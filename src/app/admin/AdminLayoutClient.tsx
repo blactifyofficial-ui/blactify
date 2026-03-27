@@ -6,9 +6,11 @@ import { AdminGuard } from "@/components/admin/AdminGuard";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { AdminMobileHeader } from "@/components/admin/AdminMobileHeader";
 import NotificationManager from "@/components/admin/NotificationManager";
-import { useNotificationStore } from "@/store/useNotificationStore";
+import { useNotificationStore, type AdminNotification } from "@/store/useNotificationStore";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { AdminNotificationDropdown } from "@/components/admin/AdminNotificationDropdown";
+import { StoreStatusIndicator } from "@/components/admin/StoreStatusIndicator";
 
 export default function AdminLayoutClient({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -47,9 +49,9 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
     }, []);
     */
 
-    // Real-time listener for new orders
+    // Real-time listener for new orders and notifications
     useEffect(() => {
-        const channel = supabase
+        const orderChannel = supabase
             .channel('admin-orders-realtime')
             .on(
                 'postgres_changes',
@@ -70,8 +72,34 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
             )
             .subscribe();
 
+        const notificationChannel = supabase
+            .channel('admin-notifications-realtime')
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'notifications',
+                },
+                (payload) => {
+                    const newNotif = payload.new as AdminNotification;
+                    // Add to store if not already there
+                    useNotificationStore.getState().addNotification(newNotif);
+                    
+                    // Show toast if it's not a new_order (which already has a toast above)
+                    if (newNotif.type !== 'new_order') {
+                        toast.info(newNotif.title, {
+                            description: newNotif.body,
+                            className: "font-sans",
+                        });
+                    }
+                }
+            )
+            .subscribe();
+
         return () => {
-            supabase.removeChannel(channel);
+            supabase.removeChannel(orderChannel);
+            supabase.removeChannel(notificationChannel);
         };
     }, [setHasNewOrder]);
 
@@ -86,7 +114,15 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
                     <AdminMobileHeader onMenuClick={() => setIsSidebarOpen(true)} />
                     <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-                    <div className="flex-1 flex flex-col min-w-0 min-h-screen md:pl-72">
+                    <div className="flex-1 flex flex-col min-w-0 min-h-screen md:pl-72 relative">
+                        {/* Desktop Header */}
+                        <header className="hidden md:flex h-16 items-center justify-end px-10 sticky top-0 bg-zinc-50/0 backdrop-blur-0 z-[40]">
+                            <div className="flex items-center gap-6 mt-4">
+                                <StoreStatusIndicator />
+                                <AdminNotificationDropdown />
+                            </div>
+                        </header>
+
                         {/* Main Content */}
                         <main className="flex-1 p-4 md:p-10 w-full max-w-7xl mx-auto pt-[72px] md:pt-10 pb-10 overflow-x-hidden">
                             {children}

@@ -112,12 +112,7 @@ export default function AdminDashboardPage() {
             <AdminPageHeader
                 title="Dashboard"
                 subtitle="Store overview and performance"
-            >
-                <div className="flex items-center gap-3 px-5 py-2.5 bg-black text-white rounded-full shadow-2xl shadow-black/20 border border-white/10">
-                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse ring-4 ring-green-500/20"></div>
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em]">Store Online</span>
-                </div>
-            </AdminPageHeader>
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-12">
                 <UpcomingDrops drops={upcomingDrops} fetchDrops={fetchDrops} />

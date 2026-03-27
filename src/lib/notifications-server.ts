@@ -70,6 +70,28 @@ export async function sendMulticastAdminNotification(title: string, body: string
 
         console.log(`FCM: Successfully sent ${response.successCount} messages; ${response.failureCount} failed.`);
 
+        // Store the notification in the database for history/acknowledgement
+        try {
+            const { error: dbError } = await supabaseAdmin
+                .from("notifications")
+                .insert({
+                    title,
+                    body,
+                    type: data?.type || "unknown",
+                    data: data || {},
+                    is_read: false,
+                    created_at: new Date().toISOString()
+                });
+
+            if (dbError) {
+                console.error("FCM: Error saving notification to database:", dbError);
+            } else {
+                console.log("FCM: Notification saved to database.");
+            }
+        } catch (dbErr) {
+            console.error("FCM: Fatal error saving notification to database:", dbErr);
+        }
+
         if (response.failureCount > 0) {
             const failedTokens: string[] = [];
             response.responses.forEach((resp, idx) => {

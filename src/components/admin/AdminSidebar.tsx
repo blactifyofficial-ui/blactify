@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { X, LogOut, LayoutDashboard, ShoppingBag, Box, Tag, BarChart3, Eye, MessageSquare, Home, Zap } from "lucide-react";
+import { X, LogOut, LayoutDashboard, ShoppingBag, Box, Tag, BarChart3, MessageSquare, Home, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -76,25 +76,6 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                             <X size={24} />
                         </button>
 
-                        {/* Eye Notification for Desktop */}
-                        <div className={cn(
-                            "hidden md:flex w-9 h-9 rounded-full border flex items-center justify-center transition-all duration-500 relative",
-                            hasNewOrder
-                                ? "bg-zinc-900 border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)] animate-eye-glow"
-                                : "bg-zinc-900 border-zinc-800"
-                        )}>
-                            <Eye
-                                size={18}
-                                strokeWidth={2.5}
-                                className={cn(
-                                    "transition-colors duration-500",
-                                    hasNewOrder ? "text-red-500" : "text-white/20"
-                                )}
-                            />
-                            {hasNewOrder && (
-                                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 border-2 border-black rounded-full animate-pulse" />
-                            )}
-                        </div>
                     </div>
                 </div>
 
