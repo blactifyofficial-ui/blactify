@@ -4,13 +4,13 @@ import { verifyAdminAuth } from "@/lib/auth-server";
 
 export async function PATCH(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const authResult = await verifyAdminAuth(req);
     if (authResult.error) return authResult.error;
 
     try {
-        const { id } = params;
+        const { id } = await params;
 
         const { data, error } = await supabaseAdmin
             .from("notifications")
