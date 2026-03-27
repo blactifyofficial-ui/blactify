@@ -10,7 +10,7 @@ import { formatDistanceToNow } from "date-fns";
 
 export function AdminNotificationDropdown() {
     const [isOpen, setIsOpen] = useState(false);
-    const { notifications, setNotifications, markAsRead } = useNotificationStore();
+    const { notifications, setNotifications, markAsRead, markAllAsRead } = useNotificationStore();
     const { user } = useAuth();
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -70,6 +70,25 @@ export function AdminNotificationDropdown() {
         }
     };
 
+    const handleMarkAllRead = async () => {
+        if (!user || unreadCount === 0) return;
+        try {
+            const idToken = await user.getIdToken();
+            const response = await fetch("/api/admin/notifications", {
+                method: "PATCH",
+                headers: {
+                    "Authorization": `Bearer ${idToken}`
+                }
+            });
+            if (response.ok) {
+                markAllAsRead();
+                toast.success("All notifications marked as read");
+            }
+        } catch (err) {
+            console.error("Failed to mark all as read:", err);
+        }
+    };
+
     const getIcon = (type?: string) => {
         switch (type) {
             case "new_order": return <Package className="text-white" size={14} />;
@@ -115,7 +134,7 @@ export function AdminNotificationDropdown() {
             {isOpen && (
                 <div 
                     className={cn(
-                        "fixed sm:absolute right-4 sm:right-0 top-20 sm:top-full sm:mt-4 w-[calc(100vw-32px)] sm:w-[450px]",
+                        "fixed sm:absolute right-4 sm:right-0 top-20 sm:top-full sm:mt-4 w-[calc(100vw-32px)] sm:w-[500px]",
                         "bg-white rounded-[2.5rem] shadow-[0_80px_100px_-30px_rgba(0,0,0,0.15)] z-[200] overflow-hidden flex flex-col",
                         "animate-[premium-spring_0.5s_cubic-bezier(0.175,0.885,0.32,1.275)_backwards]",
                         "border border-zinc-100"
@@ -127,10 +146,20 @@ export function AdminNotificationDropdown() {
                             <div className="flex flex-col gap-1">
                                 <span className="text-[10px] font-black uppercase tracking-[0.4em] text-red-600">
                                     Administration
-                                </span>
-                                <h3 className="text-2xl font-black uppercase tracking-tight text-black">
-                                    Inbox
-                                </h3>
+                                </span >
+                                <div className="flex items-center gap-4">
+                                    <h3 className="text-2xl font-black uppercase tracking-tight text-black">
+                                        Inbox
+                                    </h3>
+                                    {unreadCount > 0 && (
+                                        <button 
+                                            onClick={handleMarkAllRead}
+                                            className="px-3 py-1 rounded-full bg-zinc-50 border border-zinc-100 text-[8px] font-black uppercase tracking-widest text-zinc-400 hover:text-red-600 hover:border-red-100 transition-all active:scale-95"
+                                        >
+                                            Clear All
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                             <button 
                                 onClick={() => setIsOpen(false)} 

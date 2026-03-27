@@ -17,6 +17,8 @@ interface NotificationStore {
     setNotifications: (notifications: AdminNotification[]) => void;
     addNotification: (notification: AdminNotification) => void;
     markAsRead: (id: string) => void;
+    markAllAsRead: () => void;
+    clearOldNotifications: () => void;
     setHasNewOrder: (value: boolean) => void;
 }
 
@@ -32,6 +34,15 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
         notifications: state.notifications.map(n => 
             n.id === id ? { ...n, is_read: true, read_at: new Date().toISOString() } : n
         )
+    })),
+    markAllAsRead: () => set((state) => ({
+        notifications: state.notifications.map(n => 
+            !n.is_read ? { ...n, is_read: true, read_at: new Date().toISOString() } : n
+        ),
+        hasNewOrder: false
+    })),
+    clearOldNotifications: () => set((state) => ({
+        notifications: state.notifications.filter(n => !n.is_read)
     })),
     setHasNewOrder: (value) => set({ hasNewOrder: value }),
 }));

@@ -35,3 +35,28 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 }
+
+export async function PATCH(req: Request) {
+    const authResult = await verifyAdminAuth(req);
+    if (authResult.error) return authResult.error;
+
+    try {
+        const { error } = await supabaseAdmin
+            .from("notifications")
+            .update({ 
+                is_read: true, 
+                read_at: new Date().toISOString() 
+            })
+            .eq("is_read", false);
+
+        if (error) {
+            console.error("Error marking all notifications as read:", error);
+            return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error("Fatal error in mark all read API:", error);
+        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+    }
+}
