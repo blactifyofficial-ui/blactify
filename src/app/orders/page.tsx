@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/store/AuthContext";
-import { Package, RefreshCw } from "lucide-react";
+import { Package } from "lucide-react";
 import { toast } from "sonner";
 import { getUserOrders } from "@/lib/order-sync";
 import Link from "next/link";
@@ -46,7 +46,9 @@ export default function OrdersPage() {
 
             if (result.success) {
                 setOrders((result.orders as Order[]) || []);
-                if (!showLoading) toast.success("Orders synced");
+                if (!showLoading) {
+                    // Just refresh without toast
+                }
             } else {
                 toast.error(getFriendlyErrorMessage(result.error));
             }
@@ -91,14 +93,6 @@ export default function OrdersPage() {
                 <header className="mb-10">
                     <div className="flex items-end justify-between">
                         <h1 className="font-empire text-5xl">Your Orders</h1>
-                        <button 
-                            onClick={() => fetchOrders(false)}
-                            disabled={loading}
-                            className="flex items-center gap-2 px-4 py-2 border border-zinc-100 rounded-full text-[9px] font-bold uppercase tracking-widest text-zinc-400 hover:text-black hover:border-black transition-all active:scale-95 disabled:opacity-50"
-                        >
-                            <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
-                            Sync
-                        </button>
                     </div>
                 </header>
 
