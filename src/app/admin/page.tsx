@@ -15,7 +15,7 @@ import { StoreControls } from "@/components/admin/dashboard/StoreControls";
 import { UpcomingDrops } from "@/components/admin/dashboard/UpcomingDrops";
 import { RecentActivity } from "@/components/admin/dashboard/RecentActivity";
 import { TopProducts } from "@/components/admin/dashboard/TopProducts";
-import { SalesGrowthChart } from "@/components/admin/dashboard/SalesGrowthChart";
+
 import { DisablePurchaseModal } from "@/components/admin/dashboard/DisablePurchaseModal";
 
 export default function AdminDashboardPage() {
@@ -137,9 +137,7 @@ export default function AdminDashboardPage() {
                 <div className="lg:col-span-2">
                     <TopProducts products={stats.topProducts} />
                 </div>
-                <div className="lg:col-span-3">
-                    <SalesGrowthChart revenueByMonth={stats.revenueByMonth} />
-                </div>
+
             </div>
 
             <DisablePurchaseModal
