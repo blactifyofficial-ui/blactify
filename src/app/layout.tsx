@@ -110,6 +110,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${outfit.variable} ${spaceGrotesk.variable} font-sans antialiased text-black`}>
+        <script dangerouslySetInnerHTML={{ __html: `
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+              for(let registration of registrations) {
+                registration.unregister();
+              }
+            });
+          }
+        ` }} />
         <AppLayout>{children}</AppLayout>
       </body>
     </html>
