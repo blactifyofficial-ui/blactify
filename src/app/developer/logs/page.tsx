@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
     Search,
     Download,
@@ -36,7 +36,6 @@ export default function LogsPage() {
     const [expandedLog, setExpandedLog] = useState<string | null>(null);
     const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
     const [currentPage, setCurrentPage] = useState(1);
-    const containerRef = useRef<HTMLDivElement>(null);
 
     const fetchLogs = useCallback(async () => {
         try {

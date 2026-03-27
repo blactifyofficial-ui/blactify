@@ -5,9 +5,7 @@ import {
     ClipboardList,
     Search,
     Download,
-    User,
     Clock,
-    Globe,
     Filter,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
