@@ -105,10 +105,16 @@ export default function AdminOrdersPage() {
                                             )}>
                                                 {order.status}
                                             </span>
+                                            {order.status === 'pending' && (new Date().getTime() - new Date(order.created_at).getTime() > 30 * 60 * 1000) && (
+                                                <span className="text-[8px] font-black uppercase tracking-[0.25em] px-3 py-1 bg-red-500 text-white rounded-full animate-pulse shadow-lg shadow-red-500/20">
+                                                    STALE / CHECK RAZORPAY
+                                                </span>
+                                            )}
                                         </div>
-                                        <h3 className="font-black text-lg text-black tracking-tight group-hover:translate-x-1 transition-transform duration-500">
+                                        <h3 className="font-black text-lg text-black tracking-tight group-hover:translate-x-1 transition-transform duration-500 flex items-center gap-2">
                                             {order.customer_details?.name || "Guest"}
                                         </h3>
+
                                         <div className="flex items-center gap-5 text-zinc-400">
                                             <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.2em] opacity-80 italic">
                                                 <Calendar size={12} strokeWidth={2.5} />

@@ -129,7 +129,65 @@ export async function getAllOrdersForReport(token?: string) {
     }
 }
 
+import Razorpay from "razorpay";
 import { appendOrderToSheet } from "@/lib/google-sheets";
+
+export async function syncAdminOrderWithGateway(id: string, token?: string) {
+    try {
+        const auth = await verifyActionAdminAuth(token);
+        
+        // 1. Get current order from DB
+        const { data: order, error } = await supabaseAdmin
+            .from("orders")
+            .select("*")
+            .eq("id", id)
+            .single();
+
+        if (error || !order) throw new Error("Order not found in the database.");
+        if (order.status !== "pending") return { success: true, message: "Order is already updated." };
+
+        // 2. Initialise Razorpay
+        const razorpay = new Razorpay({
+            key_id: (process.env.RAZORPAY_KEY_ID || "").trim(),
+            key_secret: (process.env.RAZORPAY_KEY_SECRET || "").trim(),
+        });
+
+        // 3. Fetch status from Gateway
+        const razorpayOrder = (await razorpay.orders.fetch(id)) as { status: string };
+
+        if (razorpayOrder.status === "paid") {
+            // Fetch payments to get a payment_id
+            const payments = (await razorpay.orders.fetchPayments(id)) as { items: Array<{ id: string; status: string }> };
+            const successPayment = payments.items.find((p: { status: string }) => p.status === "captured");
+
+            if (!successPayment) {
+                throw new Error("Payment was successful but couldn't be found in the gateway.");
+            }
+
+            // Manually confirm via internal logic (without signature check since we trust our own API call)
+            const { data: rpcData, error: rpcError } = await supabaseAdmin.rpc('confirm_order_v3', {
+                p_order_id: id,
+                p_payment_id: successPayment.id,
+                p_payment_details: {
+                    ...successPayment,
+                    reconciled_by: auth.email,
+                    reconciled_at: new Date().toISOString()
+                },
+                p_items: order.items
+            });
+
+            if (rpcError || !rpcData?.success) {
+                throw new Error(rpcError?.message || rpcData?.error || "Failed to finalize order update.");
+            }
+
+            return { success: true, message: "Order successfully synced with Razorpay." };
+        } else {
+            return { success: false, error: `Gateway status is ${razorpayOrder.status.toUpperCase()}. Sync halted.` };
+        }
+    } catch (err: unknown) {
+        return { success: false, error: err instanceof Error ? err.message : "Synchronization failed." };
+    }
+}
 
 export async function testSheetSync(token?: string) {
     try {
@@ -159,3 +217,4 @@ export async function testSheetSync(token?: string) {
         return { success: false, error: err instanceof Error ? err.message : "Test failed" };
     }
 }
+

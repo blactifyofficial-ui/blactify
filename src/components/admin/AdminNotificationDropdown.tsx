@@ -10,7 +10,7 @@ import { formatDistanceToNow } from "date-fns";
 
 export function AdminNotificationDropdown() {
     const [isOpen, setIsOpen] = useState(false);
-    const { notifications, setNotifications, markAsRead, markAllAsRead } = useNotificationStore();
+    const { notifications, setNotifications, markAsRead, clearAll } = useNotificationStore();
     const { user } = useAuth();
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -70,22 +70,20 @@ export function AdminNotificationDropdown() {
         }
     };
 
-    const handleMarkAllRead = async () => {
-        if (!user || unreadCount === 0) return;
+    const handleClearAll = async () => {
+        if (!user || notifications.length === 0) return;
         try {
             const idToken = await user.getIdToken();
-            const response = await fetch("/api/admin/notifications", {
-                method: "PATCH",
-                headers: {
-                    "Authorization": `Bearer ${idToken}`
-                }
-            });
-            if (response.ok) {
-                markAllAsRead();
-                toast.success("All notifications marked as read");
+            if (unreadCount > 0) {
+                await fetch("/api/admin/notifications", {
+                    method: "PATCH",
+                    headers: { "Authorization": `Bearer ${idToken}` }
+                });
             }
+            clearAll();
+            toast.success("Inbox cleared");
         } catch (err) {
-            console.error("Failed to mark all as read:", err);
+            console.error("Failed to clear inbox:", err);
         }
     };
 
@@ -140,7 +138,6 @@ export function AdminNotificationDropdown() {
                         "border border-zinc-100"
                     )}
                 >
-                    {/* Header: Pure White & Red */}
                     <div className="relative p-8 bg-white">
                         <div className="relative flex items-center justify-between">
                             <div className="flex flex-col gap-1">
@@ -151,12 +148,12 @@ export function AdminNotificationDropdown() {
                                     <h3 className="text-2xl font-black uppercase tracking-tight text-black">
                                         Inbox
                                     </h3>
-                                    {unreadCount > 0 && (
+                                    {notifications.length > 0 && (
                                         <button 
-                                            onClick={handleMarkAllRead}
-                                            className="px-4 py-1.5 rounded-full bg-red-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-black transition-all active:scale-90 shadow-lg shadow-red-200"
+                                            onClick={handleClearAll}
+                                            className="px-5 py-2 rounded-2xl bg-black text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-600 hover:shadow-xl hover:shadow-red-500/20 transition-all active:scale-95 shadow-lg border border-white/10"
                                         >
-                                            Clear All
+                                            Clear Inbox
                                         </button>
                                     )}
                                 </div>
@@ -170,7 +167,6 @@ export function AdminNotificationDropdown() {
                         </div>
                     </div>
 
-                    {/* Stats bar: White/Black/Red */}
                     <div className="px-8 py-3 bg-zinc-50/50 border-y border-zinc-100 flex items-center justify-between">
                          <span className="text-[9px] font-black uppercase text-zinc-400 tracking-wider">
                              Real-time alerts
@@ -186,7 +182,6 @@ export function AdminNotificationDropdown() {
                          </div>
                     </div>
 
-                    {/* List area */}
                     <div className="flex-1 overflow-y-auto bg-white custom-scrollbar pb-4 max-h-[400px]">
                         {notifications.length === 0 ? (
                             <div className="px-10 py-20 flex flex-col items-center justify-center text-center">
@@ -263,7 +258,6 @@ export function AdminNotificationDropdown() {
                         )}
                     </div>
                     
-                    {/* Footer: Pure White */}
                     <div className="p-6 bg-white border-t border-zinc-50 text-center flex items-center justify-center gap-3">
                          <div className="flex items-center gap-2 text-[9px] font-black uppercase text-zinc-400 tracking-[0.2em]">
                              <Clock size={12} className="text-red-600/50" />

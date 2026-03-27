@@ -75,47 +75,47 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
     }, [id]);
 
     useEffect(() => {
+        fetchOrder();
+    }, [fetchOrder]);
+
+    useEffect(() => {
         if (!order?.items) return;
         async function fetchItemDetails() {
             try {
                 const { supabase } = await import("@/lib/supabase");
                 const measurementsMap: Record<string, Array<{ value: string; measurement_types: { name: string } }>> = {};
-                const imagesMap: Record<string, string> = { ...itemImages };
+                const imagesMap: Record<string, string> = {}; // Start fresh to avoid infinite loop with itemImages
 
-                if (!order?.items) return;
-
-                for (const item of order.items) {
+                for (const item of order!.items) {
                     // Fetch Measurements
                     if (item.id && item.size) {
                         const key = `${item.id}-${item.size}`;
-                        if (!measurementsMap[key]) {
-                            const { data: variant } = await supabase
-                                .from('product_variants')
-                                .select(`
-                                    id,
-                                    variant_measurements (
-                                        value,
-                                        measurement_types (
-                                            name
-                                        )
+                        const { data: variant } = await supabase
+                            .from('product_variants')
+                            .select(`
+                                id,
+                                variant_measurements (
+                                    value,
+                                    measurement_types (
+                                        name
                                     )
-                                `)
-                                .eq('product_id', item.id)
-                                .eq('size', item.size)
-                                .maybeSingle();
+                                )
+                            `)
+                            .eq('product_id', item.id)
+                            .eq('size', item.size)
+                            .maybeSingle();
 
-                            if (variant?.variant_measurements) {
-                                measurementsMap[key] = (variant.variant_measurements as unknown as { value: string; measurement_types: { name: string } | { name: string }[] }[]).map(m => ({
-                                    value: String(m.value),
-                                    measurement_types: (Array.isArray(m.measurement_types) ? m.measurement_types[0] : m.measurement_types) as { name: string }
-                                }));
-                            }
+                        if (variant?.variant_measurements) {
+                            measurementsMap[key] = (variant.variant_measurements as unknown as { value: string; measurement_types: { name: string } | { name: string }[] }[]).map(m => ({
+                                value: String(m.value),
+                                measurement_types: (Array.isArray(m.measurement_types) ? m.measurement_types[0] : m.measurement_types) as { name: string }
+                            }));
                         }
                     }
 
                     // Fetch Image Fallback if missing
                     const hasImage = item.main_image || item.image || item.imageUrl || (item.product_images && item.product_images.length > 0);
-                    if (!hasImage && item.id && !imagesMap[item.id]) {
+                    if (!hasImage && item.id) {
                         const { data: product } = await supabase
                             .from('products')
                             .select(`
@@ -134,13 +134,13 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                 }
 
                 setItemMeasurements(measurementsMap);
-                setItemImages(imagesMap);
+                setItemImages(prev => ({ ...prev, ...imagesMap }));
             } catch (err) {
                 console.error("Error fetching item details:", err);
             }
         }
         fetchItemDetails();
-    }, [order, itemImages]);
+    }, [order]);
 
     const handleUpdateStatus = async (newStatus: string) => {
         if (!order) return;
@@ -196,7 +196,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
         return (
             <div className="text-center py-32 font-inter">
                 <AlertCircle className="mx-auto text-zinc-100 mb-6" size={64} />
-                <h2 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-4">Registry Null</h2>
+                <h2 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-4">Order Not Found</h2>
                 <Link href="/admin/orders" className="flex items-center gap-2 text-zinc-400 hover:text-black transition-colors mb-6 text-xs font-bold uppercase tracking-widest">
                     <ArrowLeft size={16} />
                     Back to Orders
@@ -215,8 +215,8 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
     return (
         <div className="space-y-12 animate-in fade-in duration-700 pb-20 font-inter max-w-6xl mx-auto">
             <AdminPageHeader
-                title="Deployment Analysis"
-                subtitle={`Registry Entry #${order.id.slice(0, 12)}...`}
+                title="Order Details"
+                subtitle={`Order #${order.id.slice(0, 12)}`}
             >
                 <div className="flex items-center gap-3">
                     <button
@@ -227,6 +227,34 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                     >
                         <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
                     </button>
+
+                    {order.status === 'pending' && (
+                        <button
+                            onClick={async () => {
+                                setStatusUpdating(true);
+                                try {
+                                    const { syncAdminOrderWithGateway } = await import("@/app/actions/orders");
+                                    const token = await auth.currentUser?.getIdToken();
+                                    const res = await syncAdminOrderWithGateway(order.id, token);
+                                    if (res.success) {
+                                        toast.success("Reconciliation Success", { description: res.message });
+                                        fetchOrder();
+                                    } else {
+                                        toast.error("Reconciliation Halted", { description: res.error });
+                                    }
+                                } catch {
+                                    toast.error("Process Error");
+                                } finally {
+                                    setStatusUpdating(false);
+                                }
+                            }}
+                            disabled={statusUpdating}
+                            className="px-6 py-3 bg-red-600 text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-red-700 transition-all disabled:opacity-50 shadow-xl shadow-red-600/20 animate-pulse"
+                        >
+                            Reconcile with Gateway
+                        </button>
+                    )}
+
 
                     <div className="relative group">
                         <select
@@ -251,7 +279,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                 <div className="lg:col-span-2 space-y-10">
-                    <AdminCard title="Logistics Manifest" icon={<Package size={18} />} subtitle={`Total Assets: ${order.items?.length || 0}`}>
+                    <AdminCard title="Order Items" icon={<Package size={18} />} subtitle={`Items: ${order.items?.length || 0}`}>
                         <div className="divide-y divide-zinc-50 -mx-8 -mb-8">
                             {(order.items || []).map((item, idx: number) => (
                                 <div key={idx} className="px-8 py-8 flex items-center justify-between group hover:bg-zinc-50 transition-colors duration-500">
@@ -299,20 +327,20 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                             ))}
                             <div className="p-8 bg-zinc-50/50 space-y-4">
                                 <div className="flex justify-between text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">
-                                    <span>ASSETS SUB-TOTAL</span>
+                                    <span>ITEMS SUBTOTAL</span>
                                     <span className="text-zinc-900">₹{itemsSubtotal.toLocaleString()}</span>
                                 </div>
                                 <div className="flex justify-between text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">
-                                    <span>LOGISTICS SURCHARGE</span>
+                                    <span>SHIPPING FEE</span>
                                     <span className={cn(
                                         "font-black",
                                         shippingCharge > 0 ? "text-zinc-900" : "text-green-600 tracking-[0.4em]"
                                     )}>
-                                        {shippingCharge > 0 ? `₹${shippingCharge.toLocaleString()}` : "FREE DEPLOYMENT"}
+                                        {shippingCharge > 0 ? `₹${shippingCharge.toLocaleString()}` : "FREE SHIPPING"}
                                     </span>
                                 </div>
                                 <div className="flex justify-between pt-6 border-t border-zinc-100">
-                                    <span className="text-sm font-black uppercase tracking-[0.4em] text-zinc-900">MISSION VALUATION</span>
+                                    <span className="text-sm font-black uppercase tracking-[0.4em] text-zinc-900">ORDER TOTAL</span>
                                     <span className="text-3xl font-black tracking-tighter text-black">₹{order.amount.toLocaleString()}</span>
                                 </div>
                             </div>
@@ -321,15 +349,15 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                         <AdminCard 
-                            title="Deployment Vector" 
+                            title="Shipping Details" 
                             icon={<MapPin size={18} />}
-                            subtitle="Shipping Destination"
+                            subtitle="Delivery Destination"
                         >
                             <div className="space-y-6">
                                 <div className="p-6 bg-zinc-50 rounded-[2rem] border border-zinc-100 relative overflow-hidden group">
                                     <div className="relative z-10 space-y-4">
                                         <div className="pb-4 border-b border-zinc-100 mb-2">
-                                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-red-600 mb-2 italic">Standardized Format</p>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-red-600 mb-2 italic">Shipping Address</p>
                                             <p className="text-xl font-black tracking-tight text-black">{order.customer_details?.name}</p>
                                         </div>
                                         
@@ -374,18 +402,18 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                             </div>
                         </AdminCard>
 
-                        <AdminCard title="Registry Tracking" icon={<Activity size={18} />}>
+                        <AdminCard title="Shipment Tracking" icon={<Activity size={18} />}>
                             <div className="space-y-6">
                                 <div className="space-y-3">
                                     <label className="text-[9px] text-zinc-400 font-black uppercase tracking-[0.3em] italic mb-1.5 block">
-                                        Asset Tracking ID
+                                        Tracking Number
                                     </label>
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
                                             value={trackingId}
                                             onChange={(e) => setTrackingId(e.target.value)}
-                                            placeholder="Paste Protocol ID..."
+                                            placeholder="Enter tracking number..."
                                             className="flex-1 bg-zinc-50 border border-zinc-100 rounded-2xl px-5 py-3 text-xs font-bold focus:outline-none focus:ring-4 focus:ring-black/5 transition-all placeholder:text-zinc-300"
                                         />
                                         <button
@@ -393,11 +421,11 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                                             disabled={statusUpdating || trackingId === (order.tracking_id || "")}
                                             className="px-6 py-3 bg-black text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-zinc-800 transition-all disabled:opacity-50 shadow-xl shadow-black/10"
                                         >
-                                            SYNC
+                                            SAVE
                                         </button>
                                     </div>
                                     <p className="text-[8px] text-zinc-300 font-black uppercase tracking-widest leading-tight">
-                                        This ID will be broadcasted to the customer&apos;s secure interface upon reconciliation.
+                                        This ID will be visible to the customer in their account dashboard.
                                     </p>
                                 </div>
                             </div>
@@ -406,15 +434,15 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                 </div>
 
                 <div className="space-y-10">
-                    <AdminCard title="Identity Node" icon={<User size={18} />} subtitle="Verified Bio-data">
+                    <AdminCard title="Customer Details" icon={<User size={18} />} subtitle="Contact Information">
                         <div className="space-y-6">
                             <div className="flex items-center gap-5 p-4 hover:bg-zinc-50 rounded-[1.5rem] transition-colors group">
                                 <div className="w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                                     <User size={20} />
                                 </div>
                                 <div className="space-y-0.5">
-                                    <p className="text-[8px] text-zinc-400 font-black uppercase tracking-[0.3em]">Identity</p>
-                                    <p className="text-sm font-black tracking-tight">{order.customer_details?.name || "GUEST PROTOCOL"}</p>
+                                    <p className="text-[8px] text-zinc-400 font-black uppercase tracking-[0.3em]">Name</p>
+                                    <p className="text-sm font-black tracking-tight">{order.customer_details?.name || "Guest Customer"}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-5 p-4 hover:bg-zinc-50 rounded-[1.5rem] transition-colors group">
@@ -422,25 +450,25 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                                     <Mail size={20} />
                                 </div>
                                 <div className="space-y-0.5 overflow-hidden">
-                                    <p className="text-[8px] text-zinc-400 font-black uppercase tracking-[0.3em]">Communication</p>
+                                    <p className="text-[8px] text-zinc-400 font-black uppercase tracking-[0.3em]">Email</p>
                                     <p className="text-[11px] font-black tracking-widest truncate">{order.customer_details?.email || "N/A"}</p>
                                 </div>
                             </div>
                         </div>
                     </AdminCard>
 
-                    <AdminCard title="Fiscal Nexus" icon={<CreditCard size={18} />} subtitle="Transaction Telemetry">
+                    <AdminCard title="Payment Details" icon={<CreditCard size={18} />} subtitle="Gateway Status">
                         <div className="space-y-6">
                             <div className="space-y-2">
-                                <p className="text-[8px] text-zinc-400 font-black uppercase tracking-[0.3em]">Fiscal Hash</p>
+                                <p className="text-[8px] text-zinc-400 font-black uppercase tracking-[0.3em]">Transaction ID</p>
                                 <p className="text-[10px] font-mono font-black break-all bg-zinc-50 p-4 rounded-2xl border border-zinc-100 shadow-inner italic">
-                                    {order.payment_id || "GATEWAY_NULL"}
+                                    {order.payment_id || "UNPAID"}
                                 </p>
                             </div>
                             <div className="pt-4 border-t border-zinc-50 flex items-center gap-4">
                                 <Calendar size={16} className="text-zinc-400" />
                                 <div className="space-y-0.5">
-                                    <p className="text-[8px] text-zinc-400 font-black uppercase tracking-[0.3em]">Deployment Epoch</p>
+                                    <p className="text-[8px] text-zinc-400 font-black uppercase tracking-[0.3em]">Order Date</p>
                                     <p className="text-xs font-black tracking-widest">{new Date(order.created_at).toLocaleString()}</p>
                                 </div>
                             </div>

@@ -139,7 +139,7 @@ export default function OrderCard({ order }: OrderCardProps) {
                                     </Link>
                                 </div>
 
-                                {order.tracking_id && (
+                                {order.tracking_id ? (
                                     <div className="flex items-center gap-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
                                         <div className="flex-1">
                                             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-0.5">Tracking ID</p>
@@ -147,6 +147,13 @@ export default function OrderCard({ order }: OrderCardProps) {
                                         </div>
                                         <div className="px-3 py-1.5 bg-black text-white text-[10px] font-bold uppercase tracking-widest rounded-full">
                                             In Transit
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100 italic">
+                                        <div className="flex-1">
+                                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-0.5">Tracking Information</p>
+                                            <p className="text-[11px] font-bold tracking-widest text-zinc-500 uppercase">Tracking ID not provided yet</p>
                                         </div>
                                     </div>
                                 )}
@@ -158,7 +165,7 @@ export default function OrderCard({ order }: OrderCardProps) {
                                                 <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-zinc-100 group-hover/addr:bg-black group-hover/addr:text-white transition-colors">
                                                     <MapPin size={14} />
                                                 </div>
-                                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">Delivery Vector</span>
+                                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">Delivery Address</span>
                                             </div>
                                             
                                             <div className="space-y-1 pl-10">

@@ -146,9 +146,22 @@ export async function confirmOrder(orderData: z.infer<typeof OrderSyncSchema>, t
         if (error || !rpcData?.success) {
             const techMessage = error?.message || rpcData?.error || "Unknown error during order confirmation";
 
+            // Log a critical error if they have already paid but stock deduction failed
+            await supabaseAdmin.from("developer_logs").insert({
+                action_type: "order_confirmation_post_payment_failure",
+                severity: "critical",
+                details: {
+                    order_id: razorpay_order_id,
+                    payment_id: razorpay_payment_id,
+                    error: techMessage,
+                    user_id: data.user_id,
+                    timestamp: new Date().toISOString()
+                }
+            });
+
             let userMessage = "Failed to complete your purchase. Please try again.";
             if (techMessage.includes("Insufficient stock")) {
-                userMessage = techMessage;
+                userMessage = "We are very sorry, but the stock was depleted just as you were paying. Please contact support for a priority refund.";
             } else if (techMessage.includes("variant not found")) {
                 userMessage = "One of the items in your bag is no longer available.";
             } else if (techMessage.includes("not found")) {

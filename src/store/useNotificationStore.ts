@@ -19,6 +19,7 @@ interface NotificationStore {
     markAsRead: (id: string) => void;
     markAllAsRead: () => void;
     clearOldNotifications: () => void;
+    clearAll: () => void;
     setHasNewOrder: (value: boolean) => void;
 }
 
@@ -44,5 +45,6 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
     clearOldNotifications: () => set((state) => ({
         notifications: state.notifications.filter(n => !n.is_read)
     })),
+    clearAll: () => set({ notifications: [], hasNewOrder: false }),
     setHasNewOrder: (value) => set({ hasNewOrder: value }),
 }));

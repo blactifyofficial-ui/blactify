@@ -104,7 +104,7 @@ export interface Order {
     amount: number;
     currency: string;
     items: OrderJsonItem[]; // Standardized JSONB items
-    status: 'paid' | 'processing' | 'shipped' | 'delivered' | 'failed';
+    status: 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'failed';
     shipping_address: ShippingAddress;
     customer_details: CustomerDetails;
     payment_details?: Record<string, unknown>;

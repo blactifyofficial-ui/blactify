@@ -407,7 +407,8 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                     currency: "INR",
                     receipt: `receipt_${Date.now()}`,
                     userId: user?.uid,
-                    email: formData.email
+                    email: formData.email,
+                    itemsCount: latestItems.length
                 }),
             });
 
