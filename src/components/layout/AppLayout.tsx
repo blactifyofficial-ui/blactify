@@ -36,12 +36,21 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     const [isAuthOpen, setIsAuthOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const [isSubdomain, setIsSubdomain] = useState(false);
     const pathname = usePathname();
     const router = useRouter();
     const searchParams = useSearchParams();
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const host = window.location.hostname;
+            setIsSubdomain(host.startsWith('admin.') || host.startsWith('dev.'));
+        }
+    }, []);
+
     const isAdmin = pathname?.startsWith('/admin');
     const isDeveloper = pathname?.startsWith('/developer');
-    const isRestricted = isAdmin || isDeveloper;
+    const isRestricted = isAdmin || isDeveloper || isSubdomain;
 
     // Handle opening cart via query param
     useEffect(() => {

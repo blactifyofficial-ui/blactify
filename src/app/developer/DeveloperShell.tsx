@@ -161,12 +161,7 @@ export function DeveloperShell({ children }: { children: React.ReactNode }) {
     }, [user, authLoading, router]);
 
     if (authLoading || !user) {
-        return (
-            <div className="min-h-screen bg-white flex flex-col items-center justify-center">
-                <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">Authenticating</p>
-            </div>
-        );
+        return null;
     }
 
     if (user.email !== ALLOWED_EMAIL) {

@@ -139,10 +139,14 @@ jobs:
               -o $DOCKER_CONFIG/cli-plugins/docker-compose
             chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
 
-            # Force-stop and remove ALL old containers (bypasses ContainerConfig bug)
+            # Force-stop and remove ALL old containers & clean system for storage optimization
             docker ps -aq | xargs -r docker stop || true
             docker ps -aq | xargs -r docker rm -f || true
+            docker image prune -af || true
+            docker volume prune -f || true
             docker network prune -f || true
+            docker builder prune -af || true
+            docker system prune -af --volumes || true
 
             # Pull latest image and deploy fresh
             export IMAGE_REGISTRY=${{ secrets.DOCKERHUB_USERNAME }}
