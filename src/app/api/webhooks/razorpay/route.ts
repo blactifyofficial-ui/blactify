@@ -26,7 +26,7 @@ export async function POST(req: Request) {
 
         const event = JSON.parse(body);
         const eventType = event.event;
-        console.log("Razorpay Webhook Event:", eventType);
+
 
         // --- Audit log for receipt ---
         await supabaseAdmin.from("developer_logs").insert({
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
             const payment_id = payload.payment_id || payload.id;
             const notes = payload.notes || {};
 
-            console.log(`Processing ${eventType} for order: ${order_id}`);
+
 
             // 1. Check if order exists and its current status
             const { data: existingOrder, error: fetchError } = await supabaseAdmin
@@ -68,10 +68,10 @@ export async function POST(req: Request) {
             if (existingOrder) {
                 if (existingOrder.status === "paid") {
                     // Already confirmed by client-side - nothing to do
-                    console.log(`Order ${order_id} is already marked as paid.`);
+
                 } else {
                     // ⚡ CRITICAL: Client-side confirmOrder failed or hasn't run yet.
-                    console.log(`⚠️ Order ${order_id} is in status ${existingOrder.status}. Confirming via webhook...`);
+
 
                     const items = existingOrder.items as { id: string; size: string; quantity: number; price_base: number; price_offer?: number }[];
 
@@ -120,7 +120,7 @@ export async function POST(req: Request) {
                             console.error(`CRITICAL: Could not even fallback-update order ${order_id}:`, updateError);
                         }
                     } else {
-                        console.log(`✅ Order ${order_id} confirmed via webhook successfully.`);
+
                         // Audit success
                         await supabaseAdmin.from("developer_logs").insert({
                             action_type: "razorpay_webhook_confirmation_success",

@@ -459,7 +459,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                 throw new Error("order-creation-failed");
             }
 
-            console.log(`✅ Pending order created: ${order.id}`);
+
 
             // 2. Load Razorpay script
             const isLoaded = await loadRazorpay();
@@ -501,10 +501,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                     try {
                         const token = await auth.currentUser?.getIdToken();
                         // Save order to Supabase
-                        console.log("Payment successful, saving order...", {
-                            order_id: razorpayResponse.razorpay_order_id || order.id,
-                            payment_id: razorpayResponse.razorpay_payment_id
-                        });
+
 
                         const saveResult = await confirmOrder({
                             razorpay_order_id: razorpayResponse.razorpay_order_id || order.id,

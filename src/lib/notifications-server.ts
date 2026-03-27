@@ -33,11 +33,11 @@ export async function sendMulticastAdminNotification(title: string, body: string
         const tokens = Array.from(uniqueUserTokens.values());
         
         if (tokens.length === 0) {
-            console.log("No unique admin tokens found for notification.");
+
             return;
         }
         
-        console.log(`FCM: Sending multicast to ${tokens.length} users (most recent device each)...`);
+
 
         // Requirement Payload:
         // Image : LOGO
@@ -113,7 +113,7 @@ export async function sendMulticastAdminNotification(title: string, body: string
 
         const response = await messagingAdmin.sendEachForMulticast(message);
 
-        console.log(`FCM: Successfully sent ${response.successCount} messages; ${response.failureCount} failed.`);
+
 
         // Store the notification in the database for history/acknowledgement
         try {
@@ -130,8 +130,6 @@ export async function sendMulticastAdminNotification(title: string, body: string
 
             if (dbError) {
                 console.error("FCM: Error saving notification to database:", dbError);
-            } else {
-                console.log("FCM: Notification saved to database.");
             }
         } catch (dbErr) {
             console.error("FCM: Fatal error saving notification to database:", dbErr);
@@ -153,7 +151,7 @@ export async function sendMulticastAdminNotification(title: string, body: string
             });
 
             if (failedTokens.length > 0) {
-                console.log(`FCM: Cleaning up ${failedTokens.length} stale tokens...`);
+
                 await supabaseAdmin
                     .from("admin_tokens")
                     .delete()

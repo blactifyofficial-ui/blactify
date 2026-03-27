@@ -28,7 +28,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
                     } else {
                         const elapsedTime = now - parseInt(sessionStart);
                         if (elapsedTime > SESSION_TIMEOUT_MS) {
-                            console.warn("Admin session expired. Logging out.");
+
                             localStorage.removeItem("admin_session_start");
                             import("@/lib/firebase").then(({ auth }) => {
                                 import("firebase/auth").then(({ signOut }) => {

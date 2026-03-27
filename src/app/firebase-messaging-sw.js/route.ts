@@ -22,7 +22,7 @@ const messaging = firebase.messaging();
 
 // SDK Background listener
 messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Received background message ', payload);
+
   
   // Handled by SDK automatically if payload.notification exists.
   // Manual show for data-only messages.
@@ -41,7 +41,7 @@ self.addEventListener('push', (event) => {
     if (!event.data) return;
     try {
         const data = event.data.json();
-        console.log('[firebase-messaging-sw.js] Push event received:', data);
+
         
         // If it's a notification-style payload but SDK background handler hasn't fired yet
         // note: FCM often nests things in 'notification' or 'data'

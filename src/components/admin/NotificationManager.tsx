@@ -34,8 +34,6 @@ export default function NotificationManager({ children }: { children: React.Reac
 
             if (!response.ok) {
                 console.error("Failed to sync FCM token");
-            } else {
-                console.log("FCM Token synced successfully");
             }
         } catch (err) {
             console.error("Error syncing FCM token:", err);
@@ -48,44 +46,38 @@ export default function NotificationManager({ children }: { children: React.Reac
             return;
         }
         if (typeof window === 'undefined' || !('Notification' in window)) {
-            console.warn("FCM: Notifications NOT supported in this browser.");
+
             return;
         }
 
-        console.log("FCM: requestPermission called. isAdmin:", isAdmin, "user:", user?.email);
-        console.log("FCM: Current Notification permission:", Notification.permission);
+
 
         // If permission already granted, or we are in the middle of registration, skip.
         if (Notification.permission === 'granted') {
              // Continue to get token
         } else if (Notification.permission === 'denied') {
-             console.log("FCM: Notifications explicitly BLOCKED by user.");
+
              return;
         } else {
-             console.log("FCM: Requesting Permission...");
              const result = await Notification.requestPermission();
-             console.log("FCM: Permission result:", result);
              if (result !== 'granted') return;
         }
 
         if (isRegistering.current) {
-            console.log("FCM: Registration already in progress.");
+
             return;
         }
         
         isRegistering.current = true;
 
         try {
-            console.log("FCM: Fetching token with VAPID Key...");
+
             const currentToken = await getToken(messaging, {
                 vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
             });
 
             if (currentToken) {
-                console.log("FCM: Token successfully retrieved:", currentToken.substring(0, 10) + "...");
                 await syncTokenWithServer(currentToken);
-            } else {
-                console.log('FCM: No registration token available.');
             }
         } catch (err: unknown) {
             const error = err instanceof Error ? err : new Error(String(err));
@@ -114,10 +106,10 @@ export default function NotificationManager({ children }: { children: React.Reac
         // Log the check
         if (isAdmin && user && typeof window !== 'undefined' && 'Notification' in window) {
             const currentPerm = Notification.permission;
-            console.log("FCM: Current permission is:", currentPerm);
+
 
             if (currentPerm === 'default') {
-                console.log("FCM: Permission is default. Triggering prompt...");
+
                 // Regular toast for maximum visibility
                 toast.success("🔔 Enable Push Notifications", {
                     description: "Get real-time alerts for your orders on this device.",
@@ -128,7 +120,7 @@ export default function NotificationManager({ children }: { children: React.Reac
                     duration: 30000, // 30 seconds
                 });
             } else if (currentPerm === 'granted') {
-                console.log("FCM: Permission already granted. Syncing...");
+
                 requestPermission();
             }
         }
@@ -141,7 +133,7 @@ export default function NotificationManager({ children }: { children: React.Reac
         if (!messaging) return;
 
         const unsubscribe = onMessage(messaging, (payload) => {
-            console.log('Message received. ', payload);
+
             
             // 1. Update the local store immediately so the bell count updates
             const newNotif: AdminNotification = {

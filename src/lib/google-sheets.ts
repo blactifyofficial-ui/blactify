@@ -53,7 +53,7 @@ export async function appendOrderToSheet(orderData: {
         });
 
         const sheets = google.sheets({ version: 'v4', auth });
-        console.log("📡 Initializing Sheets API for Order:", orderData.id);
+
 
         // Format the items into a string
         const itemsList = orderData.items.map((item) =>
@@ -87,7 +87,7 @@ export async function appendOrderToSheet(orderData: {
                 values: [row],
             },
         });
-        console.log(`✅ Order ${orderData.id} synced to Google Sheets`);
+
 
     } catch (error) {
         console.error("❌ Google Sheets Sync Error:", error);

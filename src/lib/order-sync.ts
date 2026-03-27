@@ -49,14 +49,14 @@ export async function createPendingOrder(orderData: {
         if (error) {
             // If order already exists (idempotency), treat as success
             if (error.code === "23505") {
-                console.log(`Pending order ${orderData.razorpay_order_id} already exists (idempotent).`);
+
                 return { success: true };
             }
             console.error("Failed to create pending order:", error);
             return { success: false, error: error.message };
         }
 
-        console.log(`✅ Pending order created: ${orderData.razorpay_order_id}`);
+
         return { success: true };
     } catch (err: unknown) {
         console.error("Exception creating pending order:", err);
@@ -123,7 +123,7 @@ export async function confirmOrder(orderData: z.infer<typeof OrderSyncSchema>, t
             .single();
 
         if (existingOrder?.status === "paid") {
-            console.log(`Order ${razorpay_order_id} already confirmed (idempotent).`);
+
             return { success: true };
         }
 
@@ -166,7 +166,7 @@ export async function confirmOrder(orderData: z.infer<typeof OrderSyncSchema>, t
                 userMessage = "One of the items in your bag is no longer available.";
             } else if (techMessage.includes("not found")) {
                 // Pending order record was missing — fall back to create_order_v2
-                console.warn(`Pending order ${razorpay_order_id} not found. Falling back to direct creation.`);
+
                 return await fallbackSaveOrder(data);
             }
 
@@ -223,7 +223,7 @@ export async function confirmOrder(orderData: z.infer<typeof OrderSyncSchema>, t
             status: "paid"
         }).catch(() => { });
 
-        console.log(`✅ Order confirmed: ${razorpay_order_id} → paid`);
+
         return { success: true };
     } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred.";
