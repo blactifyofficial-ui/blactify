@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "path";
 // @ts-expect-error - next-pwa lacks proper types for this version
 import withPWAInit from "next-pwa";
 
@@ -11,6 +12,7 @@ const withPWA = withPWAInit({
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  outputFileTracingRoot: path.join(__dirname),
   poweredByHeader: false,
   reactStrictMode: true,
   productionBrowserSourceMaps: false,
@@ -19,8 +21,6 @@ const nextConfig: NextConfig = {
   },
   // Next 16 Turbopack compatibility with next-pwa
   experimental: {
-
-    // turbopack: {}, // Might need this depending on version
   },
   images: {
     loader: 'custom',
@@ -73,15 +73,6 @@ const nextConfig: NextConfig = {
       },
       {
         source: '/(.*)\\.(woff2|woff|ttf|png|jpg|jpeg|svg|webp|avif)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      {
-        source: '/_next/image(.*)',
         headers: [
           {
             key: 'Cache-Control',

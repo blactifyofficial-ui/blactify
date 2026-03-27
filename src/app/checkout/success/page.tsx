@@ -93,24 +93,8 @@ export default function CheckoutSuccessPage() {
                 const data = result.order;
                 setOrder(data);
 
-                // Start Automation
+                // Done
                 setNotified(true);
-
-                // Trigger Server-side Notification (Email)
-                const response = await fetch("/api/notify", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ order: data }),
-                });
-
-                if (response.ok) {
-                    // No error data or result needed
-                } else {
-                    // const errorData = await response.json(); // Removed as per diff
-                }
 
             } catch (error) {
                 console.error("Error fetching order details:", error);

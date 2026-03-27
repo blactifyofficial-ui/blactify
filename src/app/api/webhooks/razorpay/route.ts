@@ -100,19 +100,26 @@ export async function POST(req: Request) {
                         // Send admin notification since client-side didn't do it
                         try {
                             const { sendMulticastAdminNotification } = await import("@/lib/notifications-server");
-                            const { data: orderData } = await supabaseAdmin
+                            const { data: orderData } = await (supabaseAdmin
                                 .from("orders")
-                                .select("amount, customer_details")
+                                .select("*")
                                 .eq("id", order_id)
-                                .single();
+                                .single() as any);
 
                             if (orderData) {
                                 const customerEmail = (orderData.customer_details as { email?: string })?.email || "Unknown";
+                                const totalAmountFormatted = `₹${Number(orderData.amount).toLocaleString('en-IN')}`;
+                                
+                                // Push Notification
                                 sendMulticastAdminNotification(
                                     "🚨 Order Confirmed via Webhook!",
-                                    `Order #${order_id} for ₹${orderData.amount} by ${customerEmail} (webhook confirmation)`,
+                                    `Order #${order_id} for ${totalAmountFormatted} by ${customerEmail} (webhook confirmation)`,
                                     { orderId: order_id, type: "new_order" }
                                 ).catch(() => { });
+
+                                // Email & Telegram Notifications (Direct Call)
+                                const { sendOrderNotifications } = await import("@/lib/notifications-emails");
+                                sendOrderNotifications({ ...orderData, id: order_id }).catch(e => console.error("Webhook Order Notify Error:", e));
                             }
                         } catch {
                             // Non-blocking

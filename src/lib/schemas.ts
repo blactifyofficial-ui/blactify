@@ -53,4 +53,6 @@ export const OrderSyncSchema = z.object({
     razorpay_order_id: z.string().optional(),
     razorpay_payment_id: z.string().optional(),
     payment_details: z.record(z.string(), z.unknown()).optional(),
+    discount_code: z.string().optional().nullable(),
+    shipping_charge: z.number().optional().nullable(),
 });

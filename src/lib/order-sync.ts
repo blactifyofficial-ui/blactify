@@ -6,6 +6,7 @@ import { OrderSyncSchema } from "./schemas";
 import { z } from "zod";
 import { verifyActionAuth } from "./auth-server";
 import crypto from "crypto";
+import { sendOrderNotifications } from "./notifications-emails";
 
 // ── Phase 1: Create Pending Order (BEFORE Razorpay gateway opens) ──────────
 // This ensures we always have a DB record before payment is attempted.
@@ -188,13 +189,18 @@ export async function confirmOrder(orderData: z.infer<typeof OrderSyncSchema>, t
         // 2. Admin Push Notification
         const { sendMulticastAdminNotification } = await import("./notifications-server");
         const userEmail = data.customer_details?.email || "Unknown User";
+        const totalAmountFormatted = `₹${Number(data.amount).toLocaleString('en-IN')}`;
+        
         sendMulticastAdminNotification(
             "🚨 New Order Received!",
-            `Order #${razorpay_order_id} for ₹${data.amount} just came in By ${userEmail}`,
+            `Order #${razorpay_order_id} for ${totalAmountFormatted} just came in By ${userEmail}`,
             { orderId: razorpay_order_id, type: "new_order" }
         ).catch((err) => console.error("FCM: Trigger error:", err));
 
-        // 3. Google Sheets Sync
+        // 3. Trigger Email & Telegram Notifications (Direct Call)
+        sendOrderNotifications(data).catch(e => console.error("Order Notify Error:", e));
+
+        // 4. Google Sheets Sync
         appendOrderToSheet({
             id: razorpay_order_id,
             items: data.items,
