@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { X, LogOut, LayoutDashboard, ShoppingBag, Box, Tag, BarChart3, MessageSquare, Home, Zap } from "lucide-react";
+import { X, LogOut, LayoutDashboard, ShoppingBag, Box, Tag, BarChart3, MessageSquare, Home, Zap, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -19,6 +19,7 @@ const NAV_ITEMS = [
     { name: "Support", href: "/admin/support", icon: MessageSquare },
     { name: "Categories", href: "/admin/categories", icon: Tag },
     { name: "Reports", href: "/admin/reports", icon: BarChart3 },
+    { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
 interface AdminSidebarProps {
@@ -110,7 +111,21 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                     })}
                 </nav>
 
-                <div className="p-6 pb-8 md:pb-6 border-t border-zinc-900 shrink-0">
+                <div className="px-6 py-6 border-t border-zinc-900 shrink-0 space-y-4">
+                    <div className="flex items-center gap-3 px-2">
+                        <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-[10px] font-black uppercase text-zinc-400 shrink-0">
+                            {auth.currentUser?.email?.charAt(0) || "A"}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[10px] font-black uppercase tracking-widest truncate text-white">
+                                {auth.currentUser?.email?.split('@')[0] || "Admin"}
+                            </p>
+                            <p className="text-[9px] font-bold text-zinc-500 truncate lowercase mt-0.5">
+                                {auth.currentUser?.email}
+                            </p>
+                        </div>
+                    </div>
+
                     <button
                         onClick={() => setIsLogoutModalOpen(true)}
                         className="flex items-center justify-center gap-3 px-6 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/10 w-full transition-all duration-300 border border-transparent hover:border-red-500/20"
