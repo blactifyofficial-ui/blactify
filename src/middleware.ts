@@ -31,8 +31,7 @@ export async function middleware(request: NextRequest) {
     
     // 1. Rate Limiting for sensitive paths
     const isSensitive = request.nextUrl.pathname.startsWith('/api') || 
-                       request.nextUrl.pathname.startsWith('/login') || 
-                       request.nextUrl.pathname.startsWith('/admin');
+                       request.nextUrl.pathname.startsWith('/login');
 
     if (isSensitive) {
         if (rateLimiter) {

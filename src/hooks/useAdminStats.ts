@@ -64,7 +64,7 @@ export function useAdminStats() {
         } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error("Failed to fetch dashboard statistics"));
             toast.error("Intelligence sync failed", {
-                description: "Unable to reconcile global performance metrics.",
+                description: err instanceof Error ? err.message : "Unable to reconcile global performance metrics.",
             });
         } finally {
             setLoading(false);

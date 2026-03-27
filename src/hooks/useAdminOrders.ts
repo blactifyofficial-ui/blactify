@@ -39,7 +39,7 @@ export function useAdminOrders({ page, pageSize, searchTerm }: UseAdminOrdersPro
         } catch (err: unknown) {
             setError(err instanceof Error ? err : new Error("Failed to fetch orders"));
             toast.error("Network synchronization failed", {
-                description: "Unable to retrieve latest order intelligence.",
+                description: err instanceof Error ? err.message : "Unable to retrieve latest order intelligence.",
             });
         } finally {
             setLoading(false);
