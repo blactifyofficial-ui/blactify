@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { ShieldAlert, Command } from "lucide-react";
 
-const ALLOWED_EMAIL = "bro.nithin07@gmail.com";
+const ALLOWED_EMAIL = process.env.NEXT_PUBLIC_ALLOWED_DEV_EMAIL || "bro.nithin07@gmail.com";
 
 export function DeveloperGuard({ children }: { children: React.ReactNode }) {
     const { user, loading } = useAuth();
