@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/store/AuthContext";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
     Terminal,
     Bell,
@@ -9,7 +9,6 @@ import {
     Webhook,
     ClipboardList,
     LogOut,
-    ShieldAlert,
     Wrench,
     Command,
     Sun,
@@ -22,7 +21,7 @@ import { DevThemeContext, useDevTheme, THEME_VARS, type DevTheme } from "./DevTh
 
 import { DeveloperGuard } from "@/components/developer/DeveloperGuard";
 
-const ALLOWED_EMAIL = "bro.nithin07@gmail.com";
+
 
 const NAV_ITEMS = [
     { label: "Overview", href: "/developer", icon: Terminal, shortcut: "1" },
