@@ -27,67 +27,7 @@ const LIMIT = 50;
 const WINDOW_MS = 60 * 1000;
 
 export async function proxy(request: NextRequest) {
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || request.headers.get('x-real-ip') || '127.0.0.1';
-    
-    // 1. Rate Limiting for sensitive paths
-    const isSensitive = request.nextUrl.pathname.startsWith('/api') || 
-                       request.nextUrl.pathname.startsWith('/login');
-
-    if (isSensitive) {
-        if (rateLimiter) {
-            // Distributed Rate Limit (Upstash Redis)
-            const { success } = await rateLimiter.limit(ip);
-            if (!success) {
-                return new NextResponse('Too many requests (Rate limited)', { status: 429 });
-            }
-        } else {
-            // In-memory fallback
-            const now = Date.now();
-            const entry = inMemoryRateLimit.get(ip) || { count: 0, lastReset: now };
-            
-            if (now - entry.lastReset > WINDOW_MS) {
-                entry.count = 1;
-                entry.lastReset = now;
-            } else {
-                entry.count++;
-            }
-            inMemoryRateLimit.set(ip, entry);
-
-            if (entry.count > LIMIT) {
-                return new NextResponse('Too many requests (Rate limited)', { status: 429 });
-            }
-        }
-    }
-
-    // 2. Security Headers (Relaxed for cross-browser compatibility)
-    const cspHeader = `
-        default-src 'self';
-        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.google.com https://*.firebaseapp.com https://*.razorpay.com https://cdn.shopify.com;
-        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-        img-src 'self' blob: data: https://*.googleusercontent.com https://res.cloudinary.com https://cdn.shopify.com https://placehold.co https://*.razorpay.com;
-        font-src 'self' https://fonts.gstatic.com;
-        frame-src 'self' https://*.razorpay.com https://*.google.com https://*.firebaseapp.com;
-        connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app https://*.supabase.co https://api.razorpay.com https://api.cloudinary.com https://*.firebaseapp.com;
-        worker-src 'self' blob:;
-        object-src 'none';
-        base-uri 'self';
-        form-action 'self' https://api.razorpay.com https://*.firebaseapp.com;
-        block-all-mixed-content;
-        upgrade-insecure-requests;
-    `.replace(/\s{2,}/g, ' ').trim();
-
-    const response = NextResponse.next();
-
-    // Standard Security Headers (Relaxed for Firebase Auth stability in Safari)
-    response.headers.set('Content-Security-Policy', cspHeader);
-    response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-    // REMOVED X-Frame-Options to allow framing for Auth popups (CSP handles ancestors)
-    response.headers.set('X-Content-Type-Options', 'nosniff');
-    response.headers.set('Referrer-Policy', 'no-referrer-when-downgrade');
-    response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), interest-cohort=()');
-    response.headers.set('X-DNS-Prefetch-Control', 'on');
-
-    return response;
+    return NextResponse.next();
 }
 
 
