@@ -354,10 +354,13 @@ function DeveloperShell({ children }: { children: React.ReactNode }) {
                 <DeveloperSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
                 <DeveloperMobileHeader onMenuClick={() => setSidebarOpen(true)} />
 
-                <div className="md:pl-[280px] min-h-screen">
-                    <main className="p-4 md:p-8 pt-[72px] md:pt-8 max-w-[1400px] mx-auto">
+                <div className="md:pl-[280px] min-h-screen flex flex-col">
+                    <main className="flex-1 p-3 sm:p-5 lg:p-8 pt-[68px] md:pt-8 w-full max-w-[1600px] mx-auto overflow-x-hidden">
                         {children}
                     </main>
+                    
+                    {/* Common Bottom Spacer for Mobile (optional) */}
+                    <div className="h-4 md:hidden" />
                 </div>
             </div>
         </DevThemeContext.Provider>

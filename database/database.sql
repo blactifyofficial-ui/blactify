@@ -505,6 +505,19 @@ EXCEPTION WHEN OTHERS THEN
 END;
 $$;
 
+-- 5. Automated Log Prune (7-Day Retention)
+-- This function deletes logs older than 7 days to keep the database lean.
+CREATE OR REPLACE FUNCTION prune_old_developer_logs()
+RETURNS void AS $$
+BEGIN
+    DELETE FROM developer_logs
+    WHERE created_at < NOW() - INTERVAL '7 days';
+END;
+$$ LANGUAGE plpgsql;
+
+-- To enable automatic pruning, run the following manually in Supabase SQL editor:
+-- SELECT cron.schedule('prune-logs-daily', '0 0 * * *', 'SELECT prune_old_developer_logs()');
+
 -- Seed Data
 INSERT INTO store_settings (id, purchases_enabled, maintenance_mode, maintenance_message, bypass_ips) 
 VALUES (TRUE, TRUE, FALSE, '', '{}') 
