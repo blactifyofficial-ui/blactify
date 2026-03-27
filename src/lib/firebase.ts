@@ -19,7 +19,7 @@ const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
 // Standard Fix for Safari/ITP: Ensure persistence is robust
-import { setPersistence, indexedDBLocalPersistence, browserLocalPersistence } from "firebase/auth";
+import { setPersistence, browserLocalPersistence } from "firebase/auth";
 if (typeof window !== "undefined") {
     // Force Local Persistence to avoid 'missing initial state' errors on page reloads/redirects in Safari
     setPersistence(auth, browserLocalPersistence).catch(err => {

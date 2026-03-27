@@ -100,12 +100,11 @@ export async function POST(req: Request) {
                         // Send admin notification since client-side didn't do it
                         try {
                             const { sendMulticastAdminNotification } = await import("@/lib/notifications-server");
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             const { data: orderData } = (await supabaseAdmin
                                 .from("orders")
                                 .select("*")
                                 .eq("id", order_id)
-                                .single()) as { data: any; error: any };
+                                .single()) as { data: Record<string, unknown> | null; error: unknown };
 
                             if (orderData) {
                                 const customerEmail = (orderData.customer_details as { email?: string })?.email || "Unknown";
