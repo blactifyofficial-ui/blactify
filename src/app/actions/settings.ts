@@ -160,20 +160,21 @@ export async function getMaintenanceStatus() {
     try {
         const { data, error } = await supabaseAdmin
             .from("store_settings")
-            .select("maintenance_mode, maintenance_message")
+            .select("maintenance_mode, maintenance_message, bypass_ips")
             .eq("id", true)
             .single();
 
         if (error) {
-            return { maintenance_mode: false, maintenance_message: '' };
+            return { maintenance_mode: false, maintenance_message: '', bypass_ips: [] };
         }
 
         return {
             maintenance_mode: data?.maintenance_mode ?? false,
             maintenance_message: data?.maintenance_message ?? '',
+            bypass_ips: data?.bypass_ips ?? [],
         };
     } catch {
-        return { maintenance_mode: false, maintenance_message: '' };
+        return { maintenance_mode: false, maintenance_message: '', bypass_ips: [] };
     }
 }
 
@@ -248,5 +249,34 @@ export async function toggleMaintenanceMode(enabled: boolean, message: string, t
         return { success: true };
     } catch {
         return { success: false, error: 'Failed to update maintenance mode' };
+    }
+}
+
+export async function updateBypassIPs(ips: string[], token?: string) {
+    try {
+        const auth = await verifyActionAdminAuth(token);
+        
+        const { error } = await supabaseAdmin
+            .from("store_settings")
+            .upsert({
+                id: true,
+                bypass_ips: ips,
+            });
+
+        if (error) {
+            return { success: false, error: error.message };
+        }
+
+        // Log the action
+        const { logAction } = await import("@/lib/logger");
+        await logAction({
+            action_type: 'update_bypass_ips',
+            details: { ips },
+            user_email: auth.email,
+        });
+
+        return { success: true };
+    } catch {
+        return { success: false, error: 'Failed to update whitelist' };
     }
 }

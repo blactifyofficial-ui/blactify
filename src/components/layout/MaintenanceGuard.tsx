@@ -3,16 +3,16 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { getMaintenanceStatus } from "@/app/actions/settings";
+import { getClientIP } from "@/actions/get-client-ip";
 
 export function MaintenanceGuard({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
     const [maintenanceMessage, setMaintenanceMessage] = useState("");
+    const [isWhitelisted, setIsWhitelisted] = useState(false);
     const [checked, setChecked] = useState(false);
 
     // Admin, Developer, and post-payment routes always bypass maintenance
-    // /checkout/success and /checkout/failure MUST bypass: if a user already paid
-    // but maintenance was toggled mid-payment, they must still see their confirmation.
     const isBypassRoute =
         pathname?.startsWith("/admin") ||
         pathname?.startsWith("/developer") ||
@@ -29,10 +29,21 @@ export function MaintenanceGuard({ children }: { children: React.ReactNode }) {
         let mounted = true;
         const check = async () => {
             try {
-                const status = await getMaintenanceStatus();
+                // Parallel check status and client IP
+                const [status, clientIp] = await Promise.all([
+                    getMaintenanceStatus(),
+                    getClientIP()
+                ]);
+                
                 if (mounted) {
                     setIsMaintenanceMode(status.maintenance_mode);
                     setMaintenanceMessage(status.maintenance_message || "");
+                    
+                    // Check if current IP is in bypass list
+                    const whitelist = status.bypass_ips || [];
+                    const ipMatch = whitelist.includes(clientIp);
+                    setIsWhitelisted(ipMatch);
+                    
                     setChecked(true);
                 }
             } catch {
@@ -41,13 +52,12 @@ export function MaintenanceGuard({ children }: { children: React.ReactNode }) {
         };
 
         check();
-        // Poll every 30s in case maintenance mode changes
         const interval = setInterval(check, 30000);
         return () => { mounted = false; clearInterval(interval); };
     }, [pathname, isBypassRoute]);
 
     if (!checked) return null;
-    if (isBypassRoute || !isMaintenanceMode) return <>{children}</>;
+    if (isBypassRoute || isWhitelisted || !isMaintenanceMode) return <>{children}</>;
 
     return <MaintenanceScreen message={maintenanceMessage} />;
 }

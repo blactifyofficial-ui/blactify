@@ -14,6 +14,7 @@ export type ActionType =
     | "purchase_toggle"
     | "free_shipping_toggle"
     | "maintenance_toggle"
+    | "update_bypass_ips"
     | "report_export";
 
 export interface LogEntry {

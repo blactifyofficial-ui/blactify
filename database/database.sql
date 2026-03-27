@@ -138,6 +138,7 @@ CREATE TABLE IF NOT EXISTS store_settings (
     free_shipping_enabled BOOLEAN DEFAULT FALSE,
     maintenance_mode BOOLEAN DEFAULT FALSE,
     maintenance_message TEXT DEFAULT '',
+    bypass_ips TEXT[] DEFAULT '{}',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     CONSTRAINT store_settings_id_check CHECK (id = TRUE)
@@ -195,6 +196,13 @@ CREATE TABLE IF NOT EXISTS product_drop_mappings (
     PRIMARY KEY (product_id, drop_id)
 );
 
+-- 16. Admin Tokens Table (FCM Push)
+CREATE TABLE IF NOT EXISTS admin_tokens (
+    token TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL, -- Firebase UID
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
 -- ---------------------------------------------------------
 -- INDEXES
 -- ---------------------------------------------------------
@@ -227,6 +235,7 @@ ALTER TABLE support_tickets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE developer_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE drops ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_drop_mappings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_tokens ENABLE ROW LEVEL SECURITY;
 
 -- ---------------------------------------------------------
 -- POLICIES (Idempotent using DROP/CREATE)
@@ -297,6 +306,13 @@ BEGIN
     DROP POLICY IF EXISTS "Public Manage Tickets" ON support_tickets;
     CREATE POLICY "Public Manage Tickets" ON support_tickets FOR ALL USING (true) WITH CHECK (true);
 
+    -- Admin Roles (Admin tokens & Developer logs are system-managed, use Service Role for now)
+    DROP POLICY IF EXISTS "Public Read Tokens" ON admin_tokens;
+    CREATE POLICY "Public Read Tokens" ON admin_tokens FOR SELECT USING (true); -- Read-only for admins to sync
+    
+    DROP POLICY IF EXISTS "Service Role Manage" ON developer_logs;
+    CREATE POLICY "Service Role Manage" ON developer_logs FOR ALL USING (true);
+    
     -- Drops
     DROP POLICY IF EXISTS "Public Read Drops" ON drops;
     CREATE POLICY "Public Read Drops" ON drops FOR SELECT USING (true);
@@ -490,4 +506,6 @@ END;
 $$;
 
 -- Seed Data
-INSERT INTO store_settings (id, purchases_enabled, maintenance_mode, maintenance_message) VALUES (TRUE, TRUE, FALSE, '') ON CONFLICT (id) DO NOTHING;
+INSERT INTO store_settings (id, purchases_enabled, maintenance_mode, maintenance_message, bypass_ips) 
+VALUES (TRUE, TRUE, FALSE, '', '{}') 
+ON CONFLICT (id) DO NOTHING;

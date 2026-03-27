@@ -9,10 +9,12 @@ import {
     Wrench,
     CheckCircle2,
     Loader2,
+    MonitorIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { auth } from "@/lib/firebase";
-import { getMaintenanceStatus, toggleMaintenanceMode } from "@/app/actions/settings";
+import { getMaintenanceStatus, toggleMaintenanceMode, updateBypassIPs } from "@/app/actions/settings";
+import { getClientIP } from "@/actions/get-client-ip";
 
 interface BypassIP {
     ip: string;
@@ -30,20 +32,34 @@ export default function MaintenancePage() {
     const [publicMessage, setPublicMessage] = useState("We're performing scheduled maintenance. We'll be back shortly.");
     const [savedMessage, setSavedMessage] = useState("");
 
-    const [bypassIPs, setBypassIPs] = useState<BypassIP[]>([
-        { ip: "127.0.0.1", label: "Localhost", addedAt: new Date().toISOString() },
-    ]);
+    const [bypassIPs, setBypassIPs] = useState<BypassIP[]>([]);
     const [newIP, setNewIP] = useState("");
     const [newLabel, setNewLabel] = useState("");
+    const [currentClientIP, setCurrentClientIP] = useState("");
 
     // Fetch current maintenance status from DB
     const fetchStatus = useCallback(async () => {
         try {
-            const status = await getMaintenanceStatus();
+            const [status, clientIp] = await Promise.all([
+                getMaintenanceStatus(),
+                getClientIP()
+            ]);
+            
             setMaintenanceMode(status.maintenance_mode);
+            setCurrentClientIP(clientIp);
+            
             if (status.maintenance_message) {
                 setPublicMessage(status.maintenance_message);
                 setSavedMessage(status.maintenance_message);
+            }
+
+            if (status.bypass_ips) {
+                const formatted = (status.bypass_ips as string[]).map(ip => ({
+                    ip,
+                    label: ip === clientIp ? "Your IP" : "Whitelist",
+                    addedAt: new Date().toISOString()
+                }));
+                setBypassIPs(formatted);
             }
         } catch (e) {
             console.error("Failed to fetch maintenance status:", e);
@@ -58,7 +74,6 @@ export default function MaintenancePage() {
         if (!maintenanceMode) {
             setShowConfirm(true);
         } else {
-            // Disabling maintenance — do it directly
             setIsToggling(true);
             try {
                 const token = await auth.currentUser?.getIdToken();
@@ -115,15 +130,50 @@ export default function MaintenancePage() {
         setTimeout(() => setIsSynced(false), 2500);
     };
 
-    const addIP = () => {
-        if (!newIP.trim()) return;
-        setBypassIPs([...bypassIPs, { ip: newIP.trim(), label: newLabel.trim() || "Custom", addedAt: new Date().toISOString() }]);
-        setNewIP("");
-        setNewLabel("");
+    const addIP = async (ipToUse?: string) => {
+        const ip = (typeof ipToUse === 'string' ? ipToUse : newIP).trim();
+        if (!ip) return;
+        
+        const newIps = [...bypassIPs.map(b => b.ip), ip];
+        const uniqueIps = Array.from(new Set(newIps));
+        
+        setIsToggling(true);
+        try {
+            const token = await auth.currentUser?.getIdToken();
+            const result = await updateBypassIPs(uniqueIps, token);
+            if (result.success) {
+                setBypassIPs(prev => [...prev.filter(b => b.ip !== ip), { 
+                    ip, 
+                    label: typeof ipToUse === 'string' ? "Current Device" : (newLabel.trim() || "Manual"), 
+                    addedAt: new Date().toISOString() 
+                }]);
+                setNewIP("");
+                setNewLabel("");
+                showSyncFeedback();
+            }
+        } catch (e) {
+            console.error("Failed to add IP:", e);
+        } finally {
+            setIsToggling(false);
+        }
     };
 
-    const removeIP = (ip: string) => {
-        setBypassIPs(bypassIPs.filter(b => b.ip !== ip));
+    const removeIP = async (ip: string) => {
+        const uniqueIps = bypassIPs.filter(b => b.ip !== ip).map(b => b.ip);
+        
+        setIsToggling(true);
+        try {
+            const token = await auth.currentUser?.getIdToken();
+            const result = await updateBypassIPs(uniqueIps, token);
+            if (result.success) {
+                setBypassIPs(bypassIPs.filter(b => b.ip !== ip));
+                showSyncFeedback();
+            }
+        } catch (e) {
+            console.error("Failed to remove IP:", e);
+        } finally {
+            setIsToggling(false);
+        }
     };
 
     if (loading) {
@@ -260,7 +310,17 @@ export default function MaintenancePage() {
                             <p className="text-[11px] text-[var(--dev-text-muted)] mt-0.5">These IPs can access the site during maintenance</p>
                         </div>
                     </div>
-                    <span className="text-[10px] text-[var(--dev-text-dim)] font-medium">{bypassIPs.length} whitelisted</span>
+                    <div className="flex items-center gap-3">
+                         {currentClientIP && !bypassIPs.some(b => b.ip === currentClientIP) && (
+                            <button 
+                                onClick={() => addIP(currentClientIP)}
+                                className="text-[10px] flex items-center gap-1.5 font-bold px-3 py-1.5 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-lg hover:bg-emerald-500/20 transition-all"
+                            >
+                                <MonitorIcon size={12} /> Whitelist My IP
+                            </button>
+                         )}
+                         <span className="text-[10px] text-[var(--dev-text-dim)] font-medium">{bypassIPs.length} whitelisted</span>
+                    </div>
                 </div>
 
                 <div className="flex gap-2 mb-4">
@@ -278,7 +338,7 @@ export default function MaintenancePage() {
                         placeholder="Label (optional)"
                         className="w-[150px] bg-[var(--dev-input)] border border-[var(--dev-border-strong)] rounded-lg px-3 py-2.5 text-[12px] text-[var(--dev-text-secondary)] focus:outline-none focus:border-[var(--dev-accent)] transition-colors placeholder:text-[var(--dev-text-dimmer)]"
                     />
-                    <button onClick={addIP} className="flex items-center gap-2 bg-[var(--dev-text)] text-[var(--dev-bg)] px-4 py-2.5 rounded-lg text-[12px] font-semibold hover:opacity-90 transition-all active:scale-[0.98]">
+                    <button onClick={() => addIP()} className="flex items-center gap-2 bg-[var(--dev-text)] text-[var(--dev-bg)] px-4 py-2.5 rounded-lg text-[12px] font-semibold hover:opacity-90 transition-all active:scale-[0.98]">
                         <Plus size={14} /> Add
                     </button>
                 </div>
@@ -289,11 +349,16 @@ export default function MaintenancePage() {
                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                             <span className="text-[12px] text-[var(--dev-text-secondary)] font-mono flex-1">{bp.ip}</span>
                             <span className="text-[10px] text-[var(--dev-text-dim)] bg-[var(--dev-active)] px-2 py-0.5 rounded font-medium">{bp.label}</span>
-                            <button onClick={() => removeIP(bp.ip)} className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 transition-all">
+                            <button onClick={() => removeIP(bp.ip)} className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 transition-all p-1">
                                 <X size={12} />
                             </button>
                         </div>
                     ))}
+                    {bypassIPs.length === 0 && (
+                        <div className="text-center py-8 border border-dashed border-[var(--dev-border)] rounded-lg">
+                            <p className="text-[11px] text-[var(--dev-text-dimmer)] uppercase font-bold tracking-widest">No Whitelisted IPs</p>
+                        </div>
+                    )}
                 </div>
             </div>
 
