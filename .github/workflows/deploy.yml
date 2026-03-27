@@ -65,6 +65,7 @@ jobs:
             NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
             NEXT_PUBLIC_FIREBASE_VAPID_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_VAPID_KEY }}
             OTP_SECRET_PEPPER=${{ secrets.OTP_SECRET_PEPPER }}
+            NEXT_PUBLIC_ALLOWED_DEV_EMAIL=${{ secrets.NEXT_PUBLIC_ALLOWED_DEV_EMAIL }}
 
 
   deploy:
@@ -128,6 +129,7 @@ jobs:
             UPSTASH_REDIS_REST_TOKEN=${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
             TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
             TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
+            NEXT_PUBLIC_ALLOWED_DEV_EMAIL=${{ secrets.NEXT_PUBLIC_ALLOWED_DEV_EMAIL }}
 
             ENVEOF
             sed -i 's/^[[:space:]]*//' .env.local
