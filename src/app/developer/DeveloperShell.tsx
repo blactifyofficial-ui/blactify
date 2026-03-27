@@ -156,7 +156,7 @@ export function DeveloperShell({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         if (!authLoading && !user) {
-            router.push("/admin/login");
+            router.push("/admin/login?redirect=/");
         }
     }, [user, authLoading, router]);
 
@@ -192,7 +192,7 @@ export function DeveloperShell({ children }: { children: React.ReactNode }) {
                         onClick={() => {
                             import("@/lib/firebase").then(({ auth }) => {
                                 import("firebase/auth").then(({ signOut }) => {
-                                    signOut(auth).then(() => router.push("/admin/login"));
+                                    signOut(auth).then(() => router.push("/admin/login?redirect=/"));
                                 });
                             });
                         }} 

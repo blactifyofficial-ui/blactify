@@ -1,22 +1,28 @@
 "use client";
 
 import { useAuth } from "@/store/AuthContext";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
 import { auth, googleProvider } from "@/lib/firebase";
 import { signInWithPopup } from "firebase/auth";
 import { LogIn } from "lucide-react";
 
-export default function AdminLoginPage() {
+function AdminLoginContent() {
     const { user, isAdmin, loading } = useAuth();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const redirectPath = searchParams.get("redirect");
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!loading && user && isAdmin) {
-            router.push("/admin");
+        if (!loading && user) {
+            if (redirectPath) {
+                router.push(redirectPath);
+            } else if (isAdmin) {
+                router.push("/admin");
+            }
         }
-    }, [user, isAdmin, loading, router]);
+    }, [user, isAdmin, loading, router, redirectPath]);
 
     const handleLogin = async () => {
         try {
@@ -80,7 +86,7 @@ export default function AdminLoginPage() {
                     </div>
                 </div>
 
-                {user && !isAdmin ? (
+                {user && !isAdmin && !redirectPath ? (
                     <div className="mb-8 p-4 bg-red-50 text-red-600 rounded-2xl text-[11px] font-black uppercase tracking-widest border border-red-100 animate-in fade-in zoom-in-95 duration-300">
                         Access Denied. Unauthorized Personnel.
                     </div>
@@ -110,5 +116,17 @@ export default function AdminLoginPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function AdminLoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-zinc-50 font-sans">
+                <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        }>
+            <AdminLoginContent />
+        </Suspense>
     );
 }
