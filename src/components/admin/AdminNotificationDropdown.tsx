@@ -12,6 +12,7 @@ export function AdminNotificationDropdown() {
     const [isOpen, setIsOpen] = useState(false);
     const { notifications, setNotifications, markAsRead } = useNotificationStore();
     const { user } = useAuth();
+    const [loading, setLoading] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     const unreadCount = notifications.filter(n => !n.is_read).length;
