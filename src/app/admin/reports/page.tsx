@@ -41,11 +41,12 @@ export default function AdminReportsPage() {
         fetchOrders();
     }, []);
 
-    const totalRevenue = orders.reduce((sum, o) => {
+    const paidOrders = orders.filter((o: any) => o.status !== 'pending' && o.status !== 'failed');
+    const totalRevenue = paidOrders.reduce((sum, o) => {
         const amt = Number(o.amount);
         return sum + (isNaN(amt) ? 0 : amt);
     }, 0);
-    const averageOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
+    const averageOrderValue = paidOrders.length > 0 ? totalRevenue / paidOrders.length : 0;
 
     const downloadCSV = () => {
         if (orders.length === 0) {
@@ -82,7 +83,7 @@ export default function AdminReportsPage() {
         toast.success("CSV Export Complete");
     };
 
-    const chartData = orders.reduce((acc: Record<string, number>, o) => {
+    const chartData = paidOrders.reduce((acc: Record<string, number>, o) => {
         const date = new Date(o.created_at as string);
         let key: string;
         if (filterType === 'daily') {
@@ -99,7 +100,7 @@ export default function AdminReportsPage() {
     }, {});
 
     // Calculate Top Performing Assets from actual orders
-    const productSales = orders.reduce((acc: Record<string, number>, order: Record<string, unknown>) => {
+    const productSales = paidOrders.reduce((acc: Record<string, number>, order: Record<string, unknown>) => {
         (order.items as Record<string, unknown>[] || []).forEach((item: Record<string, unknown>) => {
             const name = (item.name as string) || "Unknown Product";
             acc[name] = (acc[name] || 0) + (Number(item.quantity) || 1);
@@ -195,7 +196,7 @@ export default function AdminReportsPage() {
 
                 <AdminCard className="group" title="Order Volume">
                     <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-2 italic">Total Orders</p>
-                    <h3 className="text-4xl font-black tracking-tighter text-black group-hover:translate-x-1 transition-transform duration-500">{orders.length.toLocaleString()}</h3>
+                    <h3 className="text-4xl font-black tracking-tighter text-black group-hover:translate-x-1 transition-transform duration-500">{paidOrders.length.toLocaleString()}</h3>
                     <div className="mt-8 flex items-center gap-3 text-zinc-400 text-[10px] font-black uppercase tracking-widest">
                         <Calendar size={14} className="text-black" />
                         <span>Sales Continuity</span>

@@ -15,7 +15,8 @@ export async function getAdminStats(token?: string) {
 
         if (ordersError) throw new Error(ordersError.message);
 
-        const typedOrders = (orders || []) as Order[];
+        const confirmedOrders = (orders || []).filter((o: any) => o.status !== 'pending' && o.status !== 'failed');
+        const typedOrders = confirmedOrders as Order[];
         const revenue = typedOrders.reduce((sum, order) => sum + Number(order.amount), 0) || 0;
         const totalOrders = typedOrders.length;
 
