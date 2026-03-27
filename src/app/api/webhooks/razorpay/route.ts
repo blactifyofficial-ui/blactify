@@ -100,11 +100,12 @@ export async function POST(req: Request) {
                         // Send admin notification since client-side didn't do it
                         try {
                             const { sendMulticastAdminNotification } = await import("@/lib/notifications-server");
-                            const { data: orderData } = await (supabaseAdmin
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            const { data: orderData } = (await supabaseAdmin
                                 .from("orders")
                                 .select("*")
                                 .eq("id", order_id)
-                                .single() as any);
+                                .single()) as { data: any; error: any };
 
                             if (orderData) {
                                 const customerEmail = (orderData.customer_details as { email?: string })?.email || "Unknown";
@@ -119,7 +120,8 @@ export async function POST(req: Request) {
 
                                 // Email & Telegram Notifications (Direct Call)
                                 const { sendOrderNotifications } = await import("@/lib/notifications-emails");
-                                sendOrderNotifications({ ...orderData, id: order_id }).catch(e => console.error("Webhook Order Notify Error:", e));
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                sendOrderNotifications({ ...orderData, id: order_id } as any).catch(e => console.error("Webhook Order Notify Error:", e));
                             }
                         } catch {
                             // Non-blocking
@@ -137,7 +139,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ received: true });
     } catch (err: unknown) {
-        console.error("Webhook processing error:", err);
+        console.error("Razorpay webhook error:", err);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

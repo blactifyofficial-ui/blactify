@@ -166,9 +166,9 @@ export async function sendOrderNotifications(order: z.infer<typeof OrderSyncSche
             html: getEmailHtml(false),
         });
         results.push({ type: 'customer_email', success: true });
-    } catch (e) {
-        console.error("Customer Email Failure:", e);
-        results.push({ type: 'customer_email', error: String(e) });
+    } catch (error: unknown) {
+        console.error("Critical: Email notification engine failure:", error);
+        results.push({ type: 'customer_email', error: String(error) });
     }
 
     // 3. Send Telegram Notification
@@ -190,7 +190,7 @@ ${order.shipping_address.apartment ? `${order.shipping_address.apartment}\n` : "
 ${order.shipping_address.state} - ${order.shipping_address.pincode}
 
 🛒 *Items:*
-${emailItems.map((item: any) => `• ${item.name}${item.size ? ` (Size: ${item.size})` : ""} x${item.quantity}`).join('\n')}
+${emailItems.map((item) => `• ${item.name}${item.size ? ` (Size: ${item.size})` : ""} x${item.quantity}`).join('\n')}
 
 🔗 [View in Dashboard](${(process.env.NEXT_PUBLIC_APP_URL || "https://blactify.com")}/admin/orders/${orderId})
             `.trim();

@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { AdminMobileHeader } from "@/components/admin/AdminMobileHeader";
-import { AuthProvider } from "@/store/AuthContext";
 import NotificationManager from "@/components/admin/NotificationManager";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import { supabase } from "@/lib/supabase";
@@ -24,6 +23,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
     }, [pathname, setHasNewOrder]); 
 
     // Register Service Worker manually for Admin side with scope
+    /*
     useEffect(() => {
         if (typeof window !== "undefined" && "serviceWorker" in navigator) {
             const registerSW = async () => {
@@ -45,6 +45,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
             }
         }
     }, []);
+    */
 
     // Real-time listener for new orders
     useEffect(() => {
@@ -62,7 +63,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
 
                     // Small toast notification
                     toast.success("New Order!", {
-                        description: `Order #${payload.new.id.slice(-6)} received`,
+                        description: `Order #${(payload.new as { id: string }).id.slice(-6)} received`,
                         className: "font-sans",
                     });
                 }
@@ -75,26 +76,24 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
     }, [setHasNewOrder]);
 
     if (pathname === "/admin/login") {
-        return <AuthProvider>{children}</AuthProvider>;
+        return <>{children}</>;
     }
 
     return (
-        <AuthProvider>
-            <AdminGuard>
-                <NotificationManager>
-                    <div className="min-h-screen bg-zinc-50 flex flex-col md:flex-row font-inter text-zinc-900">
-                        <AdminMobileHeader onMenuClick={() => setIsSidebarOpen(true)} />
-                        <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        <AdminGuard>
+            <NotificationManager>
+                <div className="min-h-screen bg-zinc-50 flex flex-col md:flex-row font-inter text-zinc-900">
+                    <AdminMobileHeader onMenuClick={() => setIsSidebarOpen(true)} />
+                    <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-                        <div className="flex-1 flex flex-col min-w-0 min-h-screen md:pl-72">
-                            {/* Main Content */}
-                            <main className="flex-1 p-4 md:p-10 w-full max-w-7xl mx-auto pt-[72px] md:pt-10 pb-10 overflow-x-hidden">
-                                {children}
-                            </main>
-                        </div>
+                    <div className="flex-1 flex flex-col min-w-0 min-h-screen md:pl-72">
+                        {/* Main Content */}
+                        <main className="flex-1 p-4 md:p-10 w-full max-w-7xl mx-auto pt-[72px] md:pt-10 pb-10 overflow-x-hidden">
+                            {children}
+                        </main>
                     </div>
-                </NotificationManager>
-            </AdminGuard>
-        </AuthProvider>
+                </div>
+            </NotificationManager>
+        </AdminGuard>
     );
 }

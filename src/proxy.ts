@@ -26,7 +26,7 @@ const inMemoryRateLimit = new Map<string, { count: number; lastReset: number }>(
 const LIMIT = 50;
 const WINDOW_MS = 60 * 1000;
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || request.headers.get('x-real-ip') || '127.0.0.1';
     
     // 1. Rate Limiting for sensitive paths
@@ -59,10 +59,7 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    // 2. Security Headers
-    const nonce = btoa(crypto.randomUUID());
-    
-    // Hardened CSP (Relaxed for cross-browser compatibility)
+    // 2. Security Headers (Relaxed for cross-browser compatibility)
     const cspHeader = `
         default-src 'self';
         script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.google.com https://*.firebaseapp.com https://*.razorpay.com https://cdn.shopify.com;

@@ -18,25 +18,28 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
             } else if (!isAdmin) {
                 router.push("/");
             } else {
-                // Admin session timeout check
-                const sessionStart = localStorage.getItem("admin_session_start");
-                const now = Date.now();
+                // Admin session timeout check safely
+                try {
+                    const sessionStart = localStorage.getItem("admin_session_start");
+                    const now = Date.now();
 
-                if (!sessionStart) {
-                    // First time admin is authorized, set session start
-                    localStorage.setItem("admin_session_start", now.toString());
-                } else {
-                    const elapsedTime = now - parseInt(sessionStart);
-                    if (elapsedTime > SESSION_TIMEOUT_MS) {
-                        console.warn("Admin session expired (24h limit reached). Logging out.");
-                        localStorage.removeItem("admin_session_start");
-                        import("@/lib/firebase").then(({ auth }) => {
-                            import("firebase/auth").then(({ signOut }) => {
-                                signOut(auth);
+                    if (!sessionStart) {
+                        localStorage.setItem("admin_session_start", now.toString());
+                    } else {
+                        const elapsedTime = now - parseInt(sessionStart);
+                        if (elapsedTime > SESSION_TIMEOUT_MS) {
+                            console.warn("Admin session expired. Logging out.");
+                            localStorage.removeItem("admin_session_start");
+                            import("@/lib/firebase").then(({ auth }) => {
+                                import("firebase/auth").then(({ signOut }) => {
+                                    signOut(auth);
+                                });
                             });
-                        });
-                        router.push("/admin/login");
+                            router.push("/admin/login");
+                        }
                     }
+                } catch (err) {
+                    console.error("Local storage error in AdminGuard:", err);
                 }
             }
         }
