@@ -82,7 +82,7 @@ interface ManualOrderData {
 
 export async function createManualOrder(data: ManualOrderData, token?: string) {
     try {
-        await verifyActionAdminAuth(token);
+        const auth = await verifyActionAdminAuth(token);
 
         // Generate a custom Order ID for manual orders
         const timestamp = Date.now().toString().slice(-6);
@@ -120,6 +120,22 @@ export async function createManualOrder(data: ManualOrderData, token?: string) {
 
         if (rpcError || !result?.success) {
             throw new Error(rpcError?.message || result?.error || "Order creation failed at DB level");
+        }
+
+        // 2. Log Action
+        try {
+            const { logAction } = await import("@/lib/logger");
+            await logAction({
+                action_type: "order_manual_create",
+                details: {
+                    order_id: manualOrderId,
+                    customer: data.customer_details.name,
+                    amount: totalAmount
+                },
+                user_email: auth.email
+            });
+        } catch (logErr) {
+            console.error("Failed to log manual order creation:", logErr);
         }
 
         revalidatePath("/admin/orders");

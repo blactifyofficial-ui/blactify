@@ -76,7 +76,7 @@ export async function getAdminOrderById(id: string, token?: string) {
 
 export async function updateAdminOrder(id: string, updates: Record<string, unknown>, token?: string) {
     try {
-        await verifyActionAdminAuth(token);
+        const auth = await verifyActionAdminAuth(token);
         const { data, error } = await supabaseAdmin
             .from("orders")
             .update(updates)
@@ -86,6 +86,18 @@ export async function updateAdminOrder(id: string, updates: Record<string, unkno
 
         if (error) {
             throw new Error(error.message);
+        }
+
+        // Log the action
+        try {
+            const { logAction } = await import("@/lib/logger");
+            await logAction({
+                action_type: "order_update_status",
+                details: { order_id: id, ...updates },
+                user_email: auth.email
+            });
+        } catch (logErr) {
+            console.error("Failed to log order update:", logErr);
         }
 
         return {

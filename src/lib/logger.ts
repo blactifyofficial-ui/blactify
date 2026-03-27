@@ -15,7 +15,11 @@ export type ActionType =
     | "free_shipping_toggle"
     | "maintenance_toggle"
     | "update_bypass_ips"
-    | "report_export";
+    | "report_export"
+    | "order_manual_create"
+    | "order_update_status"
+    | "order_delete"
+    | "store_sync_check";
 
 export interface LogEntry {
     action_type: ActionType;
