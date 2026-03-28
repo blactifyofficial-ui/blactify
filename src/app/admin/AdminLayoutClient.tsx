@@ -24,16 +24,18 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
         }
     }, [pathname, setHasNewOrder]); 
 
-    // Register Service Worker manually for Admin side with scope
-    /*
+    // Register Service Worker manually for Admin side
     useEffect(() => {
         if (typeof window !== "undefined" && "serviceWorker" in navigator) {
             const registerSW = async () => {
                 try {
+                    // Determine scope based on hostname
+                    const isSubdomain = window.location.hostname.startsWith('admin.');
+                    const swScope = isSubdomain ? "/" : "/admin";
+                    
                     const registration = await navigator.serviceWorker.register("/sw.js", {
-                        scope: "/admin",
+                        scope: swScope,
                     });
-                    console.log("Admin PWA: Service Worker registered with scope:", registration.scope);
                 } catch (err) {
                     console.error("Admin PWA: Service Worker registration failed:", err);
                 }
@@ -47,7 +49,6 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
             }
         }
     }, []);
-    */
 
     // Real-time listener for new orders and notifications
     useEffect(() => {

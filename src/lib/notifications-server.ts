@@ -22,15 +22,10 @@ export async function sendMulticastAdminNotification(title: string, body: string
             return;
         }
 
-        // Deduplicate by user_id: only take the most recent token per user
-        const uniqueUserTokens = new Map<string, string>();
-        tokensList.forEach((entry) => {
-            if (!uniqueUserTokens.has(entry.user_id)) {
-                uniqueUserTokens.set(entry.user_id, entry.token);
-            }
-        });
-
-        const tokens = Array.from(uniqueUserTokens.values());
+        // Collect all unique tokens
+        const tokensSet = new Set<string>();
+        tokensList.forEach((entry) => tokensSet.add(entry.token));
+        const tokens = Array.from(tokensSet);
         
         if (tokens.length === 0) {
 

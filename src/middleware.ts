@@ -62,7 +62,10 @@ export const config = {
          * - _next/static (static files)
          * - _next/image (image optimization files)
          * - favicon.ico (favicon file)
+         * - Manifest files (for PWA)
+         * - Service Worker files
+         * - Images and other static assets at root
          */
-        '/((?!api|_next/static|_next/image|favicon.ico).*)',
+        '/((?!api|_next/static|_next/image|favicon.ico|admin-manifest.json|developer-manifest.json|sw.js|firebase-messaging-sw.js|logo.webp|logo-v1.png|icon.png|robots.txt|sitemap.xml).*)',
     ],
 };

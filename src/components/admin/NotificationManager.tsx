@@ -159,7 +159,10 @@ export default function NotificationManager({ children }: { children: React.Reac
                 description: payload.notification?.body,
                 action: {
                     label: "View Orders",
-                    onClick: () => window.location.href = '/admin/orders',
+                    onClick: () => {
+                        const isSubdomain = window.location.hostname.startsWith('admin.');
+                        window.location.href = isSubdomain ? '/orders' : '/admin/orders';
+                    },
                 },
             });
         });

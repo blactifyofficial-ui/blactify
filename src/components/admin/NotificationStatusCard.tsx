@@ -36,6 +36,7 @@ export function NotificationStatusCard() {
                 scope: '/firebase-cloud-messaging-push-scope',
             });
 
+            const userIdToken = await user.getIdToken();
             const token = await getToken(messaging, {
                 vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
                 serviceWorkerRegistration: swRegistration,
@@ -44,7 +45,10 @@ export function NotificationStatusCard() {
             if (token) {
                 await fetch("/api/admin/sync-fcm-token", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${userIdToken}`
+                    },
                     body: JSON.stringify({ token, userId: user.uid }),
                 });
             }
