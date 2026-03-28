@@ -14,6 +14,9 @@ import {
     X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getWebhookDeliveries } from "@/actions/developer";
+import { auth } from "@/lib/firebase";
+import { useEffect, useCallback } from "react";
 
 interface WebhookEndpoint {
     id: string;
@@ -43,17 +46,32 @@ const AVAILABLE_EVENTS = [
 
 export default function WebhooksPage() {
     const [webhooks, setWebhooks] = useState<WebhookEndpoint[]>([
-        { id: "wh-001", url: "https://hooks.example.com/blactify/orders", events: ["order.created", "order.completed"], active: true, createdAt: "2024-03-20T10:00:00Z", secret: "whsec_Bk7x9yR2mN...4pQ" },
-        { id: "wh-002", url: "https://api.analytics.io/webhooks/incoming", events: ["user.registered", "payment.success"], active: false, createdAt: "2024-03-15T14:30:00Z", secret: "whsec_Jm3z8wL4nK...7vT" },
+        { id: "razorpay-system", url: "https://blactify.com/api/webhooks/razorpay", events: ["payment.captured", "order.paid"], active: true, createdAt: "2024-03-25T10:00:00Z", secret: "whsec_live_*******" },
     ]);
 
-    const [deliveries, setDeliveries] = useState<DeliveryRecord[]>([
-        { id: "dv-001", webhookId: "wh-001", event: "order.created", statusCode: 200, responseTime: 123, timestamp: "10 mins ago", payload: { order_id: "BLK-001" }, success: true },
-        { id: "dv-002", webhookId: "wh-001", event: "order.completed", statusCode: 200, responseTime: 89, timestamp: "30 mins ago", payload: { order_id: "BLK-002" }, success: true },
-        { id: "dv-003", webhookId: "wh-001", event: "order.created", statusCode: 404, responseTime: 1200, timestamp: "1 hour ago", payload: { order_id: "BLK-003" }, success: false },
-        { id: "dv-004", webhookId: "wh-002", event: "payment.success", statusCode: 500, responseTime: 3000, timestamp: "2 hours ago", payload: { payment_id: "PAY-001" }, success: false },
-        { id: "dv-005", webhookId: "wh-001", event: "order.created", statusCode: 200, responseTime: 156, timestamp: "3 hours ago", payload: { order_id: "BLK-004" }, success: true },
-    ]);
+    const [deliveries, setDeliveries] = useState<DeliveryRecord[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchData = useCallback(async () => {
+        try {
+            const token = await auth.currentUser?.getIdToken();
+            if (!token) return;
+            const res = await getWebhookDeliveries(token);
+            if (res.success) {
+                setDeliveries(res.deliveries as DeliveryRecord[]);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchData();
+        const interval = setInterval(fetchData, 15000);
+        return () => clearInterval(interval);
+    }, [fetchData]);
 
     const [showAddModal, setShowAddModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState<string | null>(null);
@@ -163,28 +181,48 @@ export default function WebhooksPage() {
                                 <th className="px-5 py-3 text-[10px] font-semibold text-[var(--dev-text-dim)] uppercase tracking-wider text-right">Action</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {deliveries.map((d) => {
-                                const statusColor = getStatusColor(d.statusCode);
-                                const webhook = webhooks.find(w => w.id === d.webhookId);
-                                return (
-                                    <tr key={d.id} className="border-b border-[var(--dev-border-subtle)] hover:bg-[var(--dev-hover)] transition-colors">
-                                        <td className="px-5 py-3.5"><span className="text-[12px] text-[var(--dev-text-secondary)] font-mono">{d.event}</span></td>
-                                        <td className="px-5 py-3.5">
-                                            <span className={cn("inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-md border font-mono", statusColor.text, statusColor.bg, statusColor.border)}>{d.statusCode}</span>
-                                        </td>
-                                        <td className="px-5 py-3.5 hidden md:table-cell"><span className="text-[11px] text-[var(--dev-text-dim)] font-mono">{d.responseTime}ms</span></td>
-                                        <td className="px-5 py-3.5 hidden lg:table-cell"><span className="text-[11px] text-[var(--dev-text-dim)] font-mono truncate max-w-[200px] block">{webhook?.url?.replace(/^https?:\/\//, '') || "—"}</span></td>
-                                        <td className="px-5 py-3.5"><span className="text-[11px] text-[var(--dev-text-dim)]">{new Date(d.timestamp).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</span></td>
-                                        <td className="px-5 py-3.5 text-right">
-                                            <button onClick={() => handleResend(d.id)} disabled={resending === d.id} className={cn("text-[11px] font-semibold px-3 py-1.5 rounded-md transition-all inline-flex items-center gap-1.5", resending === d.id ? "bg-[var(--dev-hover)] text-[var(--dev-text-dim)] cursor-not-allowed" : "bg-[var(--dev-active)] text-[var(--dev-text-secondary)] hover:bg-[var(--dev-border-hover)] hover:text-[var(--dev-text)]")}>
-                                                {resending === d.id ? <RefreshCcw size={10} className="animate-spin" /> : <Play size={10} />}
-                                                Re-send
-                                            </button>
+                         <tbody>
+                            {loading && deliveries.length === 0 ? (
+                                Array.from({ length: 5 }).map((_, i) => (
+                                    <tr key={i} className="border-b border-[var(--dev-border-subtle)]">
+                                        <td colSpan={6} className="px-5 py-4">
+                                            <div className="h-4 bg-[var(--dev-hover)] rounded animate-pulse w-full" />
                                         </td>
                                     </tr>
-                                );
-                            })}
+                                ))
+                            ) : deliveries.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} className="px-5 py-12 text-center text-[var(--dev-text-dim)] text-[12px]">
+                                        No recent delivery history found in logs
+                                    </td>
+                                </tr>
+                            ) : (
+                                deliveries.map((d) => {
+                                    const statusColor = getStatusColor(d.statusCode);
+                                    const webhook = webhooks.find(w => w.id === d.webhookId);
+                                    return (
+                                        <tr key={d.id} className="border-b border-[var(--dev-border-subtle)] hover:bg-[var(--dev-hover)] transition-colors">
+                                            <td className="px-5 py-3.5"><span className="text-[12px] text-[var(--dev-text-secondary)] font-mono">{d.event}</span></td>
+                                            <td className="px-5 py-3.5">
+                                                <span className={cn("inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-md border font-mono", statusColor.text, statusColor.bg, statusColor.border)}>{d.statusCode}</span>
+                                            </td>
+                                            <td className="px-5 py-3.5 hidden md:table-cell"><span className="text-[11px] text-[var(--dev-text-dim)] font-mono">{d.responseTime}ms</span></td>
+                                            <td className="px-5 py-3.5 hidden lg:table-cell"><span className="text-[11px] text-[var(--dev-text-dim)] font-mono truncate max-w-[200px] block">{webhook?.url?.replace(/^https?:\/\//, '') || "—"}</span></td>
+                                            <td className="px-5 py-3.5">
+                                                <span className="text-[11px] text-[var(--dev-text-dim)]">
+                                                    {new Date(d.timestamp).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                                                </span>
+                                            </td>
+                                            <td className="px-5 py-3.5 text-right">
+                                                <button onClick={() => handleResend(d.id)} disabled={resending === d.id} className={cn("text-[11px] font-semibold px-3 py-1.5 rounded-md transition-all inline-flex items-center gap-1.5", resending === d.id ? "bg-[var(--dev-hover)] text-[var(--dev-text-dim)] cursor-not-allowed" : "bg-[var(--dev-active)] text-[var(--dev-text-secondary)] hover:bg-[var(--dev-border-hover)] hover:text-[var(--dev-text)]")}>
+                                                    {resending === d.id ? <RefreshCcw size={10} className="animate-spin" /> : <Play size={10} />}
+                                                    Re-send
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            )}
                         </tbody>
                     </table>
                 </div>
