@@ -66,7 +66,6 @@ export default function NotificationsPage() {
     const [to, setTo] = useState(TEMPLATES.email.to);
 
     const [deliveryLogs, setDeliveryLogs] = useState<DeliveryLog[]>([]);
-    const [loading, setLoading] = useState(true);
 
     const fetchLogs = useCallback(async () => {
         try {
@@ -79,7 +78,7 @@ export default function NotificationsPage() {
         } catch (e) {
             console.error(e);
         } finally {
-            setLoading(false);
+            // Loading handled implicitly by initial state or not used
         }
     }, []);
 
@@ -183,7 +182,7 @@ export default function NotificationsPage() {
             } else {
                 toast.error(res.error || "Failed to generate fake orders");
             }
-        } catch (e) {
+        } catch {
             toast.error("An error occurred during bulk generation");
         } finally {
             setIsGeneratingBulk(false);
@@ -266,7 +265,7 @@ export default function NotificationsPage() {
 
                     <div>
                         <label className="text-[10px] font-semibold text-[var(--dev-text-dim)] uppercase tracking-wider block mb-1.5">Recipient</label>
-                        <input type="text" value={to} onChange={(e) => setTo(e.target.value)} className="w-full bg-[var(--dev-input)] border border-[var(--dev-border-strong)] rounded-lg px-3 py-2.5 text-[12px] text-[var(--dev-text-secondary)] focus:outline-none focus:border-[var(--dev-accent)] transition-colors font-mono" />
+                        <input type="text" value={to} onChange={(_e) => setTo(_e.target.value)} className="w-full bg-[var(--dev-input)] border border-[var(--dev-border-strong)] rounded-lg px-3 py-2.5 text-[12px] text-[var(--dev-text-secondary)] focus:outline-none focus:border-[var(--dev-accent)] transition-colors font-mono" />
                     </div>
 
                     {activeType === "email" && (

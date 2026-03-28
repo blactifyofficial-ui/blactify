@@ -14,7 +14,7 @@ import {
     Database,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getDeveloperLogs } from "@/actions/developer";
+import { getDeveloperLogs, getDeveloperStats, getSystemHealth } from "@/actions/developer";
 import { auth } from "@/lib/firebase";
 
 import {
@@ -41,24 +41,34 @@ interface LogEntry {
     severity: string;
 }
 
-const SERVICES = [
-    { name: "API Gateway", icon: Wifi, latency: "23ms" },
-    { name: "Database", icon: Database, latency: "8ms" },
-    { name: "Auth Service", icon: Shield, latency: "45ms" },
-    { name: "CDN", icon: Server, latency: "12ms" },
-];
+
 
 export default function DeveloperOverview() {
     const { theme } = useDevTheme();
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState<{
+        totalEvents: { value: number; growth: string };
+        errors: { value: number; growth: string };
+        warnings: { value: number; growth: string };
+        successfulEvents: { value: number; uptime: string };
+    } | null>(null);
+    const [services, setServices] = useState<{ name: string; status: string; latency: string }[]>([]);
 
-    const fetchLogs = useCallback(async () => {
+    const fetchData = useCallback(async () => {
         try {
             const token = await auth.currentUser?.getIdToken();
             if (!token) return;
-            const result = await getDeveloperLogs(token);
-            if (result.success) setLogs(result.logs as LogEntry[]);
+
+            const [logsRes, statsRes, healthRes] = await Promise.all([
+                getDeveloperLogs(token),
+                getDeveloperStats(token),
+                getSystemHealth()
+            ]);
+
+            if (logsRes.success) setLogs(logsRes.logs as LogEntry[]);
+            if (statsRes.success && statsRes.stats) setStats(statsRes.stats);
+            if (healthRes.success) setServices(healthRes.services);
         } catch (e) {
             console.error(e);
         } finally {
@@ -67,13 +77,16 @@ export default function DeveloperOverview() {
     }, []);
 
     useEffect(() => {
-        fetchLogs();
-    }, [fetchLogs]);
+        fetchData();
+        // Refresh every 30 seconds
+        const interval = setInterval(fetchData, 30000);
+        return () => clearInterval(interval);
+    }, [fetchData]);
 
-    const totalEvents = logs.length;
-    const errors = logs.filter(l => l.severity === "error").length;
-    const warnings = logs.filter(l => l.severity === "warning").length;
-    const successful = totalEvents - errors - warnings;
+    const totalEvents = stats?.totalEvents?.value || logs.length;
+    const errors = stats?.errors?.value || logs.filter(l => l.severity === "error").length;
+    const warnings = stats?.warnings?.value || logs.filter(l => l.severity === "warning").length;
+    const successful = stats?.successfulEvents?.value || (totalEvents - errors - warnings);
 
     // Chart data — activity over time
     const getHourlyData = () => {
@@ -118,10 +131,10 @@ export default function DeveloperOverview() {
     };
 
     const STATS = [
-        { label: "Total Events", value: totalEvents, icon: Hash, change: `+${Math.round(totalEvents * 0.123)}`, color: theme === "light" ? "text-blue-600 bg-blue-50" : "text-blue-400 bg-blue-400/10" },
-        { label: "Errors", value: errors, icon: AlertTriangle, change: errors > 0 ? `${errors} active` : "None", color: theme === "light" ? "text-red-600 bg-red-50" : "text-red-400 bg-red-400/10" },
-        { label: "Warnings", value: warnings, icon: AlertTriangle, change: `${warnings} active`, color: theme === "light" ? "text-amber-600 bg-amber-50" : "text-amber-400 bg-amber-400/10" },
-        { label: "Successful", value: successful, icon: CheckCircle2, change: `${((successful / Math.max(totalEvents, 1)) * 100).toFixed(1)}% uptime`, color: theme === "light" ? "text-emerald-600 bg-emerald-50" : "text-emerald-400 bg-emerald-400/10" },
+        { label: "Total Events", value: totalEvents, icon: Hash, change: stats?.totalEvents?.growth || "—", color: theme === "light" ? "text-blue-600 bg-blue-50" : "text-blue-400 bg-blue-400/10" },
+        { label: "Errors", value: errors, icon: AlertTriangle, change: stats?.errors?.growth || "—", color: theme === "light" ? "text-red-600 bg-red-50" : "text-red-400 bg-red-400/10" },
+        { label: "Warnings", value: warnings, icon: AlertTriangle, change: stats?.warnings?.growth || "—", color: theme === "light" ? "text-amber-600 bg-amber-50" : "text-amber-400 bg-amber-400/10" },
+        { label: "Successful", value: successful, icon: CheckCircle2, change: stats?.successfulEvents?.uptime || "100% uptime", color: theme === "light" ? "text-emerald-600 bg-emerald-50" : "text-emerald-400 bg-emerald-400/10" },
     ];
 
     return (
@@ -180,12 +193,21 @@ export default function DeveloperOverview() {
                         <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[var(--dev-accent-bg)] text-[var(--dev-accent)]">All healthy</span>
                     </div>
                     <div className="space-y-1">
-                        {SERVICES.map((svc) => (
-                            <div key={svc.name} className="flex items-center gap-3 py-3 border-b border-[var(--dev-border-subtle)] last:border-0">
-                                <svc.icon size={14} className="text-[var(--dev-text-dim)]" />
-                                <span className="flex-1 text-[12px] text-[var(--dev-text-secondary)] font-medium">{svc.name}</span>
-                                <span className="text-[11px] text-[var(--dev-text-dim)] font-mono">{svc.latency}</span>
-                                <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                        {(services.length > 0 ? services : Array.from({ length: 4 }).map(() => null)).map((svc, idx) => (
+                            <div key={svc?.name || idx} className="flex items-center gap-3 py-3 border-b border-[var(--dev-border-subtle)] last:border-0">
+                                {svc ? (
+                                    <>
+                                        {(svc.name as string).includes("API") && <Wifi size={14} className="text-[var(--dev-text-dim)]" />}
+                                        {(svc.name as string).includes("Database") && <Database size={14} className="text-[var(--dev-text-dim)]" />}
+                                        {(svc.name as string).includes("Auth") && <Shield size={14} className="text-[var(--dev-text-dim)]" />}
+                                        {(svc.name as string).includes("CDN") && <Server size={14} className="text-[var(--dev-text-dim)]" />}
+                                        <span className="flex-1 text-[12px] text-[var(--dev-text-secondary)] font-medium">{svc.name}</span>
+                                        <span className="text-[11px] text-[var(--dev-text-dim)] font-mono">{svc.latency}</span>
+                                        <div className={cn("w-2 h-2 rounded-full", svc.status === "online" ? "bg-emerald-500" : "bg-red-500")} />
+                                    </>
+                                ) : (
+                                    <div className="h-4 bg-[var(--dev-hover)] rounded animate-pulse w-full" />
+                                )}
                             </div>
                         ))}
                     </div>
