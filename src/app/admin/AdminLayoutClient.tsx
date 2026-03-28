@@ -33,7 +33,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
                     const isSubdomain = window.location.hostname.startsWith('admin.');
                     const swScope = isSubdomain ? "/" : "/admin";
                     
-                    const registration = await navigator.serviceWorker.register("/sw.js", {
+                    await navigator.serviceWorker.register("/sw.js", {
                         scope: swScope,
                     });
                 } catch (err) {

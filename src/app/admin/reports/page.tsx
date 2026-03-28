@@ -16,8 +16,26 @@ import { cn } from "@/lib/utils";
 import { testSheetSync, getAllOrdersForReport } from "@/app/actions/orders";
 import { auth } from "@/lib/firebase";
 
+interface OrderItem {
+    name?: string;
+    quantity?: number | string;
+}
+
+interface Order {
+    id: string;
+    status: string;
+    amount: number | string;
+    created_at: string;
+    items?: OrderItem[];
+    customer_details?: {
+        name?: string;
+        email?: string;
+        phone?: string;
+    };
+}
+
 export default function AdminReportsPage() {
-    const [orders, setOrders] = useState<Record<string, unknown>[]>([]);
+    const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [filterType, setFilterType] = useState<'daily' | 'monthly' | 'yearly'>('monthly');
 
@@ -27,7 +45,7 @@ export default function AdminReportsPage() {
                 const token = await auth.currentUser?.getIdToken();
                 const result = await getAllOrdersForReport(token);
                 if (result.success) {
-                    setOrders(result.orders as Record<string, unknown>[]);
+                    setOrders(result.orders as Order[]);
                 } else {
                     toast.error(result.error || "Failed to load orders");
                 }
@@ -41,7 +59,7 @@ export default function AdminReportsPage() {
         fetchOrders();
     }, []);
 
-    const paidOrders = orders.filter((o: any) => o.status !== 'pending' && o.status !== 'failed');
+    const paidOrders = orders.filter((o: Order) => o.status !== 'pending' && o.status !== 'failed');
     const totalRevenue = paidOrders.reduce((sum, o) => {
         const amt = Number(o.amount);
         return sum + (isNaN(amt) ? 0 : amt);
@@ -83,11 +101,10 @@ export default function AdminReportsPage() {
         toast.success("CSV Export Complete");
     };
 
-    const chartData = paidOrders.reduce((acc: Record<string, number>, o) => {
-        const date = new Date(o.created_at as string);
+    const chartData = paidOrders.reduce((acc, o) => {
+        const date = new Date(o.created_at);
         let key: string;
         if (filterType === 'daily') {
-
             key = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
         } else if (filterType === 'monthly') {
             key = date.toLocaleString('default', { month: 'short', year: '2-digit' });
@@ -97,16 +114,16 @@ export default function AdminReportsPage() {
         const amt = Number(o.amount);
         acc[key] = (acc[key] || 0) + (isNaN(amt) ? 0 : amt);
         return acc;
-    }, {});
+    }, {} as Record<string, number>);
 
     // Calculate Top Performing Assets from actual orders
-    const productSales = paidOrders.reduce((acc: Record<string, number>, order: Record<string, unknown>) => {
-        (order.items as Record<string, unknown>[] || []).forEach((item: Record<string, unknown>) => {
+    const productSales = paidOrders.reduce((acc: Record<string, number>, order: Order) => {
+        (order.items || []).forEach((item: OrderItem) => {
             const name = (item.name as string) || "Unknown Product";
             acc[name] = (acc[name] || 0) + (Number(item.quantity) || 1);
         });
         return acc;
-    }, {});
+    }, {} as Record<string, number>);
 
     const topPerformingProducts = Object.entries(productSales)
         .map(([name, sales]) => ({ name, sales }))
