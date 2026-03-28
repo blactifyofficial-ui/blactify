@@ -20,7 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { auth } from "@/lib/firebase";
-import { sendTestNotification, generateFakeOrdersAction } from "@/actions/notifications-dev";
+import { sendTestNotification, generateStressTestOrdersAction } from "@/actions/notifications-dev";
 import { getNotificationLogs } from "@/actions/developer";
 import { useEffect, useCallback } from "react";
 
@@ -167,25 +167,25 @@ export default function NotificationsPage() {
         }
     };
 
-    const [isGeneratingBulk, setIsGeneratingBulk] = useState(false);
+    const [isGeneratingStress, setIsGeneratingStress] = useState(false);
 
-    const handleBulkGenerate = async () => {
-        if (!confirm("This will send 10-20 real push notifications to ALL subscribed admin devices. Continue?")) return;
+    const handleStressTest = async () => {
+        if (!confirm("This will trigger 10-20 production-grade order notifications to identify delivery bottlenecks. Continue?")) return;
         
-        setIsGeneratingBulk(true);
+        setIsGeneratingStress(true);
         try {
             const token = await auth.currentUser?.getIdToken();
-            const res = await generateFakeOrdersAction(token);
+            const res = await generateStressTestOrdersAction(token);
             if (res.success) {
-                toast.success(`Successfully generated ${res.count} fake orders! Check logs below.`);
+                toast.success(`System stress test completed: ${res.count} notifications dispatched.`);
                 fetchLogs();
             } else {
-                toast.error(res.error || "Failed to generate fake orders");
+                toast.error(res.error || "Stress test sequence failed");
             }
-        } catch {
-            toast.error("An error occurred during bulk generation");
+        } catch (_e) {
+            toast.error("An unexpected error occurred during stress testing");
         } finally {
-            setIsGeneratingBulk(false);
+            setIsGeneratingStress(false);
         }
     };
 
@@ -219,12 +219,12 @@ export default function NotificationsPage() {
                     {environment === "sandbox" ? "Sandbox" : "Production"}
                 </button>
                 <button
-                    onClick={handleBulkGenerate}
-                    disabled={isGeneratingBulk}
+                    onClick={handleStressTest}
+                    disabled={isGeneratingStress}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg text-[12px] font-semibold bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 transition-all hover:bg-indigo-500/20 disabled:opacity-50"
                 >
-                    {isGeneratingBulk ? <Loader2 size={16} className="animate-spin" /> : <Flame size={16} className="animate-pulse" />}
-                    Bulk Fake Orders (10-20)
+                    {isGeneratingStress ? <Loader2 size={16} className="animate-spin" /> : <Flame size={16} className="animate-pulse" />}
+                    Order Stress Test (10-20)
                 </button>
             </div>
 

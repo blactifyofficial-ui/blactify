@@ -105,7 +105,7 @@ export async function sendTestNotification(
     }
 }
 
-export async function generateFakeOrdersAction(token?: string) {
+export async function generateStressTestOrdersAction(token?: string) {
     try {
         await verifyActionAuth(token);
         
@@ -116,18 +116,17 @@ export async function generateFakeOrdersAction(token?: string) {
         for (let i = 0; i < count; i++) {
             // Random amount between 458 and 5000
             const amount = Math.floor(Math.random() * (5000 - 458 + 1)) + 458;
-            const orderId = `FAKE-${Math.floor(1000 + Math.random() * 9000)}`;
+            const orderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}-ST`;
             
-            const pushTitle = "New Order Alert! 🛍️";
-            const pushBody = `Order #${orderId} • ₹${amount.toLocaleString('en-IN')}`;
+            const pushTitle = "🚨 New Order Received!";
+            const pushBody = `Order #${orderId} • ₹${amount.toLocaleString('en-IN')} via PWA Storefront`;
             
             const pushData = {
                 title: pushTitle,
                 body: pushBody,
                 orderId: orderId,
                 amount: amount.toString(),
-                type: "new_order",
-                is_fake: "true"
+                type: "new_order"
             };
 
             await sendMulticastAdminNotification(pushTitle, pushBody, pushData);
@@ -136,7 +135,7 @@ export async function generateFakeOrdersAction(token?: string) {
 
         const authUser = await verifyActionAuth(token);
         await logAction({
-            action_type: "fake_orders_generated",
+            action_type: "stress_test_orders_generated",
             severity: "warning",
             details: { count, orders: results },
             user_email: authUser.email
@@ -144,10 +143,10 @@ export async function generateFakeOrdersAction(token?: string) {
 
         return { success: true, count, orders: results };
     } catch (err: unknown) {
-        console.error("Generate Fake Orders failure:", err);
+        console.error("Stress Test failure:", err);
         return { 
             success: false, 
-            error: err instanceof Error ? err.message : "Failed to generate fake orders" 
+            error: err instanceof Error ? err.message : "Failed to generate stress test orders" 
         };
     }
 }
