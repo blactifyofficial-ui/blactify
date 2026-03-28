@@ -19,7 +19,9 @@ export type ActionType =
     | "order_manual_create"
     | "order_update_status"
     | "order_delete"
-    | "store_sync_check";
+    | "store_sync_check"
+    | "notification_sent"
+    | "fake_orders_generated";
 
 export interface LogEntry {
     action_type: ActionType;

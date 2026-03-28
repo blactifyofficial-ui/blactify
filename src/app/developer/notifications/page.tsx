@@ -20,7 +20,9 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { auth } from "@/lib/firebase";
-import { sendTestNotification } from "@/actions/notifications-dev";
+import { sendTestNotification, generateFakeOrdersAction } from "@/actions/notifications-dev";
+import { getNotificationLogs } from "@/actions/developer";
+import { useEffect, useCallback } from "react";
 
 type NotificationType = "email" | "telegram" | "push";
 type Environment = "sandbox" | "production";
@@ -63,17 +65,27 @@ export default function NotificationsPage() {
     const [body, setBody] = useState(TEMPLATES.email.body);
     const [to, setTo] = useState(TEMPLATES.email.to);
 
-    const initialLogs = {
-        email: { id: "dl-001", type: "email", env: "sandbox", status: "delivered", to: "test@blactify.com", subject: "Welcome Email", timestamp: "1 hour ago", latencyMs: 234 },
-        push: { id: "dl-002", type: "push", env: "sandbox", status: "delivered", to: "3 devices", subject: "Order Alert", timestamp: "2 hours ago", latencyMs: 89 },
-        telegram: { id: "dl-003", type: "telegram", env: "sandbox", status: "delivered", to: "@blactify_admin", subject: "Order Alert", timestamp: "3 hours ago", latencyMs: 320 },
-    };
+    const [deliveryLogs, setDeliveryLogs] = useState<DeliveryLog[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const [deliveryLogs, setDeliveryLogs] = useState<DeliveryLog[]>([
-        initialLogs.email as DeliveryLog,
-        initialLogs.push as DeliveryLog,
-        initialLogs.telegram as DeliveryLog,
-    ]);
+    const fetchLogs = useCallback(async () => {
+        try {
+            const token = await auth.currentUser?.getIdToken();
+            if (!token) return;
+            const res = await getNotificationLogs(token);
+            if (res.success) {
+                setDeliveryLogs(res.logs as DeliveryLog[]);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchLogs();
+    }, [fetchLogs]);
 
     const switchType = (type: NotificationType) => {
         setActiveType(type);
@@ -144,11 +156,37 @@ export default function NotificationsPage() {
                     toast.error("Sandbox test payload simulated failure");
                 }
             }
+            // After successful send to production, refresh real logs
+            if (environment === "production") {
+                fetchLogs();
+            }
         } catch (err: unknown) {
             console.error("Playground error:", err);
             toast.error(err instanceof Error ? err.message : "Failed to initiate sending");
         } finally {
             setIsSending(false);
+        }
+    };
+
+    const [isGeneratingBulk, setIsGeneratingBulk] = useState(false);
+
+    const handleBulkGenerate = async () => {
+        if (!confirm("This will send 10-20 real push notifications to ALL subscribed admin devices. Continue?")) return;
+        
+        setIsGeneratingBulk(true);
+        try {
+            const token = await auth.currentUser?.getIdToken();
+            const res = await generateFakeOrdersAction(token);
+            if (res.success) {
+                toast.success(`Successfully generated ${res.count} fake orders! Check logs below.`);
+                fetchLogs();
+            } else {
+                toast.error(res.error || "Failed to generate fake orders");
+            }
+        } catch (e) {
+            toast.error("An error occurred during bulk generation");
+        } finally {
+            setIsGeneratingBulk(false);
         }
     };
 
@@ -180,6 +218,14 @@ export default function NotificationsPage() {
                 >
                     {environment === "sandbox" ? <ToggleLeft size={16} /> : <ToggleRight size={16} />}
                     {environment === "sandbox" ? "Sandbox" : "Production"}
+                </button>
+                <button
+                    onClick={handleBulkGenerate}
+                    disabled={isGeneratingBulk}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-[12px] font-semibold bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 transition-all hover:bg-indigo-500/20 disabled:opacity-50"
+                >
+                    {isGeneratingBulk ? <Loader2 size={16} className="animate-spin" /> : <Flame size={16} className="animate-pulse" />}
+                    Bulk Fake Orders (10-20)
                 </button>
             </div>
 

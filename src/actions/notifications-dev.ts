@@ -4,6 +4,7 @@ import { verifyActionAuth } from "@/lib/auth-server";
 import { SELLER_CONFIG } from "@/lib/config";
 import { Resend } from "resend";
 import { sendMulticastAdminNotification } from "@/lib/notifications-server";
+import { logAction } from "@/lib/logger";
 
 export async function sendTestNotification(
     type: "email" | "telegram" | "push",
@@ -32,6 +33,14 @@ export async function sendTestNotification(
                 </div>`,
             });
             if (error) throw error;
+            
+            await logAction({
+                action_type: "notification_sent",
+                severity: "info",
+                details: { type, to, subject, body: body.slice(0, 50) + "..." },
+                user_email: (await verifyActionAuth(token)).email
+            });
+
             return { success: true };
         }
 
@@ -51,6 +60,14 @@ export async function sendTestNotification(
             });
             const data = await response.json();
             if (!data.ok) throw new Error(data.description || "Failed to send Telegram message");
+            
+            await logAction({
+                action_type: "notification_sent",
+                severity: "info",
+                details: { type, to, body: body.slice(0, 50) + "..." },
+                user_email: (await verifyActionAuth(token)).email
+            });
+
             return { success: true };
         }
 
@@ -69,6 +86,14 @@ export async function sendTestNotification(
             }
 
             await sendMulticastAdminNotification(pushTitle, pushBody, pushData as Record<string, string>);
+            
+            await logAction({
+                action_type: "notification_sent",
+                severity: "info",
+                details: { type, title: pushTitle, body: pushBody.slice(0, 50) },
+                user_email: (await verifyActionAuth(token)).email
+            });
+
             return { success: true };
         }
 
@@ -77,5 +102,52 @@ export async function sendTestNotification(
         console.error("Playground: Send failure:", err);
         const errorMessage = err instanceof Error ? err.message : "Failed to send notification";
         return { success: false, error: errorMessage };
+    }
+}
+
+export async function generateFakeOrdersAction(token?: string) {
+    try {
+        await verifyActionAuth(token);
+        
+        // Random count between 10 and 20
+        const count = Math.floor(Math.random() * 11) + 10;
+        const results = [];
+
+        for (let i = 0; i < count; i++) {
+            // Random amount between 458 and 5000
+            const amount = Math.floor(Math.random() * (5000 - 458 + 1)) + 458;
+            const orderId = `FAKE-${Math.floor(1000 + Math.random() * 9000)}`;
+            
+            const pushTitle = "New Order Alert! 🛍️";
+            const pushBody = `Order #${orderId} • ₹${amount.toLocaleString('en-IN')}`;
+            
+            const pushData = {
+                title: pushTitle,
+                body: pushBody,
+                orderId: orderId,
+                amount: amount.toString(),
+                type: "new_order",
+                is_fake: "true"
+            };
+
+            await sendMulticastAdminNotification(pushTitle, pushBody, pushData);
+            results.push({ orderId, amount });
+        }
+
+        const authUser = await verifyActionAuth(token);
+        await logAction({
+            action_type: "fake_orders_generated",
+            severity: "warning",
+            details: { count, orders: results },
+            user_email: authUser.email
+        });
+
+        return { success: true, count, orders: results };
+    } catch (err: unknown) {
+        console.error("Generate Fake Orders failure:", err);
+        return { 
+            success: false, 
+            error: err instanceof Error ? err.message : "Failed to generate fake orders" 
+        };
     }
 }
