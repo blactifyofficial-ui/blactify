@@ -182,7 +182,7 @@ export default function NotificationsPage() {
             } else {
                 toast.error(res.error || "Stress test sequence failed");
             }
-        } catch (_e) {
+        } catch {
             toast.error("An unexpected error occurred during stress testing");
         } finally {
             setIsGeneratingStress(false);
