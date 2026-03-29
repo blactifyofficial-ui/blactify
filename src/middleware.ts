@@ -3,12 +3,18 @@ import type { NextRequest } from 'next/server';
 
 export async function middleware(req: NextRequest) {
     const url = req.nextUrl;
-    const hostname = req.headers.get('host') || '';
+    const host = req.headers.get('host') || '';
+    
+    // Normalize hostname: lower case and remove port if present
+    const hostname = host.split(':')[0].toLowerCase();
 
     // Define your domains
     const mainDomain = 'blactify.com';
+    const wwwDomain = 'www.blactify.com';
     const devDomain = 'dev.blactify.com';
     const adminDomain = 'admin.blactify.com';
+
+    const isMainHost = hostname === mainDomain || hostname === wwwDomain;
 
     // 1. If it's the developer domain, rewrite everything to the /developer folder
     if (hostname === devDomain) {
@@ -23,7 +29,10 @@ export async function middleware(req: NextRequest) {
         if (path.startsWith('/developer')) {
             path = path.replace('/developer', '');
         }
-        return NextResponse.rewrite(new URL(`/developer${path === '/' ? '' : path}`, req.url));
+        
+        // Ensure path starts with / for the rewrite
+        const rewritePath = path === '' ? '/' : (path.startsWith('/') ? path : `/${path}`);
+        return NextResponse.rewrite(new URL(`/developer${rewritePath === '/' ? '' : rewritePath}`, req.url));
     }
 
     // 2. If it's the admin domain, rewrite everything to the /admin folder
@@ -33,20 +42,32 @@ export async function middleware(req: NextRequest) {
         if (path.startsWith('/admin')) {
             path = path.replace('/admin', '');
         }
-        return NextResponse.rewrite(new URL(`/admin${path === '/' ? '' : path}`, req.url));
+        
+        // Ensure path starts with / for the rewrite
+        const rewritePath = path === '' ? '/' : (path.startsWith('/') ? path : `/${path}`);
+        return NextResponse.rewrite(new URL(`/admin${rewritePath === '/' ? '' : rewritePath}`, req.url));
     }
 
-    // 3. Prevent direct access from the main domain to internal sections
+    // 3. Handle main domain redirects in production
     if (process.env.NODE_ENV === 'production') {
-        // Redirect developer section
-        if (hostname === mainDomain && url.pathname.startsWith('/developer')) {
-            const path = url.pathname.replace('/developer', '');
-            return NextResponse.redirect(new URL(`https://${devDomain}${path}`, req.url));
+        // Redirect developer section from main domain or www to the dev subdomain
+        if (isMainHost && url.pathname.startsWith('/developer')) {
+            let path = url.pathname.replace('/developer', '');
+            // Ensure path starts with /
+            if (path !== '' && !path.startsWith('/')) {
+                path = '/' + path;
+            }
+            return NextResponse.redirect(`https://${devDomain}${path}`, { status: 308 });
         }
-        // Redirect admin section
-        if (hostname === mainDomain && url.pathname.startsWith('/admin')) {
-            const path = url.pathname.replace('/admin', '');
-            return NextResponse.redirect(new URL(`https://${adminDomain}${path}`, req.url));
+        
+        // Redirect admin section from main domain or www to the admin subdomain
+        if (isMainHost && url.pathname.startsWith('/admin')) {
+            let path = url.pathname.replace('/admin', '');
+            // Ensure path starts with /
+            if (path !== '' && !path.startsWith('/')) {
+                path = '/' + path;
+            }
+            return NextResponse.redirect(`https://${adminDomain}${path}`, { status: 308 });
         }
     }
 
@@ -69,3 +90,4 @@ export const config = {
         '/((?!api|_next/static|_next/image|favicon.ico|admin-manifest.json|developer-manifest.json|sw.js|firebase-messaging-sw.js|logo.webp|logo-v1.png|icon.png|robots.txt|sitemap.xml).*)',
     ],
 };
+

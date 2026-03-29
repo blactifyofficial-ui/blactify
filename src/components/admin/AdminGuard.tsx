@@ -16,7 +16,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
             if (!user) {
                 router.push("/admin/login");
             } else if (!isAdmin) {
-                router.push("/");
+                window.location.href = "https://blactify.com";
             } else {
                 // Admin session timeout check safely
                 try {

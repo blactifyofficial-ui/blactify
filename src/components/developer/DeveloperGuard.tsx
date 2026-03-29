@@ -67,7 +67,7 @@ export function DeveloperGuard({ children }: { children: React.ReactNode }) {
                 </p>
                 <div className="flex flex-col md:flex-row gap-4">
                     <button 
-                        onClick={() => router.push("/")} 
+                        onClick={() => window.location.href = "https://blactify.com"} 
                         className="px-10 py-5 bg-white text-black rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all hover:bg-zinc-200 active:scale-95 shadow-xl shadow-white/5"
                     >
                         Abort Access
