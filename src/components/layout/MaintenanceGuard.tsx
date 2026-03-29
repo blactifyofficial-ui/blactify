@@ -94,12 +94,14 @@ function MaintenanceScreen({ message }: { message: string }) {
             </div>
 
             <div className="relative z-10 max-w-md mx-auto flex flex-col items-center">
-                {/* Animated wrench icon */}
+                {/* Brand Logo */}
                 <div className="relative mb-10">
-                    <div className="w-24 h-24 bg-black rounded-3xl flex items-center justify-center shadow-2xl shadow-black/20 rotate-3 hover:rotate-0 transition-transform duration-700">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="animate-[spin_8s_linear_infinite]">
-                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-                        </svg>
+                    <div className="w-24 h-24 bg-black rounded-3xl flex items-center justify-center shadow-2xl shadow-black/20 transition-transform duration-700 hover:scale-105 overflow-hidden">
+                        <img 
+                            src="/logo.webp" 
+                            alt="Blactify Logo" 
+                            className="w-14 h-14 object-contain"
+                        />
                     </div>
                     {/* Ping indicator */}
                     <div className="absolute -top-1 -right-1 w-4 h-4">
@@ -125,12 +127,27 @@ function MaintenanceScreen({ message }: { message: string }) {
                 </div>
 
                 {/* Message */}
-                <p className="text-zinc-500 text-sm md:text-base leading-relaxed mb-10 max-w-sm">
+                <p className="text-zinc-500 text-sm md:text-base leading-relaxed mb-6 max-w-sm">
                     {message || "We're performing scheduled maintenance. We'll be back shortly."}
                 </p>
 
+                {/* Instagram Link */}
+                <a
+                    href="https://instagram.com/blactify"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 mb-10 px-6 py-2 bg-zinc-50 border border-zinc-200 rounded-full text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] transition-all hover:bg-zinc-100 hover:scale-105 active:scale-95"
+                >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                        <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+                    </svg>
+                    Instagram @blactify
+                </a>
+
                 {/* Status indicator */}
-                <div className="flex items-center gap-3 px-6 py-3 bg-zinc-50 border border-zinc-100 rounded-full mb-8">
+                <div className="flex items-center gap-3 px-6 py-3 bg-zinc-50 border border-zinc-100 rounded-full">
                     <div className="relative flex items-center justify-center">
                         <div className="w-2.5 h-2.5 bg-amber-400 rounded-full" />
                         <div className="absolute w-2.5 h-2.5 bg-amber-400 rounded-full animate-ping" />
@@ -138,31 +155,6 @@ function MaintenanceScreen({ message }: { message: string }) {
                     <span className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.15em]">
                         Working on it{dots}
                     </span>
-                </div>
-
-                {/* Social/Contact */}
-                <div className="flex items-center gap-6 text-zinc-300">
-                    <a
-                        href="https://instagram.com/blactify"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:text-black transition-colors duration-300"
-                    >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                            <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-                        </svg>
-                    </a>
-                    <a
-                        href="mailto:support@blactify.com"
-                        className="hover:text-black transition-colors duration-300"
-                    >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <rect width="20" height="16" x="2" y="4" rx="2" />
-                            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                        </svg>
-                    </a>
                 </div>
             </div>
 
