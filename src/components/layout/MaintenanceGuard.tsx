@@ -96,9 +96,9 @@ function MaintenanceScreen({ message }: { message: string }) {
             <div className="relative z-10 max-w-md mx-auto flex flex-col items-center">
                 {/* Brand Logo */}
                 <div className="relative mb-10">
-                    <div className="w-24 h-24 bg-black rounded-3xl flex items-center justify-center shadow-2xl shadow-black/20 transition-transform duration-700 hover:scale-105 overflow-hidden">
+                    <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center shadow-2xl shadow-black/5 transition-transform duration-700 hover:scale-105 overflow-hidden">
                         <img 
-                            src="/logo.webp" 
+                            src="/welcome-eye.png" 
                             alt="Blactify Logo" 
                             className="w-14 h-14 object-contain"
                         />

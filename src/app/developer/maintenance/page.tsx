@@ -293,8 +293,8 @@ export default function MaintenancePage() {
                     <div className="mt-4">
                         <p className="text-[10px] font-semibold text-[var(--dev-text-dim)] uppercase tracking-wider mb-2">Preview</p>
                         <div className="bg-[var(--dev-input)] border border-[var(--dev-border)] rounded-xl p-6 text-center">
-                            <div className="w-12 h-12 bg-black rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
-                                <img src="/logo.webp" alt="Logo" className="w-7 h-7 object-contain" />
+                            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+                                <img src="/welcome-eye.png" alt="Logo" className="w-7 h-7 object-contain" />
                             </div>
                             <p className="text-[12px] text-[var(--dev-text-secondary)] leading-relaxed">{publicMessage}</p>
                         </div>
