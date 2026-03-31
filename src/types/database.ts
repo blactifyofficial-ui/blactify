@@ -15,6 +15,17 @@ export interface Category {
     }[];
     created_at?: string;
     updated_at?: string;
+    product_count?: number;
+    total_product_count?: number;
+    products?: {
+        id: string;
+        name: string;
+        price_base: number;
+        price_offer?: number;
+        out_of_stock_at: string | null;
+        image_url?: string;
+        is_hidden?: boolean;
+    }[];
 }
 
 export interface ProductImage {
@@ -156,4 +167,18 @@ export interface OrderItem {
     size?: string;
     main_image?: string;
     created_at?: string;
+}
+
+export interface Drop {
+    id: string;
+    name: string;
+    publishDate: string;
+    is_active: boolean;
+    created_at: string;
+}
+
+export interface DropMapping {
+    id: string;
+    dropId: string;
+    productId: string;
 }

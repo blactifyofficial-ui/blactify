@@ -114,12 +114,10 @@ export default function NotificationManager({ children }: { children: React.Reac
         if (!isMounted) return;
 
         // Log the check
-        if (isAdmin && user && typeof window !== 'undefined' && 'Notification' in window) {
+        if (isAdmin && user && messaging && typeof window !== 'undefined' && 'Notification' in window) {
             const currentPerm = Notification.permission;
 
-
             if (currentPerm === 'default') {
-
                 // Regular toast for maximum visibility
                 toast.success("🔔 Enable Push Notifications", {
                     description: "Get real-time alerts for your orders on this device.",
@@ -130,7 +128,6 @@ export default function NotificationManager({ children }: { children: React.Reac
                     duration: 30000, // 30 seconds
                 });
             } else if (currentPerm === 'granted') {
-
                 requestPermission();
             }
         }

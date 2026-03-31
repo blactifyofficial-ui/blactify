@@ -95,7 +95,7 @@ export default function WelcomeAnimation() {
                 )}
             >
                 <p className={cn(
-                    "text-[10px] font-bold uppercase tracking-[0.4em] transition-colors duration-700",
+                    "text-[10px] font-bold uppercase tracking-[0.4em] transition-colors duration-700 whitespace-nowrap text-center",
                     isOpening ? "text-black" : "text-white/40"
                 )}>
                     Meets Timeless Essentials

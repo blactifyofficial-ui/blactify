@@ -49,6 +49,14 @@ export default function AdminCategoriesPage() {
     const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
+    const [productsModalOpen, setProductsModalOpen] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+
+    const handleShowProducts = (cat: Category) => {
+        setSelectedCategory(cat);
+        setProductsModalOpen(true);
+    };
+
     const totalPages = Math.ceil(totalCount / pageSize);
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -373,7 +381,11 @@ export default function AdminCategoriesPage() {
                         ) : categories.length > 0 ? (
                             <>
                                 {categories.map((cat) => (
-                                    <div key={cat.id} className="group bg-white p-6 rounded-[2rem] border border-zinc-100 shadow-sm hover:shadow-xl transition-all duration-500 flex items-center justify-between">
+                                <div 
+                                    key={cat.id} 
+                                    onClick={() => handleShowProducts(cat)}
+                                    className="group bg-white p-6 rounded-[2rem] border border-zinc-100 shadow-sm hover:shadow-xl transition-all duration-500 flex items-center justify-between cursor-pointer"
+                                >
                                         <div className="flex items-center gap-5">
                                             {cat.image_url ? (
                                                 <div className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-inner flex-shrink-0">
@@ -384,8 +396,13 @@ export default function AdminCategoriesPage() {
                                                     <Tag size={20} />
                                                 </div>
                                             )}
-                                            <div>
-                                                <p className="font-black text-lg text-black tracking-tight group-hover:translate-x-1 transition-transform duration-500">{cat.name}</p>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-3 group-hover:translate-x-1 transition-transform duration-500">
+                                                    <p className="font-black text-lg text-black tracking-tight">{cat.name}</p>
+                                                    <span className="bg-zinc-100 text-zinc-400 group-hover:bg-black group-hover:text-white transition-all duration-700 text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">
+                                                        {cat.product_count || 0} {cat.product_count === cat.total_product_count ? "Products" : "Active"}
+                                                    </span>
+                                                </div>
                                                 <div className="flex gap-2 mt-1">
                                                     {cat.size_config?.map((s: string) => (
                                                         <span key={s} className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest border border-zinc-100 px-2 py-0.5 rounded-full">
@@ -400,13 +417,17 @@ export default function AdminCategoriesPage() {
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <button
-                                                onClick={() => handleEdit(cat)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleEdit(cat);
+                                                }}
                                                 className="w-12 h-12 flex items-center justify-center rounded-2xl text-zinc-400 hover:text-black hover:bg-zinc-100 transition-all lg:opacity-0 lg:group-hover:opacity-100"
                                             >
                                                 <Pencil size={18} />
                                             </button>
                                             <button
-                                                onClick={() => {
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
                                                     setCategoryToDelete(cat.id);
                                                     setDeleteModalOpen(true);
                                                 }}
@@ -437,6 +458,90 @@ export default function AdminCategoriesPage() {
                             </AdminCard>
                         )}
                     </div>
+                </div>
+            </div>
+
+            <CategoryProductsModal
+                isOpen={productsModalOpen}
+                onClose={() => setProductsModalOpen(false)}
+                category={selectedCategory}
+            />
+        </div>
+    );
+}
+
+function CategoryProductsModal({ isOpen, onClose, category }: { isOpen: boolean, onClose: () => void, category: Category | null }) {
+    const isClient = typeof window !== 'undefined';
+    if (!isClient || !category) return null;
+
+    return (
+        <div className={cn(
+            "fixed inset-0 z-[120] flex items-center justify-center p-4 transition-all duration-500",
+            isOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"
+        )}>
+            <div
+                className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-500"
+                onClick={onClose}
+            />
+            <div className={cn(
+                "relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden transform transition-all duration-500 flex flex-col max-h-[85vh]",
+                isOpen ? "translate-y-0 scale-100 opacity-100" : "translate-y-8 scale-95 opacity-0"
+            )}>
+                {/* Header */}
+                <div className="px-8 py-7 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50 sticky top-0 z-10 backdrop-blur-md">
+                    <div>
+                        <h2 className="text-xl font-black text-black tracking-tight leading-none mb-1">{category.name}</h2>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">
+                            {category.total_product_count || 0} Products in database • {category.product_count || 0} Active
+                        </span>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="w-10 h-10 flex items-center justify-center bg-white border border-zinc-100 rounded-full hover:bg-zinc-50 transition-colors shadow-sm"
+                    >
+                        <X size={18} />
+                    </button>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-zinc-50/30 font-inter">
+                    {category.products && category.products.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {category.products.map((prod) => (
+                                <div key={prod.id} className="bg-white p-4 rounded-3xl border border-zinc-100 flex items-center gap-4 group hover:border-black/20 transition-all duration-300 shadow-sm hover:shadow-md">
+                                    <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-zinc-50 shadow-inner flex-shrink-0">
+                                        {prod.image_url ? (
+                                            <Image src={prod.image_url} alt={prod.name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-zinc-300">
+                                                <ImageIcon size={20} />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex-1 overflow-hidden">
+                                        <p className="font-bold text-xs text-black truncate">{prod.name}</p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className="text-xs font-black text-black">₹{prod.price_offer || prod.price_base}</span>
+                                            {prod.price_offer && prod.price_base > prod.price_offer && (
+                                                <span className="text-[9px] font-bold text-zinc-400 line-through">₹{prod.price_base}</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className={cn(
+                                        "px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter self-start",
+                                        prod.is_hidden ? "bg-amber-50 text-amber-500" : (prod.out_of_stock_at ? "bg-red-50 text-red-500" : "bg-green-50 text-green-500")
+                                    )}>
+                                        {prod.is_hidden ? "Scheduled" : (prod.out_of_stock_at ? "Hidden / OOS" : "Active")}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="h-64 flex flex-col items-center justify-center text-zinc-400 gap-3 italic">
+                            <Tag size={40} className="text-zinc-100" />
+                            <p className="text-sm font-bold uppercase tracking-widest text-zinc-200">Empty Category</p>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
