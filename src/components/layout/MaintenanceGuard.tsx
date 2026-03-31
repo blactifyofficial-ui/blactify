@@ -12,8 +12,14 @@ export function MaintenanceGuard({ children }: { children: React.ReactNode }) {
     const [isWhitelisted, setIsWhitelisted] = useState(false);
     const [checked, setChecked] = useState(false);
 
-    // Admin, Developer, and post-payment routes always bypass maintenance
+    // Admin, Developer, post-payment routes, and local development always bypass maintenance
+    const isLocalhost = typeof window !== "undefined" && 
+        (window.location.hostname === "localhost" || 
+         window.location.hostname === "127.0.0.1" || 
+         window.location.hostname === "[::1]");
+
     const isBypassRoute =
+        isLocalhost ||
         pathname?.startsWith("/admin") ||
         pathname?.startsWith("/developer") ||
         pathname?.startsWith("/checkout/success") ||
