@@ -307,3 +307,60 @@ export async function getTrackingStatus(waybill: string = "", orderId: string = 
     };
 }
 
+/**
+ * Fetches reserved Waybill (AWB) numbers in bulk from Delhivery
+ * Useful for pre-assigning tracking IDs to orders.
+ */
+export async function fetchReservedWaybills(count: number = 5) {
+    if (count <= 0 || count > 50) {
+        return { success: false, message: "Count must be between 1 and 50" };
+    }
+
+    console.log(`[Delhivery] Fetching ${count} reserved waybills...`);
+
+    const PRODUCTION_WAYBILL_URL = 'https://track.delhivery.com/waybill/api/bulk/json/';
+    const STAGING_WAYBILL_URL = 'https://staging-express.delhivery.com/waybill/api/bulk/json/';
+
+    const urls = [PRODUCTION_WAYBILL_URL, STAGING_WAYBILL_URL];
+    const authFormats = [
+        (t: string) => `Token ${t}`,
+        (t: string) => `Bearer ${t}`,
+        (t: string) => t
+    ];
+
+    for (const url of urls) {
+        for (const format of authFormats) {
+            const authHeader = format(DELHI_VERY_TOKEN);
+            
+            try {
+                const response = await axios.get(url, {
+                    params: {
+                        count: count,
+                        token: DELHI_VERY_TOKEN // Some Delhivery accounts require token in query for waybill fetch
+                    },
+                    headers: {
+                        'Authorization': authHeader,
+                        'Accept': 'application/json'
+                    },
+                    timeout: 10000
+                });
+
+                if (response.status === 200 && response.data) {
+                    // Response is usually a simple string or comma-separated list of AWBs in some versions, 
+                    // or a proper JSON object in others.
+                    const data = response.data;
+                    console.log(`[Delhivery] Bulk AWB fetch SUCCESS`);
+                    return { success: true, data };
+                }
+            } catch {
+                // Silently try next configuration
+            }
+        }
+    }
+
+    return { 
+        success: false, 
+        message: "Failed to fetch reserved waybills from Delhivery" 
+    };
+}
+
