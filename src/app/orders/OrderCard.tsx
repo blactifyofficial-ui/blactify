@@ -60,9 +60,11 @@ export default function OrderCard({ order }: OrderCardProps) {
                         {order.id}
                         <span className={cn(
                             "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest",
-                            order.status === 'captured' || order.status === 'paid' ? 'bg-zinc-200 text-zinc-800' : 'bg-zinc-100 text-zinc-500'
+                            order.status === 'captured' || order.status === 'paid' ? 'bg-zinc-200 text-zinc-800' : 
+                            order.status === 'unpaid' || order.status === 'failed' ? 'bg-red-50 text-red-600' : 'bg-zinc-100 text-zinc-500'
                         )}>
-                            {order.status === 'captured' || order.status === 'paid' ? 'PAID' : (order.status || 'Processing')}
+                            {order.status === 'captured' || order.status === 'paid' ? 'PAID' : 
+                             order.status === 'unpaid' ? 'UNPAID' : (order.status || 'Processing')}
                         </span>
                     </p>
                 </div>

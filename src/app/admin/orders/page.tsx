@@ -35,6 +35,7 @@ export default function AdminOrdersPage() {
             case 'processing': return 'bg-amber-50 text-amber-700 border-amber-100';
             case 'shipped': return 'bg-purple-50 text-purple-700 border-purple-100';
             case 'delivered': return 'bg-green-50 text-green-700 border-green-100';
+            case 'unpaid': return 'bg-rose-50 text-rose-700 border-rose-100';
             case 'failed': return 'bg-red-50 text-red-700 border-red-100';
             default: return 'bg-zinc-50 text-zinc-700 border-zinc-100';
         }

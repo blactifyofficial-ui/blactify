@@ -611,6 +611,7 @@ export default function CreateOrderClient() {
                                         className="w-full px-5 py-3.5 bg-zinc-50 border border-zinc-100 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-black/5 outline-none transition-all appearance-none cursor-pointer"
                                     >
                                         <option value="pending">Pending</option>
+                                        <option value="unpaid">Unpaid</option>
                                         <option value="paid">Paid</option>
                                         <option value="processing">Processing</option>
                                     </select>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { processOrderShipping } from "@/actions/delhivery";
 
 export async function POST(req: Request) {
     try {
@@ -27,7 +28,6 @@ export async function POST(req: Request) {
         const event = JSON.parse(body);
         const eventType = event.event;
 
-
         // --- Audit log for receipt ---
         await supabaseAdmin.from("developer_logs").insert({
             action_type: `razorpay_webhook_${eventType}`,
@@ -47,8 +47,6 @@ export async function POST(req: Request) {
             const payment_id = payload.payment_id || payload.id;
             const notes = payload.notes || {};
 
-
-
             // 1. Check if order exists and its current status
             const { data: existingOrder, error: fetchError } = await supabaseAdmin
                 .from("orders")
@@ -58,21 +56,11 @@ export async function POST(req: Request) {
 
             if (fetchError && fetchError.code !== "PGRST116") {
                 console.error("Error fetching order in webhook:", fetchError);
-                await supabaseAdmin.from("developer_logs").insert({
-                    action_type: "razorpay_webhook_fetch_error",
-                    severity: "error",
-                    details: { order_id, error: fetchError, timestamp: new Date().toISOString() }
-                });
             }
 
             if (existingOrder) {
-                if (existingOrder.status === "paid") {
-                    // Already confirmed by client-side - nothing to do
-
-                } else {
-                    // ⚡ CRITICAL: Client-side confirmOrder failed or hasn't run yet.
-
-
+                if (existingOrder.status !== "paid") {
+                    // ⚡ CRITICAL: Confirm order if not already paid
                     const items = existingOrder.items as { id: string; size: string; quantity: number; price_base: number; price_offer?: number }[];
 
                     const { data: rpcData, error: rpcError } = await supabaseAdmin.rpc('confirm_order_v3', {
@@ -90,37 +78,8 @@ export async function POST(req: Request) {
                     });
 
                     if (rpcError || !rpcData?.success) {
-                        const errMsg = rpcError?.message || rpcData?.error;
-                        console.error(`Failed to confirm order ${order_id} via webhook:`, errMsg);
-
-                        await supabaseAdmin.from("developer_logs").insert({
-                            action_type: "razorpay_webhook_confirmation_failed",
-                            severity: "error",
-                            details: { order_id, error: errMsg, timestamp: new Date().toISOString() }
-                        });
-
-                        // Last resort: just update status to paid so the order record isn't lost
-                        const { error: updateError } = await supabaseAdmin
-                            .from("orders")
-                            .update({
-                                status: "paid",
-                                payment_id: payment_id,
-                                payment_details: {
-                                    razorpay_order_id: order_id,
-                                    razorpay_payment_id: payment_id,
-                                    confirmed_by: "webhook_fallback",
-                                    error: errMsg,
-                                    confirmed_at: new Date().toISOString(),
-                                    razorpay_notes: notes,
-                                },
-                            })
-                            .eq("id", order_id);
-
-                        if (updateError) {
-                            console.error(`CRITICAL: Could not even fallback-update order ${order_id}:`, updateError);
-                        }
+                        console.error(`Failed to confirm order ${order_id} via webhook:`, rpcError?.message || rpcData?.error);
                     } else {
-
                         // Audit success
                         await supabaseAdmin.from("developer_logs").insert({
                             action_type: "razorpay_webhook_confirmation_success",
@@ -128,50 +87,65 @@ export async function POST(req: Request) {
                             details: { order_id, payment_id, timestamp: new Date().toISOString() }
                         });
 
-                        // Send notifications
-                        try {
-                            const { sendMulticastAdminNotification } = await import("@/lib/notifications-server");
-                            const { data: orderData } = (await supabaseAdmin
-                                .from("orders")
-                                .select("*")
-                                .eq("id", order_id)
-                                .single()) as { data: Record<string, unknown> | null; error: unknown };
+                        // Fetch fresh order data for shipping & notifications
+                        const { data: orderData } = await supabaseAdmin
+                            .from("orders")
+                            .select("*")
+                            .eq("id", order_id)
+                            .single();
 
-                            if (orderData) {
-                                const customerEmail = (orderData.customer_details as { email?: string })?.email || "Unknown";
-                                const totalAmountFormatted = `₹${Number(orderData.amount).toLocaleString('en-IN')}`;
-                                
-                                sendMulticastAdminNotification(
-                                    "🚨 Order Confirmed via Webhook!",
-                                    `Order #${order_id} for ${totalAmountFormatted} by ${customerEmail} (webhook confirmation)`,
-                                    { orderId: order_id, type: "new_order" }
-                                ).catch(() => { });
-
+                        if (orderData) {
+                            // 1. Send Notifications
+                            try {
                                 const { sendOrderNotifications } = await import("@/lib/notifications-emails");
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                 sendOrderNotifications({ ...orderData, id: order_id } as any).catch(e => console.error("Webhook Order Notify Error:", e));
+                            } catch (e) {
+                                console.error("Notification error:", e);
                             }
-                        } catch { /* Non-blocking */ }
+
+                            // 2. Automate Delhivery Shipping
+                            try {
+                                console.log(`[Webhook] Registering Delhivery shipment for order ${order_id}`);
+                                const shippingResult = await processOrderShipping(orderData);
+
+                                if (shippingResult.success) {
+                                    await supabaseAdmin
+                                        .from("orders")
+                                        .update({
+                                            tracking_id: shippingResult.awb,
+                                            payment_details: {
+                                                ...((orderData.payment_details as Record<string, unknown>) || {}),
+                                                shipping: {
+                                                    awb: shippingResult.awb,
+                                                    tracking_link: shippingResult.tracking_link,
+                                                    label_url: shippingResult.label_url,
+                                                    status: "registered"
+                                                }
+                                            }
+                                        })
+                                        .eq("id", order_id);
+                                    console.log(`[Webhook] Delhivery shipment registered: ${shippingResult.awb}`);
+                                } else {
+                                    console.warn("[Webhook] Delhivery registration failed:", shippingResult.message);
+                                }
+                            } catch (shippingErr) {
+                                console.error("[Webhook] Delhivery processing error:", shippingErr);
+                            }
+                        }
                     }
                 }
             } else {
-                // Order doesn't exist at all — this shouldn't happen with the Phase 1 registration
-                console.error(`🔴 CRITICAL: Order ${order_id} not found in database! Payment was captured but no record exists.`);
-                
-                await supabaseAdmin.from("developer_logs").insert({
-                    action_type: "razorpay_webhook_missing_order_record",
-                    severity: "critical",
-                    details: {
-                        razorpay_order_id: order_id,
-                        payment_id: payment_id,
-                        event: eventType,
-                        razorpay_notes: notes,
-                        amount: payload.amount / 100, // back to currency
-                        currency: payload.currency,
-                        timestamp: new Date().toISOString(),
-                        notes_hint: "Check Razorpay dashboard for this order ID to manually recover data."
-                    }
-                });
+                console.error(`🔴 CRITICAL: Order ${order_id} not found in database!`);
+            }
+        } else if (eventType === "payment.failed") {
+            const payload = event.payload.payment.entity;
+            const order_id = payload.order_id;
+            if (order_id) {
+                await supabaseAdmin
+                    .from("orders")
+                    .update({ status: "unpaid" })
+                    .eq("id", order_id)
+                    .in("status", ["pending", "unpaid"]); 
             }
         }
 
@@ -181,4 +155,3 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
-

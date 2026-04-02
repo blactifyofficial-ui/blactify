@@ -220,3 +220,47 @@ export async function testSheetSync(token?: string) {
     }
 }
 
+export async function registerAdminOrderShipping(id: string, token?: string) {
+    try {
+        const { verifyActionAdminAuth } = await import("@/lib/auth-server");
+        await verifyActionAdminAuth(token);
+        
+        const { data: order, error } = await supabaseAdmin
+            .from("orders")
+            .select("*")
+            .eq("id", id)
+            .single();
+
+        if (error || !order) throw new Error("Order not found.");
+
+        const { processOrderShipping } = await import("@/actions/delhivery");
+        const shippingResult = await processOrderShipping(order);
+
+        if (shippingResult.success) {
+            await supabaseAdmin
+                .from("orders")
+                .update({
+                    tracking_id: shippingResult.awb,
+                    payment_details: {
+                        ...((order.payment_details as Record<string, unknown>) || {}),
+                        shipping: {
+                            awb: shippingResult.awb,
+                            tracking_link: shippingResult.tracking_link,
+                            label_url: shippingResult.label_url,
+                            status: "registered",
+                            registered_at: new Date().toISOString()
+                        }
+                    }
+                })
+                .eq("id", id);
+            
+            return { success: true, message: "Shipment registered successfully", awb: shippingResult.awb };
+        } else {
+            throw new Error(shippingResult.message || "Delhivery registration failed.");
+        }
+    } catch (err: unknown) {
+        console.error("Shipping Registration Error:", err);
+        return { success: false, error: err instanceof Error ? err.message : "Registration failed" };
+    }
+}
+

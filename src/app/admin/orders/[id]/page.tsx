@@ -21,14 +21,15 @@ import {
     CreditCard,
     Box,
     Activity,
-    RefreshCw
+    RefreshCw,
+    Printer
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { AdminLoading, AdminPageHeader, AdminCard } from "@/components/admin/AdminUI";
 
 const STATUS_SEQUENCE = ["paid", "processing", "shipped", "delivered"];
-const STATUS_OPTIONS = ["paid", "processing", "shipped", "delivered", "failed"];
+const STATUS_OPTIONS = ["unpaid", "paid", "processing", "shipped", "delivered", "failed"];
 
 const getAvailableStatuses = (currentStatus: string) => {
     const status = currentStatus?.toLowerCase();
@@ -181,6 +182,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
 
     const getStatusIcon = (status: string | undefined) => {
         switch (status?.toLowerCase()) {
+            case 'unpaid': return AlertCircle;
             case 'paid': return CreditCard;
             case 'processing': return Clock;
             case 'shipped': return Truck;
@@ -228,7 +230,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                         <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
                     </button>
 
-                    {order.status === 'pending' && (
+                    {(order.status === 'pending' || order.status === 'unpaid') && (
                         <button
                             onClick={async () => {
                                 setStatusUpdating(true);
@@ -270,8 +272,8 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                         <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
                             <StatusIcon size={18} className={cn(
                                 "transition-colors duration-300",
-                                order.status?.toLowerCase() === 'failed' ? "text-red-500" : "text-black"
-                            )} />
+                            order.status?.toLowerCase() === 'failed' || order.status?.toLowerCase() === 'unpaid' ? "text-red-500" : "text-black"
+                        )} />
                         </div>
                     </div>
                 </div>
@@ -424,6 +426,57 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                                             SAVE
                                         </button>
                                     </div>
+                                    
+                                    {/* Register Shipping & Download Label */}
+                                    <div className="pt-6 space-y-4">
+                                        {!order.tracking_id ? (
+                                            <button
+                                                onClick={async () => {
+                                                    setStatusUpdating(true);
+                                                    try {
+                                                        const { registerAdminOrderShipping } = await import("@/app/actions/orders");
+                                                        const token = await auth.currentUser?.getIdToken();
+                                                        const res = await registerAdminOrderShipping(order.id, token);
+                                                        if (res.success) {
+                                                            toast.success("Shipment Registered", { description: `AWB: ${res.awb}` });
+                                                            fetchOrder();
+                                                        } else {
+                                                            toast.error("Registration Failed", { description: res.error });
+                                                        }
+                                                    } catch {
+                                                        toast.error("Process Error");
+                                                    } finally {
+                                                        setStatusUpdating(false);
+                                                    }
+                                                }}
+                                                disabled={statusUpdating || (order.status !== "paid" && order.status !== "unpaid")}
+                                                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-red-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-red-700 transition-all disabled:opacity-50 shadow-xl shadow-red-600/20"
+                                            >
+                                                <Truck size={18} />
+                                                Register Delhivery Shipment
+                                            </button>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                <div className="flex items-center gap-3 p-4 bg-green-50 rounded-2xl border border-green-100">
+                                                    <CheckCircle2 className="text-green-600" size={18} />
+                                                    <span className="text-[10px] font-black text-green-700 uppercase tracking-widest">Shipment Registered</span>
+                                                </div>
+                                                
+                                                {(order.payment_details as any)?.shipping?.label_url && (
+                                                    <a
+                                                        href={(order.payment_details as any).shipping.label_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-black text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-zinc-800 transition-all shadow-xl shadow-black/10"
+                                                    >
+                                                        <Printer size={18} />
+                                                        Download Shipping Label
+                                                    </a>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
                                     <p className="text-[8px] text-zinc-300 font-black uppercase tracking-widest leading-tight">
                                         This ID will be visible to the customer in their account dashboard.
                                     </p>

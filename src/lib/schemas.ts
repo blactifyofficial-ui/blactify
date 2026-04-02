@@ -49,7 +49,7 @@ export const OrderSyncSchema = z.object({
     currency: z.string().default("INR"),
     shipping_address: AddressSchema,
     customer_details: CustomerDetailsSchema,
-    status: z.enum(["pending", "paid", "processing", "shipped", "delivered", "failed"]),
+    status: z.enum(["pending", "unpaid", "paid", "processing", "shipped", "delivered", "failed"]),
     razorpay_order_id: z.string().optional(),
     razorpay_payment_id: z.string().optional(),
     payment_details: z.record(z.string(), z.unknown()).optional(),
