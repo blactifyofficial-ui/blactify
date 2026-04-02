@@ -162,7 +162,7 @@ export const useCartStore = create<CartStore>()(
                 if (state === "Kerala") {
                     return 59;
                 }
-                return 79;
+                return 79; // Standard rate for Rest of India
             },
             discountCode: null,
             applyDiscount: (code) => {

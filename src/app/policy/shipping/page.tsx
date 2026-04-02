@@ -39,25 +39,30 @@ export default function ShippingPolicyPage() {
                                     <tr>
                                         <td className="px-4 py-4 font-medium text-black">Standard Shipping</td>
                                         <td className="px-4 py-4">3-5 Business Days</td>
-                                        <td className="px-4 py-4 text-right">₹80.00</td>
+                                        <td className="px-4 py-4 text-right font-mono tracking-tighter">₹59 - ₹79*</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="px-4 py-4 font-bold text-green-600">Free Delivery</td>
+                                        <td className="px-4 py-4 italic">Orders above ₹2,999</td>
+                                        <td className="px-4 py-4 text-right font-black">FREE</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
-                        <p className="text-[10px] text-zinc-400 italic mt-2">* Delivery timelines are estimates and may vary based on location and unforeseen circumstances.</p>
+                        <p className="text-[10px] text-zinc-400 italic mt-2">* Shipping rates are dynamically calculated based on weight and destination pincode through our logistics partner, Delhivery.</p>
                     </section>
 
                     <section className="space-y-4">
                         <h2 className="text-sm font-bold uppercase tracking-widest text-black">Processing Time</h2>
                         <p>
-                            Orders are processed within 24-48 hours of payment confirmation. Orders placed after 5 PM on Fridays or during the weekend will be processed the following Monday.
+                            All orders are processed and prepared for deployment within 24-48 hours. Our operational cycle runs Monday through Saturday.
                         </p>
                     </section>
 
                     <section className="space-y-4">
                         <h2 className="text-sm font-bold uppercase tracking-widest text-black">Order Tracking</h2>
                         <p>
-                            Once your order has shipped, you will receive an email and SMS with your tracking information. You can track your order directly through our partner courier website or via the <Link href="/orders" className="text-black font-medium underline">My Orders</Link> section.
+                            Upon order confirmation, a unique **Waybill (AWB)** will be generated instantly. You can access live tracking information via the <Link href="/orders" className="text-black font-bold border-b border-black hover:text-zinc-500 transition-colors">My Orders</Link> dashboard or directly through the Delhivery tracking portal once the package is dispatched.
                         </p>
                     </section>
 
