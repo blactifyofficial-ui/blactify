@@ -15,11 +15,14 @@ import { cn } from "@/lib/utils";
 import { Pagination } from "@/components/ui/Pagination";
 import { useAdminOrders } from "@/hooks/useAdminOrders";
 import { AdminLoading, AdminPageHeader } from "@/components/admin/AdminUI";
+import { fetchReservedWaybills } from "@/actions/delhivery";
+import { toast } from "sonner";
 
 export default function AdminOrdersPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [page, setPage] = useState(1);
     const pageSize = 10;
+    const [isFetchingAWBs, setIsFetchingAWBs] = useState(false);
 
     const { orders, totalCount, loading, refetch } = useAdminOrders({
         page,
@@ -68,6 +71,35 @@ export default function AdminOrdersPage() {
                             <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
                         </button>
                         
+                        <button
+                            onClick={async () => {
+                                setIsFetchingAWBs(true);
+                                try {
+                                    const result = await fetchReservedWaybills(5);
+                                    if (result.success) {
+                                        toast.success("AWBs Reserved Successfully", {
+                                            description: `Fetched AWBs: ${JSON.stringify(result.data)}`
+                                        });
+                                        console.log("Delhivery Reserved AWBs:", result.data);
+                                    } else {
+                                        toast.error(result.message);
+                                    }
+                                } catch (err: any) {
+                                    toast.error(err.message || "Failed to fetch AWBs");
+                                } finally {
+                                    setIsFetchingAWBs(false);
+                                }
+                            }}
+                            disabled={isFetchingAWBs}
+                            className={cn(
+                                "flex items-center justify-center gap-2 px-6 py-3 bg-white border border-zinc-100 text-black rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:border-black transition-all active:scale-[0.98] shadow-sm disabled:opacity-50 h-[46px]",
+                                isFetchingAWBs && "animate-pulse"
+                            )}
+                        >
+                            <RefreshCw size={14} className={isFetchingAWBs ? "animate-spin" : ""} />
+                            <span>{isFetchingAWBs ? "Fetching..." : "Fetch AWBs"}</span>
+                        </button>
+
                         <Link
                             href="/admin/orders/create"
                             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-black text-white rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-all active:scale-[0.98] shadow-lg shadow-black/5 whitespace-nowrap"
