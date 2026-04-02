@@ -222,6 +222,44 @@ export async function confirmOrder(orderData: z.infer<typeof OrderSyncSchema>, t
             amount: data.amount,
             status: "paid"
         }).catch(() => { });
+        
+        // 5. Delhivery Shipment Creation
+        try {
+            const { createShipment } = await import("@/actions/delhivery");
+            const delhiveryShipment = {
+                shipments: [
+                    {
+                        name: data.customer_details.name,
+                        add: `${data.shipping_address.address}${data.shipping_address.apartment ? `, ${data.shipping_address.apartment}` : ""}`,
+                        pin: data.shipping_address.pincode,
+                        city: data.shipping_address.city,
+                        state: data.shipping_address.state,
+                        country: "India",
+                        phone: data.customer_details.phone,
+                        order: razorpay_order_id,
+                        payment_mode: "Prepaid" as const,
+                        products_desc: data.items.map(item => `${item.name}${item.size ? ` (${item.size})` : ""}`).join(", ").substring(0, 250),
+                        total_amount: data.amount.toString(),
+                        quantity: data.items.reduce((acc, item) => acc + item.quantity, 0).toString(),
+                        shipping_mode: "Surface" as const,
+                        weight: (data.items.reduce((acc, item) => acc + (item.quantity * 500), 0)).toString(), // Estimate 500g per item
+                    }
+                ],
+                pickup_location: {
+                    name: process.env.DELHIVERY_WAREHOUSE_NAME || "Blactify"
+                }
+            };
+            
+            createShipment(delhiveryShipment).then(res => {
+                if (res.success) {
+                    console.log(`[Delhivery] Shipment created for order ${razorpay_order_id}`);
+                }
+            }).catch(err => {
+                console.error(`[Delhivery] Shipment creation failed for order ${razorpay_order_id}:`, err);
+            });
+        } catch (shipmentErr) {
+            console.error("Failed to initiate Delhivery shipment side-effect:", shipmentErr);
+        }
 
 
         return { success: true };

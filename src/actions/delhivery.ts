@@ -155,3 +155,96 @@ export async function getShippingCharges(destinationPincode: string, weightGrams
     };
 }
 
+export interface DelhiveryShipment {
+    name: string;
+    add: string;
+    pin: string;
+    city: string;
+    state: string;
+    country: string;
+    phone: string;
+    order: string;
+    payment_mode: "Prepaid" | "COD";
+    return_pin?: string;
+    return_city?: string;
+    return_phone?: string;
+    return_add?: string;
+    return_state?: string;
+    return_country?: string;
+    products_desc?: string;
+    hsn_code?: string;
+    cod_amount?: string;
+    order_date?: string | null;
+    total_amount?: string;
+    seller_add?: string;
+    seller_name?: string;
+    seller_inv?: string;
+    quantity?: string;
+    waybill?: string;
+    shipment_width?: string;
+    shipment_height?: string;
+    weight?: string;
+    shipping_mode?: "Surface" | "Express";
+    address_type?: string;
+}
+
+export interface CreateShipmentParams {
+    shipments: DelhiveryShipment[];
+    pickup_location: {
+        name: string;
+    };
+}
+
+export async function createShipment(params: CreateShipmentParams) {
+    console.log(`[Delhivery] Creating shipment for order: ${params.shipments[0]?.order}`);
+
+    const PRODUCTION_CREATE_URL = 'https://track.delhivery.com/api/cmu/create.json';
+    const STAGING_CREATE_URL = 'https://staging-express.delhivery.com/api/cmu/create.json';
+
+    // Delhivery requires data in a specific format: format=json&data={json_string}
+    const payload = `format=json&data=${JSON.stringify(params)}`;
+
+    const urls = [PRODUCTION_CREATE_URL, STAGING_CREATE_URL];
+    const authFormats = [
+        (t: string) => `Token ${t}`,
+        (t: string) => `Bearer ${t}`,
+        (t: string) => t
+    ];
+
+    for (const url of urls) {
+        for (const format of authFormats) {
+            const authHeader = format(DELHI_VERY_TOKEN);
+            
+            try {
+                const response = await axios.post(url, payload, {
+                    headers: {
+                        'Authorization': authHeader,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    timeout: 10000
+                });
+
+                if (response.status === 200 && response.data) {
+                    const data = response.data;
+                    // Delhivery success responses usually have success: true and data about the created shipment
+                    if (data.success || (data.packages && data.packages.length > 0)) {
+                        console.log(`[Delhivery] Shipment creation SUCCESS:`, data);
+                        return { success: true, data };
+                    } else {
+                        console.warn(`[Delhivery] Response received but success was false:`, data);
+                    }
+                }
+            } catch (err) {
+                const axiosErr = err as AxiosError;
+                console.error(`[Delhivery] Error creating shipment on ${url}:`, axiosErr.response?.data || axiosErr.message);
+            }
+        }
+    }
+
+    return { 
+        success: false, 
+        message: "Failed to create shipment after trying all configurations" 
+    };
+}
+
