@@ -250,9 +250,35 @@ export async function confirmOrder(orderData: z.infer<typeof OrderSyncSchema>, t
                 }
             };
             
-            createShipment(delhiveryShipment).then(res => {
-                if (res.success) {
-                    console.log(`[Delhivery] Shipment created for order ${razorpay_order_id}`);
+            createShipment(delhiveryShipment).then(async (res) => {
+                if (res.success && res.data.packages && res.data.packages.length > 0) {
+                    const packageInfo = res.data.packages[0];
+                    const waybill = packageInfo.waybill || packageInfo.upload_wbn;
+
+                    if (waybill) {
+                        try {
+                            const { error: updateError } = await supabaseAdmin
+                                .from("orders")
+                                .update({
+                                    tracking_id: waybill,
+                                    tracking_details: {
+                                        carrier: "Delhivery",
+                                        tracking_id: waybill,
+                                        tracking_url: `https://p.delhivery.com/track/package/${waybill}`,
+                                        shipped_at: new Date().toISOString()
+                                    }
+                                })
+                                .eq("id", razorpay_order_id);
+
+                            if (updateError) {
+                                console.error(`[Delhivery] Failed to update order with tracking:`, updateError);
+                            } else {
+                                console.log(`[Delhivery] Shipment AWB ${waybill} saved to order ${razorpay_order_id}`);
+                            }
+                        } catch (err) {
+                            console.error(`[Delhivery] DB update error:`, err);
+                        }
+                    }
                 }
             }).catch(err => {
                 console.error(`[Delhivery] Shipment creation failed for order ${razorpay_order_id}:`, err);

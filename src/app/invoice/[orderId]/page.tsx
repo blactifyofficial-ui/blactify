@@ -42,6 +42,13 @@ interface OrderDetail {
         pincode: string;
     };
     payment_id?: string;
+    tracking_id?: string;
+    tracking_details?: {
+        carrier?: string;
+        tracking_id?: string;
+        tracking_url?: string;
+        shipped_at?: string;
+    };
     payment_details?: {
         discount_code?: string;
     };
@@ -204,6 +211,26 @@ export default function InvoicePage() {
                                 </div>
                             )}
                         </div>
+
+                        {order.tracking_id && (
+                            <div className="mt-8 space-y-1 inline-flex flex-col md:items-end w-full">
+                                <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-4">Shipment Tracking</h3>
+                                <div className="flex justify-between md:justify-end gap-4 text-sm">
+                                    <span className="text-zinc-500">AWB Number</span>
+                                    <span className="font-mono text-xs font-bold">{order.tracking_id}</span>
+                                </div>
+                                {order.tracking_details?.tracking_url && (
+                                    <a 
+                                        href={order.tracking_details.tracking_url} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="text-[10px] font-bold text-black border-b border-black uppercase tracking-widest mt-1 hover:text-zinc-500 hover:border-zinc-500 transition-colors"
+                                    >
+                                        Track Shipment online
+                                    </a>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
 

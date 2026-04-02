@@ -427,6 +427,19 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                                     <p className="text-[8px] text-zinc-300 font-black uppercase tracking-widest leading-tight">
                                         This ID will be visible to the customer in their account dashboard.
                                     </p>
+
+                                    {order.tracking_details?.tracking_url && (
+                                        <div className="pt-4 border-t border-zinc-50">
+                                            <a 
+                                                href={order.tracking_details.tracking_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-zinc-100 text-black text-[9px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-black hover:text-white transition-all shadow-sm"
+                                            >
+                                                Track Package <Truck size={14} />
+                                            </a>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </AdminCard>

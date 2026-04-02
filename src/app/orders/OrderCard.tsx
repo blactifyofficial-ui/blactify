@@ -27,6 +27,11 @@ interface Order {
     items: OrderItem[];
     payment_id: string;
     tracking_id?: string;
+    tracking_details?: {
+        carrier?: string;
+        tracking_id?: string;
+        tracking_url?: string;
+    };
     shipping_address?: {
         address?: string;
         line1?: string;
@@ -140,14 +145,25 @@ export default function OrderCard({ order }: OrderCardProps) {
                                 </div>
 
                                 {order.tracking_id ? (
-                                    <div className="flex items-center gap-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                                    <div className="group/tracking flex items-center gap-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100 relative transition-all hover:bg-zinc-100/50">
                                         <div className="flex-1">
                                             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-0.5">Tracking ID</p>
                                             <p className="text-sm font-mono font-bold tracking-tight">{order.tracking_id}</p>
                                         </div>
-                                        <div className="px-3 py-1.5 bg-black text-white text-[10px] font-bold uppercase tracking-widest rounded-full">
-                                            In Transit
-                                        </div>
+                                        {order.tracking_details?.tracking_url ? (
+                                            <a 
+                                                href={order.tracking_details.tracking_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="px-4 py-2 bg-black text-white text-[10px] font-bold uppercase tracking-widest rounded-full hover:bg-zinc-800 transition-colors flex items-center gap-2 group-hover/tracking:translate-x-1"
+                                            >
+                                                Track <ExternalLink size={12} />
+                                            </a>
+                                        ) : (
+                                            <div className="px-3 py-1.5 bg-black text-white text-[10px] font-bold uppercase tracking-widest rounded-full">
+                                                In Transit
+                                            </div>
+                                        )}
                                     </div>
                                 ) : (
                                     <div className="flex items-center gap-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100 italic">

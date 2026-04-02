@@ -248,3 +248,62 @@ export async function createShipment(params: CreateShipmentParams) {
     };
 }
 
+/**
+ * Fetches real-time tracking status from Delhivery
+ * supports tracking by Waybill number or Order ID (ref_ids)
+ */
+export async function getTrackingStatus(waybill: string = "", orderId: string = "") {
+    if (!waybill && !orderId) {
+        return { success: false, message: "Waybill or Order ID required" };
+    }
+
+    console.log(`[Delhivery] Fetching tracking for Waybill: ${waybill || 'N/A'}, Order: ${orderId || 'N/A'}`);
+
+    const PRODUCTION_TRACK_URL = 'https://track.delhivery.com/api/v1/packages/json/';
+    const STAGING_TRACK_URL = 'https://staging-express.delhivery.com/api/v1/packages/json/';
+
+    const urls = [PRODUCTION_TRACK_URL, STAGING_TRACK_URL];
+    const authFormats = [
+        (t: string) => `Token ${t}`,
+        (t: string) => `Bearer ${t}`,
+        (t: string) => t
+    ];
+
+    for (const url of urls) {
+        for (const format of authFormats) {
+            const authHeader = format(DELHI_VERY_TOKEN);
+            
+            try {
+                const response = await axios.get(url, {
+                    params: {
+                        waybill: waybill,
+                        ref_ids: orderId
+                    },
+                    headers: {
+                        'Authorization': authHeader,
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 10000
+                });
+
+                if (response.status === 200 && response.data) {
+                    const data = response.data;
+                    // Delhivery tracking returns a 'ShipmentData' array
+                    if (data.ShipmentData && data.ShipmentData.length > 0) {
+                        const shipment = data.ShipmentData[0].Shipment;
+                        console.log(`[Delhivery] Tracking SUCCESS:`, shipment?.Status?.Status);
+                        return { success: true, data: shipment };
+                    }
+                }
+            } catch {
+                // Silently try next configuration
+            }
+        }
+    }
+
+    return { 
+        success: false, 
+        message: "Tracking information unavailable at the moment" 
+    };
+}
+

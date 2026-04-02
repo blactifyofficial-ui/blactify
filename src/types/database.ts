@@ -120,6 +120,12 @@ export interface Order {
     customer_details: CustomerDetails;
     payment_details?: Record<string, unknown>;
     tracking_id?: string;
+    tracking_details?: {
+        carrier?: string;
+        tracking_id?: string;
+        tracking_url?: string;
+        shipped_at?: string;
+    };
     created_at: string;
     order_items?: OrderItem[];
 }
