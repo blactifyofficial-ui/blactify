@@ -2,7 +2,7 @@
 
 import { useCartStore } from "@/store/useCartStore";
 import { cn } from "@/lib/utils";
-import { ChevronDown, ChevronUp, ShoppingBag, ArrowLeft, Smartphone, ShieldCheck } from "lucide-react";
+import { ChevronDown, ChevronUp, ShoppingBag, ArrowLeft, Smartphone, ShieldCheck, CheckCircle2, XCircle } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -16,6 +16,7 @@ import { markWelcomeDiscountUsed } from "@/actions/profile";
 import { Tag } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { checkPincodeServiceability } from "@/actions/delhivery";
 import {
     EmailSchema,
     PhoneSchema,
@@ -148,6 +149,9 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
         ? (discountCode === "WELCOME10" ? subtotal * 0.1 : 0)
         : (subtotal - (total - shipping));
 
+
+    const [isPincodeVerifying, setIsPincodeVerifying] = useState(false);
+    const [isPincodeServiceable, setIsPincodeServiceable] = useState<boolean | null>(null);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     interface ValidatedProduct {
@@ -279,6 +283,71 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
         }
     };
 
+    // Pincode Serviceability Check
+    useEffect(() => {
+        const verifyPincode = async () => {
+            const pincode = formData.pincode.trim();
+            if (pincode.length === 6 && PincodeSchema.safeParse(pincode).success) {
+                setIsPincodeVerifying(true);
+                try {
+                    const result = await checkPincodeServiceability(pincode);
+                    setIsPincodeServiceable(result.success);
+                    if (!result.success) {
+                        setErrors(prev => ({ ...prev, pincode: result.message }));
+                    } else {
+                        setErrors(prev => {
+                            const next = { ...prev };
+                            delete next.pincode;
+                            // Also clear any general pincode errors if they existed
+                            return next;
+                        });
+
+                        // Auto-fill city/district/state mapping
+                        if (result.data) {
+                            const stateMapping: Record<string, string> = {
+                                'KL': 'Kerala', 'KA': 'Karnataka', 'TN': 'Tamil Nadu', 
+                                'MH': 'Maharashtra', 'DL': 'Delhi', 'TS': 'Telangana',
+                                'AP': 'Andhra Pradesh', 'GA': 'Goa', 'GJ': 'Gujarat',
+                                'HR': 'Haryana', 'HP': 'Himachal Pradesh', 'JK': 'Jammu and Kashmir',
+                                'JH': 'Jharkhand', 'MP': 'Madhya Pradesh', 'OR': 'Odisha',
+                                'PB': 'Punjab', 'RJ': 'Rajasthan', 'SK': 'Sikkim',
+                                'UP': 'Uttar Pradesh', 'WB': 'West Bengal', 'ML': 'Meghalaya',
+                                'MN': 'Manipur', 'MZ': 'Mizoram', 'NL': 'Nagaland',
+                                'TR': 'Tripura', 'AS': 'Assam', 'BR': 'Bihar',
+                                'CT': 'Chhattisgarh', 'UK': 'Uttarakhand', 'PY': 'Puducherry',
+                                'CH': 'Chandigarh', 'AN': 'Andaman and Nicobar Islands',
+                                'LD': 'Ladakh', 'LA': 'Lakshadweep'
+                            };
+
+                            setFormData(prev => ({
+                                ...prev,
+                                district: result.data.district || prev.district,
+                                state: stateMapping[result.data.state_code] || prev.state
+                            }));
+                            
+                            // Clear errors for auto-filled fields
+                            setErrors(prev => {
+                                const next = { ...prev };
+                                delete next.district;
+                                delete next.state;
+                                return next;
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error("Pincode verification error:", error);
+                } finally {
+                    setIsPincodeVerifying(false);
+                }
+            } else {
+                setIsPincodeServiceable(null);
+            }
+        };
+
+        const timer = setTimeout(verifyPincode, 500); // Debounce
+        return () => clearTimeout(timer);
+    }, [formData.pincode]);
+
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
 
@@ -301,6 +370,8 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
             newErrors.pincode = "PIN code is required";
         } else if (!PincodeSchema.safeParse(formData.pincode).success) {
             newErrors.pincode = "Invalid PIN code (6 digits)";
+        } else if (isPincodeServiceable === false) {
+            newErrors.pincode = "Delhivery does not deliver to this PIN code";
         }
 
         // Name validation
@@ -934,6 +1005,27 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                     className="w-full h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500"
                                 />
 
+                                <div className="space-y-1 relative">
+                                    <input
+                                        name="pincode"
+                                        value={formData.pincode}
+                                        onChange={handleChange}
+                                        maxLength={6}
+                                        placeholder="PIN code"
+                                        className={cn(
+                                            "w-full h-12 px-4 pr-10 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500",
+                                            errors.pincode && "border-red-500 focus:ring-red-500",
+                                            isPincodeServiceable === true && !errors.pincode && "border-green-500 focus:ring-green-500"
+                                        )}
+                                    />
+                                    <div className="absolute right-3 top-0 bottom-0 flex items-center justify-center pointer-events-none">
+                                        {isPincodeVerifying && <div className="w-5 h-5 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin"></div>}
+                                        {!isPincodeVerifying && isPincodeServiceable === true && !errors.pincode && <CheckCircle2 size={20} className="text-green-500" strokeWidth={2.5} />}
+                                        {!isPincodeVerifying && isPincodeServiceable === false && <XCircle size={20} className="text-red-500" strokeWidth={2.5} />}
+                                    </div>
+                                    {errors.pincode && <p className="text-red-500 text-xs mt-1 font-medium">{errors.pincode}</p>}
+                                </div>
+
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="space-y-1">
                                         <input
@@ -963,37 +1055,22 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="space-y-1">
-                                        <select
-                                            name="state"
-                                            value={formData.state}
-                                            onChange={handleChange}
-                                            className={cn(
-                                                "w-full h-12 px-4 rounded-md border border-zinc-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow text-zinc-900",
-                                                errors.state && "border-red-500 focus:ring-red-500"
-                                            )}
-                                        >
-                                            <option value="" disabled>State</option>
-                                            {INDIAN_STATES.map((state) => (
-                                                <option key={state} value={state}>{state}</option>
-                                            ))}
-                                        </select>
-                                        {errors.state && <p className="text-red-500 text-xs">{errors.state}</p>}
-                                    </div>
-                                    <div className="space-y-1">
-                                        <input
-                                            name="pincode"
-                                            value={formData.pincode}
-                                            onChange={handleChange}
-                                            placeholder="PIN code"
-                                            className={cn(
-                                                "w-full h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500",
-                                                errors.pincode && "border-red-500 focus:ring-red-500"
-                                            )}
-                                        />
-                                        {errors.pincode && <p className="text-red-500 text-xs">{errors.pincode}</p>}
-                                    </div>
+                                <div className="space-y-1">
+                                    <select
+                                        name="state"
+                                        value={formData.state}
+                                        onChange={handleChange}
+                                        className={cn(
+                                            "w-full h-12 px-4 rounded-md border border-zinc-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow text-zinc-900",
+                                            errors.state && "border-red-500 focus:ring-red-500"
+                                        )}
+                                    >
+                                        <option value="" disabled>State</option>
+                                        {INDIAN_STATES.map((state) => (
+                                            <option key={state} value={state}>{state}</option>
+                                        ))}
+                                    </select>
+                                    {errors.state && <p className="text-red-500 text-xs">{errors.state}</p>}
                                 </div>
 
                                 <div className="relative space-y-1">
