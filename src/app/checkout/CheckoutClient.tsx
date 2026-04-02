@@ -16,7 +16,7 @@ import { markWelcomeDiscountUsed } from "@/actions/profile";
 import { Tag } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { checkPincodeServiceability } from "@/actions/delhivery";
+import { checkPincodeServiceability, getShippingCharges } from "@/actions/delhivery";
 import {
     EmailSchema,
     PhoneSchema,
@@ -126,6 +126,11 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
         secondaryPhone: ""
     });
 
+    const [dynamicShippingCharge, setDynamicShippingCharge] = useState<number | null>(null);
+    const [isPincodeVerifying, setIsPincodeVerifying] = useState(false);
+    const [isPincodeServiceable, setIsPincodeServiceable] = useState<boolean | null>(null);
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
     const activeItems = useMemo(() => (isDirect ? (directItem ? [directItem] : []) : items) as CartItem[], [isDirect, directItem, items]);
 
     // Derived values
@@ -133,26 +138,23 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
         ? activeItems.reduce((acc: number, item: CartItem) => acc + (item.price_offer || item.price_base) * item.quantity, 0)
         : getSubtotal();
 
-    const shipping = isDirect
+    const staticShipping = isDirect
         ? (subtotal === 0 || (discountCode === "FREE-SHIPPING" && initialSettings?.free_shipping_enabled) ? 0 : (subtotal < 2999 ? (formData.state === "Kerala" ? 59 : 79) : 0))
         : getShippingCharge(formData.state);
 
-    const total = isDirect
-        ? (() => {
-            let t = subtotal;
-            if (discountCode === "WELCOME10") t = subtotal * 0.9;
-            return t + shipping;
-        })()
-        : getTotalPrice(formData.state);
+    // Dynamic shipping takes precedence if available
+    const shipping = dynamicShippingCharge !== null ? dynamicShippingCharge : staticShipping;
 
     const discountAmount = isDirect
         ? (discountCode === "WELCOME10" ? subtotal * 0.1 : 0)
-        : (subtotal - (total - shipping));
+        : (subtotal - (getTotalPrice(formData.state) - staticShipping));
+
+    const total = isDirect
+        ? (subtotal - (discountCode === "WELCOME10" ? subtotal * 0.1 : 0) + shipping)
+        : (subtotal - discountAmount + shipping);
 
 
-    const [isPincodeVerifying, setIsPincodeVerifying] = useState(false);
-    const [isPincodeServiceable, setIsPincodeServiceable] = useState<boolean | null>(null);
-    const [errors, setErrors] = useState<Record<string, string>>({});
+
 
     interface ValidatedProduct {
         id: string;
@@ -332,6 +334,30 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                 delete next.state;
                                 return next;
                             });
+
+                            // --- DYNAMIC SHIPPING COST CALCULATION ---
+                            // Check if shipping charge is already overridden by free shipping rule
+                            const isFreeByRule = (subtotal >= 2999) || (discountCode === "FREE-SHIPPING" && initialSettings?.free_shipping_enabled);
+                            
+                            if (!isFreeByRule) {
+                                try {
+                                    // Estimate weight: 500g per item
+                                    const estimatedWeight = activeItems.reduce((acc, item) => acc + (item.quantity * 500), 0);
+                                    
+                                    const result = await getShippingCharges(pincode, estimatedWeight);
+                                    if (result.success && typeof result.charge === 'number') {
+                                        setDynamicShippingCharge(result.charge);
+                                        toast.info(`Shipping cost calculated: ₹${result.charge}`);
+                                    } else if (result.fallbackCharge) {
+                                        setDynamicShippingCharge(result.fallbackCharge);
+                                    }
+                                } catch (err) {
+                                    console.error("Shipping charge calculation failed:", err);
+                                    // Fallback to static charges is already handled by using dynamicShippingCharge || staticShipping
+                                }
+                            } else {
+                                setDynamicShippingCharge(0);
+                            }
                         }
                     }
                 } catch (error) {
@@ -341,12 +367,13 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                 }
             } else {
                 setIsPincodeServiceable(null);
+                setDynamicShippingCharge(null);
             }
         };
 
         const timer = setTimeout(verifyPincode, 500); // Debounce
         return () => clearTimeout(timer);
-    }, [formData.pincode]);
+    }, [formData.pincode, activeItems, discountCode, initialSettings?.free_shipping_enabled, subtotal]);
 
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
@@ -457,9 +484,11 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
 
             const currentSubtotal = latestItems.reduce((acc, item) => acc + (item.price_offer || item.price_base) * item.quantity, 0);
 
-            const currentShipping = (currentSubtotal === 0 || (discountCode === "FREE-SHIPPING" && initialSettings?.free_shipping_enabled))
-                ? 0
-                : (currentSubtotal < 2999 ? (formData.state === "Kerala" ? 59 : 79) : 0);
+            const currentShipping = dynamicShippingCharge !== null 
+                ? dynamicShippingCharge 
+                : ((currentSubtotal === 0 || (discountCode === "FREE-SHIPPING" && initialSettings?.free_shipping_enabled))
+                    ? 0
+                    : (currentSubtotal < 2999 ? (formData.state === "Kerala" ? 59 : 79) : 0));
 
             let latestTotal = currentSubtotal;
             if (discountCode === "WELCOME10") latestTotal = currentSubtotal * 0.9;

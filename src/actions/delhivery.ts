@@ -78,8 +78,80 @@ export async function checkPincodeServiceability(pincode: string) {
         return { success: false, message: "API Authentication failed. Please check your Delhivery Token." };
     }
 
+
     return {
         success: false,
         message: "Delivery is not available for this location"
     };
 }
+
+export async function getShippingCharges(destinationPincode: string, weightGrams: number = 500, originPincode: string = process.env.DELHIVERY_ORIGIN_PINCODE || "683543") {
+    if (!destinationPincode || destinationPincode.length !== 6) {
+        return { success: false, message: "Invalid destination PIN code" };
+    }
+
+    console.log(`[Delhivery] Calculating shipping for ${destinationPincode}, weight: ${weightGrams}g`);
+
+    const STAGING_CHARGES_URL = 'https://staging-express.delhivery.com/api/kinko/v1/invoice/charges/.json';
+    const PRODUCTION_CHARGES_URL = 'https://track.delhivery.com/api/kinko/v1/invoice/charges/.json';
+
+    const urls = [PRODUCTION_CHARGES_URL, STAGING_CHARGES_URL];
+    const authFormats = [
+        (t: string) => `Token ${t}`,
+        (t: string) => `Bearer ${t}`,
+        (t: string) => t
+    ];
+
+    for (const url of urls) {
+        for (const format of authFormats) {
+            const authHeader = format(DELHI_VERY_TOKEN);
+            
+            try {
+                // md=E (Express), ss=Delivered (Service Type/Status), pt=Pre-paid (Payment Type)
+                const params = {
+                    md: 'E',
+                    ss: 'Delivered',
+                    d_pin: destinationPincode,
+                    o_pin: originPincode,
+                    cgm: weightGrams,
+                    pt: 'Pre-paid'
+                };
+
+                const response = await axios.get(url, {
+                    params,
+                    headers: {
+                        Authorization: authHeader,
+                    },
+                    timeout: 5000
+                });
+
+                if (response.status === 200 && response.data) {
+                    // Delhivery charges API usually returns an array of charge objects
+                    const data = response.data;
+                    if (Array.isArray(data) && data.length > 0) {
+                        const chargeInfo = data[0];
+                        const totalCharge = parseFloat(chargeInfo.total_amount || chargeInfo.total_charge || 0);
+                        
+                        if (totalCharge > 0) {
+                            console.log(`[Delhivery] Shipping calculation SUCCESS: ₹${totalCharge}`);
+                            return { 
+                                success: true, 
+                                charge: totalCharge,
+                                metadata: chargeInfo
+                            };
+                        }
+                    }
+                }
+            } catch {
+                // Silently try next combination
+            }
+        }
+    }
+
+    return { 
+        success: false, 
+        message: "Failed to calculate shipping charges automatically",
+        fallbackCharge: destinationPincode.startsWith('6') ? 59 : 79 // Reasonable fallbacks for Kerala vs Rest of India
+    };
+}
+
