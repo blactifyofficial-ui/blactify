@@ -39,6 +39,16 @@ export default function TermsOfServicePage() {
                     </section>
 
                     <section className="space-y-4 border-t border-zinc-100 pt-12">
+                        <h2 className="text-sm font-bold uppercase tracking-widest text-black">Return & Cancellation Policy</h2>
+                        <p className="font-medium text-red-600">
+                            Please note that we currently do not offer any standard return or cancellation policy. Once an order is placed and confirmed, it cannot be cancelled or returned. 
+                        </p>
+                        <p>
+                            However, we understand that exceptional circumstances may occur. If you believe you have a genuine case (e.g., received a damaged or incorrect product), you may raise a <Link href="/support" className="text-black font-medium underline">support ticket</Link>. Each case will be reviewed individually at our discretion.
+                        </p>
+                    </section>
+
+                    <section className="space-y-4 border-t border-zinc-100 pt-12">
                         <h2 className="text-sm font-bold uppercase tracking-widest text-black">Limitation of Liability</h2>
                         <p>
                             Blactify shall not be liable for any special or consequential damages that result from the use of, or the inability to use, the materials on this site or the performance of the products.

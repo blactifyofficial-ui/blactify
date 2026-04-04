@@ -129,6 +129,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
     const [dynamicShippingCharge, setDynamicShippingCharge] = useState<number | null>(null);
     const [isPincodeVerifying, setIsPincodeVerifying] = useState(false);
     const [isPincodeServiceable, setIsPincodeServiceable] = useState<boolean | null>(null);
+    const [termsAccepted, setTermsAccepted] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     const activeItems = useMemo(() => (isDirect ? (directItem ? [directItem] : []) : items) as CartItem[], [isDirect, directItem, items]);
@@ -435,6 +436,10 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
         }
 
         if (!formData.state) newErrors.state = "State is required";
+
+        if (!termsAccepted) {
+            newErrors.terms = "You must accept the terms and policies to proceed";
+        }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -1190,17 +1195,50 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                     </p>
                                 </div>
                             )}
-                            <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-6">
+                            <div className="space-y-4 pt-2">
+                                <label className="flex items-start gap-3 cursor-pointer group">
+                                    <div className="relative flex items-center justify-center mt-0.5">
+                                        <input
+                                            type="checkbox"
+                                            checked={termsAccepted}
+                                            onChange={(e) => setTermsAccepted(e.target.checked)}
+                                            className="peer appearance-none w-5 h-5 border-2 border-zinc-300 rounded focus:ring-2 focus:ring-blue-500/20 transition-all checked:bg-blue-600 checked:border-blue-600 cursor-pointer"
+                                        />
+                                        <svg
+                                            className="absolute w-3.5 h-3.5 text-white pointer-events-none hidden peer-checked:block transition-opacity"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="4"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        >
+                                            <polyline points="20 6 9 17 4 12" />
+                                        </svg>
+                                    </div>
+                                    <span className="text-sm text-zinc-600 leading-tight">
+                                        I acknowledge that Blactify has <span className="font-bold text-red-600">no standard return or cancellation policy</span>. I understand that for <span className="font-medium text-zinc-900 border-b border-zinc-200">genuine cases</span> (e.g., damaged or wrong items), I can <Link href="/support" className="text-blue-600 underline hover:text-blue-700 transition-colors">raise a support ticket</Link>. I agree to the <Link href="/policy/terms" className="text-blue-600 underline hover:text-blue-700 transition-colors">Terms of Service</Link>.
+                                    </span>
+                                </label>
+                                {errors.terms && (
+                                    <p className="text-xs text-red-500 font-medium animate-in fade-in slide-in-from-left-1">
+                                        {errors.terms}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-6 pt-4">
                                 <Link href="/shop?openCart=true" className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
                                     <ArrowLeft size={14} />
                                     Return to bag
                                 </Link>
                                 <button
                                     type="submit"
-                                    disabled={isProcessing || Object.keys(stockErrors).length > 0}
+                                    disabled={isProcessing || Object.keys(stockErrors).length > 0 || !termsAccepted}
                                     className={cn(
                                         "w-full md:w-auto px-8 py-4 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors shadow-sm",
-                                        (isProcessing || Object.keys(stockErrors).length > 0) && "opacity-70 cursor-not-allowed"
+                                        (isProcessing || Object.keys(stockErrors).length > 0 || !termsAccepted) && "opacity-70 cursor-not-allowed"
                                     )}
                                 >
                                     {isProcessing

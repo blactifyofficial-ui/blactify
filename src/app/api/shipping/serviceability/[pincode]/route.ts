@@ -19,6 +19,7 @@ export async function GET(
             return NextResponse.json({ error: result.message }, { status: 404 });
         }
     } catch (error: unknown) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const message = error instanceof Error ? error.message : "Internal Server Error";
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

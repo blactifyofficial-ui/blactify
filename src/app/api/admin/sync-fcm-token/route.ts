@@ -62,7 +62,8 @@ export async function DELETE(request: Request) {
             .eq("user_id", auth.uid);
 
         if (error) {
-            return NextResponse.json({ error: error.message }, { status: 500 });
+            const errorMessage = error instanceof Error ? error.message : "Database error";
+            return NextResponse.json({ error: errorMessage }, { status: 500 });
         }
 
         return NextResponse.json({ success: true, message: "Token removed" });
