@@ -48,6 +48,11 @@ export const getFriendlyErrorMessage = (error: unknown): string => {
             return "Sorry, some items in your bag are no longer available in the requested quantity.";
         }
 
+        if (message.toLowerCase().includes("api key") || message.toLowerCase().includes("auth") || 
+            message.toLowerCase().includes("token") || message.toLowerCase().includes("unauthorized")) {
+            return "Something went wrong. Please try again later.";
+        }
+
         return message; // Fallback to the message itself if it doesn't match known patterns
     }
 

@@ -295,7 +295,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                     const result = await checkPincodeServiceability(pincode);
                     setIsPincodeServiceable(result.success);
                     if (!result.success) {
-                        setErrors(prev => ({ ...prev, pincode: result.message || "Pincode is not serviceable" }));
+                        setErrors(prev => ({ ...prev, pincode: getFriendlyErrorMessage(result.message) || "Pincode is not serviceable" }));
                     } else {
                         setErrors(prev => {
                             const next = { ...prev };

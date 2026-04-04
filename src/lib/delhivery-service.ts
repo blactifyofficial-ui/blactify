@@ -24,7 +24,7 @@ async function delhiveryRequest(
     options: { isFormData?: boolean } = {}
 ): Promise<DelhiveryResponse> {
     if (!DELHI_VERY_TOKEN) {
-        return { success: false, message: "Delhivery Token is missing in environment variables." };
+        return { success: false, message: "Shipping service is currently unavailable.", details: "Delhivery Token is missing in environment variables." };
     }
 
     const urls = [PRODUCTION_BASE_URL, STAGING_BASE_URL];
@@ -94,10 +94,10 @@ async function delhiveryRequest(
     }
 
     if (status === 401 || status === 403) {
-        return { success: false, message: "API Authentication failed.", details: errorMessage };
+        return { success: false, message: "Something went wrong. Please try again later.", details: errorMessage };
     }
 
-    return { success: false, message: "Delhivery API request failed.", details: errorMessage };
+    return { success: false, message: "Something went wrong. Please try again later.", details: errorMessage };
 }
 
 export async function checkPincodeServiceabilityInternal(pincode: string): Promise<DelhiveryResponse> {
