@@ -67,7 +67,10 @@ jobs:
             NEXT_PUBLIC_FIREBASE_VAPID_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_VAPID_KEY }}
             OTP_SECRET_PEPPER=${{ secrets.OTP_SECRET_PEPPER }}
             NEXT_PUBLIC_ALLOWED_DEV_EMAIL=${{ secrets.NEXT_PUBLIC_ALLOWED_DEV_EMAIL }}
-
+            DELHIVERY_TOKEN=${{ secrets.DELHIVERY_TOKEN }}
+            DELHIVERY_ORIGIN_PINCODE=${{ secrets.DELHIVERY_ORIGIN_PINCODE }}
+            DELHIVERY_WAREHOUSE_NAME=${{ secrets.DELHIVERY_WAREHOUSE_NAME }}
+            DELHIVERY_API_KEY=${{ secrets.DELHIVERY_API_KEY }}
 
   deploy:
     needs: build-and-push
@@ -131,6 +134,10 @@ jobs:
             TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
             TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
             NEXT_PUBLIC_ALLOWED_DEV_EMAIL=${{ secrets.NEXT_PUBLIC_ALLOWED_DEV_EMAIL }}
+            DELHIVERY_TOKEN=${{ secrets.DELHIVERY_TOKEN }}
+            DELHIVERY_ORIGIN_PINCODE=${{ secrets.DELHIVERY_ORIGIN_PINCODE }}
+            DELHIVERY_WAREHOUSE_NAME=${{ secrets.DELHIVERY_WAREHOUSE_NAME }}
+            DELHIVERY_API_KEY=${{ secrets.DELHIVERY_API_KEY }}
 
             ENVEOF
             sed -i 's/^[[:space:]]*//' .env.local
