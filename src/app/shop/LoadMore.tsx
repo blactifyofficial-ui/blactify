@@ -27,8 +27,8 @@ export function LoadMore({ initialHasMore, category, search, sortBy, limit }: Lo
             setProducts((prev) => [...prev, ...res.products]);
             setHasMore(res.hasMore);
             setPage((prev) => prev + 1);
-        } catch (error) {
-            console.error("Error loading more products:", error);
+        } catch {
+            // handle silently as UI already handles loading state
         } finally {
             setLoading(false);
         }

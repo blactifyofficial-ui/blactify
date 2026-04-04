@@ -3,7 +3,7 @@
 import { useEffect, useState, use, useCallback } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
-import { getAdminOrderById, updateAdminOrder } from "@/app/actions/orders";
+import { getAdminOrderById, updateAdminOrder, generateAdminOrderLabel } from "@/app/actions/orders";
 import { auth } from "@/lib/firebase";
 import { Order } from "@/types/database";
 import {
@@ -27,6 +27,12 @@ import {
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { AdminLoading, AdminPageHeader, AdminCard } from "@/components/admin/AdminUI";
+
+interface PaymentDetailsWithShipping {
+    shipping?: {
+        label_url?: string;
+    };
+}
 
 const STATUS_SEQUENCE = ["paid", "processing", "shipped", "delivered"];
 const STATUS_OPTIONS = ["unpaid", "paid", "processing", "shipped", "delivered", "failed"];
@@ -462,9 +468,9 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                                                     <span className="text-[10px] font-black text-green-700 uppercase tracking-widest">Shipment Registered</span>
                                                 </div>
                                                 
-                                                {(order.payment_details as any)?.shipping?.label_url && (
+                                                {(order.payment_details as PaymentDetailsWithShipping)?.shipping?.label_url ? (
                                                     <a
-                                                        href={(order.payment_details as any).shipping.label_url}
+                                                        href={String((order.payment_details as PaymentDetailsWithShipping).shipping?.label_url)}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-black text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-zinc-800 transition-all shadow-xl shadow-black/10"
@@ -472,6 +478,31 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                                                         <Printer size={18} />
                                                         Download Shipping Label
                                                     </a>
+                                                ) : (
+                                                    <button
+                                                        onClick={async () => {
+                                                            setStatusUpdating(true);
+                                                            try {
+                                                                const token = await auth.currentUser?.getIdToken();
+                                                                const res = await generateAdminOrderLabel(order.id, token);
+                                                                if (res.success) {
+                                                                    toast.success("Label Synchronized", { description: "Navigation sequence updated." });
+                                                                    fetchOrder();
+                                                                } else {
+                                                                    toast.error("Process Halted", { description: res.error });
+                                                                }
+                                                            } catch {
+                                                                toast.error("Terminal Failure");
+                                                            } finally {
+                                                                setStatusUpdating(false);
+                                                            }
+                                                        }}
+                                                        disabled={statusUpdating}
+                                                        className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-red-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-red-700 transition-all disabled:opacity-50 shadow-xl shadow-red-600/20 animate-pulse"
+                                                    >
+                                                        <Printer size={18} />
+                                                        Resolve Missing Label
+                                                    </button>
                                                 )}
                                             </div>
                                         )}

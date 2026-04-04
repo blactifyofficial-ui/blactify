@@ -99,8 +99,8 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                     );
                     setHasPurchased(purchased);
                 }
-            } catch (err) {
-                console.error("Purchase verification failed:", err);
+            } catch {
+                // silently fail if purchase check fails
             } finally {
                 setIsCheckingPurchase(false);
             }

@@ -248,8 +248,8 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
             try {
                 const parsed = JSON.parse(savedData);
                 setFormData(prev => ({ ...prev, ...parsed }));
-            } catch (err) {
-                console.error("Failed to parse saved form data", err);
+            } catch {
+                // silently fail as session storage isn't critical
             }
         }
 
@@ -295,7 +295,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                     const result = await checkPincodeServiceability(pincode);
                     setIsPincodeServiceable(result.success);
                     if (!result.success) {
-                        setErrors(prev => ({ ...prev, pincode: result.message }));
+                        setErrors(prev => ({ ...prev, pincode: result.message || "Pincode is not serviceable" }));
                     } else {
                         setErrors(prev => {
                             const next = { ...prev };
@@ -306,6 +306,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
 
                         // Auto-fill city/district/state mapping
                         if (result.data) {
+                            const info = result.data as { district?: string; state_code?: string };
                             const stateMapping: Record<string, string> = {
                                 'KL': 'Kerala', 'KA': 'Karnataka', 'TN': 'Tamil Nadu', 
                                 'MH': 'Maharashtra', 'DL': 'Delhi', 'TS': 'Telangana',
@@ -323,8 +324,8 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
 
                             setFormData(prev => ({
                                 ...prev,
-                                district: result.data.district || prev.district,
-                                state: stateMapping[result.data.state_code] || prev.state
+                                district: info.district || prev.district,
+                                state: (info.state_code ? stateMapping[info.state_code] : undefined) || prev.state
                             }));
                             
                             // Clear errors for auto-filled fields
@@ -351,17 +352,16 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                     } else if (result.fallbackCharge) {
                                         setDynamicShippingCharge(result.fallbackCharge);
                                     }
-                                } catch (err) {
-                                    console.error("Shipping charge calculation failed:", err);
-                                    // Fallback to static charges is already handled by using dynamicShippingCharge || staticShipping
+                                } catch {
+                                    // fallback logic already configured via dynamicShippingCharge state 
                                 }
                             } else {
                                 setDynamicShippingCharge(0);
                             }
                         }
                     }
-                } catch (error) {
-                    console.error("Pincode verification error:", error);
+                } catch {
+                    // failure is already surfaced in the UI state
                 } finally {
                     setIsPincodeVerifying(false);
                 }
@@ -503,12 +503,18 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                     "Authorization": `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    amount: latestTotal,
+                    items: latestItems.map(item => ({
+                        id: item.id,
+                        quantity: item.quantity,
+                        price_base: item.price_base,
+                        price_offer: item.price_offer
+                    })),
+                    discountCode: discountCode || undefined,
+                    state: formData.state,
                     currency: "INR",
                     receipt: `receipt_${Date.now()}`,
                     userId: user?.uid,
                     email: formData.email,
-                    itemsCount: latestItems.length
                 }),
             });
 
@@ -543,7 +549,10 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                     district: formData.district,
                     state: formData.state,
                     pincode: formData.pincode,
-                    country: "India"
+                    country: "India",
+                    phone: formData.phone,
+                    firstName: formData.firstName,
+                    lastName: formData.lastName
                 },
                 customer_details: {
                     name: `${formData.firstName} ${formData.lastName}`.trim(),
@@ -555,7 +564,6 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
             }, token);
 
             if (!pendingResult.success) {
-                console.error("Failed to create pending order:", pendingResult.error);
                 throw new Error("order-creation-failed");
             }
 
@@ -593,8 +601,8 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                     if (paymentObject) {
                         try {
                             paymentObject.close();
-                        } catch (err) {
-                            console.error("Failed to close Razorpay modal:", err);
+                        } catch {
+                            // avoid double closing crashes
                         }
                     }
 
@@ -627,7 +635,10 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                 district: formData.district,
                                 state: formData.state,
                                 pincode: formData.pincode,
-                                country: "India"
+                                country: "India",
+                                phone: formData.phone,
+                                firstName: formData.firstName,
+                                lastName: formData.lastName
                             },
                             customer_details: {
                                 name: `${formData.firstName} ${formData.lastName}`.trim(),
@@ -698,8 +709,8 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
             if (paymentObject) {
                 paymentObject.open();
 
-                paymentObject.on("payment.failed", function (response: { error: { description: string } }) {
-                    console.error("Payment failed:", response.error);
+                paymentObject.on("payment.failed", function () {
+                    // handoff to failure route
 
                     // Attempt to close the modal programmatically
                     try {

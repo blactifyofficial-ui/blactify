@@ -63,6 +63,9 @@ interface ManualOrderData {
         district: string;
         state: string;
         pincode: string;
+        firstName?: string;
+        lastName?: string;
+        phone?: string;
     };
     items: Array<{
         product_id: string;

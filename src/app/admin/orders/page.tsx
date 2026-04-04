@@ -100,6 +100,11 @@ export default function AdminOrdersPage() {
                                             <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400 bg-zinc-50 px-3 py-1 rounded-full border border-zinc-100">
                                                 ID: {order.id.slice(0, 12)}
                                             </span>
+                                            {order.tracking_id && (
+                                                <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
+                                                    AWB: {order.tracking_id}
+                                                </span>
+                                            )}
                                             <span className={cn(
                                                 "text-[8px] font-black uppercase tracking-[0.25em] px-3 py-1 rounded-full border shadow-sm",
                                                 getStatusColor(order.status)

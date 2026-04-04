@@ -106,6 +106,7 @@ export interface ShippingAddress {
     district?: string;
     firstName?: string;
     lastName?: string;
+    phone?: string;
 }
 
 export interface Order {

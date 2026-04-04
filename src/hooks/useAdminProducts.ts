@@ -134,9 +134,8 @@ export function useAdminProducts({ page, pageSize, searchTerm, categoryId, statu
                 setTotalCount(count || 0);
             }
 
-        } catch (err: unknown) {
-            console.error("Registry Reconciliation Error:", err);
-            setError(err instanceof Error ? err : new Error("Failed to fetch products"));
+        } catch {
+            setError(new Error("Failed to fetch products"));
             toast.error("Inventory sync failed");
         } finally {
             setLoading(false);

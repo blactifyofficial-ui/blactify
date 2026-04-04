@@ -33,6 +33,9 @@ export const AddressSchema = z.object({
     state: z.string().min(1),
     pincode: z.string().min(6),
     country: z.string().default("India"),
+    firstName: z.string().optional(),
+    lastName: z.string().optional(),
+    phone: z.string().optional(),
 });
 
 export const CustomerDetailsSchema = z.object({

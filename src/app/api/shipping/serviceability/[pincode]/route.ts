@@ -18,7 +18,7 @@ export async function GET(
         } else {
             return NextResponse.json({ error: result.message }, { status: 404 });
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

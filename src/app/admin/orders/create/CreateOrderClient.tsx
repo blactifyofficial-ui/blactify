@@ -76,7 +76,10 @@ export default function CreateOrderClient() {
         city: "",
         district: "",
         state: "",
-        pincode: ""
+        pincode: "",
+        phone: "",
+        firstName: "",
+        lastName: ""
     });
 
     const [orderItems, setOrderItems] = useState<ProductItem[]>([]);
@@ -213,7 +216,12 @@ export default function CreateOrderClient() {
             const result = await createManualOrder({
                 user_id: selectedUser?.id,
                 customer_details: customerDetails,
-                shipping_address: shippingAddress,
+                shipping_address: {
+                    ...shippingAddress,
+                    firstName: customerDetails.name.split(' ')[0] || "",
+                    lastName: customerDetails.name.split(' ').slice(1).join(' ') || "",
+                    phone: customerDetails.phone
+                },
                 items: orderItems,
                 payment: payment
             }, token);

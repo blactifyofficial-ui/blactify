@@ -50,7 +50,7 @@ export async function POST(req: Request) {
             // 1. Check if order exists and its current status
             const { data: existingOrder, error: fetchError } = await supabaseAdmin
                 .from("orders")
-                .select("status, items")
+                .select("*")
                 .eq("id", order_id)
                 .single();
 
@@ -59,6 +59,8 @@ export async function POST(req: Request) {
             }
 
             if (existingOrder) {
+                let currentOrderData = existingOrder;
+                
                 if (existingOrder.status !== "paid") {
                     // ⚡ CRITICAL: Confirm order if not already paid
                     const items = existingOrder.items as { id: string; size: string; quantity: number; price_base: number; price_offer?: number }[];
@@ -88,50 +90,67 @@ export async function POST(req: Request) {
                         });
 
                         // Fetch fresh order data for shipping & notifications
-                        const { data: orderData } = await supabaseAdmin
+                        const { data: refreshedOrder } = await supabaseAdmin
                             .from("orders")
                             .select("*")
                             .eq("id", order_id)
                             .single();
-
-                        if (orderData) {
+                        
+                        if (refreshedOrder) {
+                            currentOrderData = refreshedOrder;
                             // 1. Send Notifications
                             try {
                                 const { sendOrderNotifications } = await import("@/lib/notifications-emails");
-                                sendOrderNotifications({ ...orderData, id: order_id } as any).catch(e => console.error("Webhook Order Notify Error:", e));
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                sendOrderNotifications({ ...refreshedOrder, id: order_id } as any).catch(e => console.error("Webhook Order Notify Error:", e));
                             } catch (e) {
                                 console.error("Notification error:", e);
                             }
-
-                            // 2. Automate Delhivery Shipping
-                            try {
-                                console.log(`[Webhook] Registering Delhivery shipment for order ${order_id}`);
-                                const shippingResult = await processOrderShipping(orderData);
-
-                                if (shippingResult.success) {
-                                    await supabaseAdmin
-                                        .from("orders")
-                                        .update({
-                                            tracking_id: shippingResult.awb,
-                                            payment_details: {
-                                                ...((orderData.payment_details as Record<string, unknown>) || {}),
-                                                shipping: {
-                                                    awb: shippingResult.awb,
-                                                    tracking_link: shippingResult.tracking_link,
-                                                    label_url: shippingResult.label_url,
-                                                    status: "registered"
-                                                }
-                                            }
-                                        })
-                                        .eq("id", order_id);
-                                    console.log(`[Webhook] Delhivery shipment registered: ${shippingResult.awb}`);
-                                } else {
-                                    console.warn("[Webhook] Delhivery registration failed:", shippingResult.message);
-                                }
-                            } catch (shippingErr) {
-                                console.error("[Webhook] Delhivery processing error:", shippingErr);
-                            }
                         }
+                    }
+                } else {
+                    // Order already paid (likely by client-side confirmOrder script), 
+                    // ensure we have the most up-to-date record from DB for automation checks.
+                    const { data: latestOrder } = await supabaseAdmin
+                        .from("orders")
+                        .select("*")
+                        .eq("id", order_id)
+                        .single();
+                    if (latestOrder) {
+                        currentOrderData = latestOrder;
+                    }
+                }
+
+                // --- AUTOMATION: Trigger Delhivery Shipping if not already registered ---
+                // We check if tracking_id is missing to avoid double registration.
+                if (currentOrderData && (currentOrderData.status === "paid" || currentOrderData.status === "processing") && !currentOrderData.tracking_id) {
+                    try {
+                        console.log(`[Webhook] Registering Delhivery shipment for paid order ${order_id}`);
+                        const shippingResult = await processOrderShipping(currentOrderData);
+
+                        if (shippingResult.success) {
+                            await supabaseAdmin
+                                .from("orders")
+                                .update({
+                                    tracking_id: shippingResult.awb,
+                                    payment_details: {
+                                        ...((currentOrderData.payment_details as Record<string, unknown>) || {}),
+                                        shipping: {
+                                            awb: shippingResult.awb,
+                                            tracking_link: shippingResult.tracking_link,
+                                            label_url: shippingResult.label_url,
+                                            status: "registered",
+                                            registered_at: new Date().toISOString()
+                                        }
+                                    }
+                                })
+                                .eq("id", order_id);
+                            console.log(`[Webhook] Delhivery shipment registered: ${shippingResult.awb}`);
+                        } else {
+                            console.warn("[Webhook] Delhivery registration failed:", shippingResult.message);
+                        }
+                    } catch (shippingErr) {
+                        console.error("[Webhook] Delhivery processing error:", shippingErr);
                     }
                 }
             } else {

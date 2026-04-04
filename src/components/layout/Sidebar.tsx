@@ -44,8 +44,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         .map(c => c.name);
                     setCategories(["All", ...sorted]);
                 }
-            } catch (err) {
-                console.error("Error fetching categories:", err);
+            } catch {
+                // silenty fail, initial state is "All"
                 setCategories(["All"]);
             }
         };
@@ -71,8 +71,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             await signOut();
             setShowLogoutModal(false);
             onClose();
-        } catch (error) {
-            console.error("Logout failed:", error);
+        } catch {
+            // Logout failure is rare but doesn't require user-facing log
         } finally {
             setIsLoggingOut(false);
         }
