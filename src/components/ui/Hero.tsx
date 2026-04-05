@@ -118,6 +118,7 @@ export function Hero({ images }: HeroProps) {
                                 alt="Logo"
                                 width={20}
                                 height={20}
+                                unoptimized
                                 className={cn(
                                     "object-contain min-w-[20px] md:min-w-[24px] md:w-[24px] md:h-[24px] transition-transform duration-500 group-hover:scale-110",
                                     isClicked && "scale-110"

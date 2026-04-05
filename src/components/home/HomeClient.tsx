@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Hero } from "@/components/ui/Hero";
@@ -18,8 +19,36 @@ interface HomeClientProps {
 }
 
 export default function HomeClient({ initialProducts, initialCategories }: HomeClientProps) {
+    const router = useRouter();
     const [products, setProducts] = useState<Product[]>(initialProducts);
     const [loading, setLoading] = useState(false);
+
+    // Swipe detection states
+    const [touchStart, setTouchStart] = useState<number | null>(null);
+    const [touchEnd, setTouchEnd] = useState<number | null>(null);
+    const minSwipeDistance = 50;
+
+    const onTouchStart = (e: React.TouchEvent) => {
+        setTouchEnd(null);
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const onTouchMove = (e: React.TouchEvent) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const onTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > minSwipeDistance;
+
+        if (isLeftSwipe) {
+            router.push("/shop");
+        }
+        
+        setTouchStart(null);
+        setTouchEnd(null);
+    };
 
     useEffect(() => {
         if (initialProducts.length === 0) {
@@ -46,7 +75,12 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
     }, [initialProducts]);
 
     return (
-        <main className="flex flex-col">
+        <main 
+            className="flex flex-col min-h-screen"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+        >
             <Hero
                 images={products.map(p => p.product_images?.[0]?.url || p.main_image || "/placeholder-product.jpg")}
             />
@@ -64,6 +98,9 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
 
                         <div
                             className="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-2 snap-x snap-mandatory px-1"
+                            onTouchStart={(e) => e.stopPropagation()}
+                            onTouchMove={(e) => e.stopPropagation()}
+                            onTouchEnd={(e) => e.stopPropagation()}
                         >
                             {initialCategories.map((cat) => (
                                 <Link
