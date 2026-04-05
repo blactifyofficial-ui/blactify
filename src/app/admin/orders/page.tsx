@@ -111,6 +111,12 @@ export default function AdminOrdersPage() {
                                             )}>
                                                 {order.status}
                                             </span>
+                                            {order.status?.toLowerCase() === 'paid' && !order.tracking_id && (
+                                                <div className="flex items-center gap-2 px-2.5 py-1 bg-blue-600/5 rounded-full border border-blue-600/10 animate-pulse">
+                                                    <span className="w-2 h-2 bg-blue-600 rounded-full shadow-[0_0_8px_rgba(37,99,235,0.6)]" />
+                                                    <span className="text-[7px] font-black uppercase tracking-widest text-blue-600">New order</span>
+                                                </div>
+                                            )}
                                             {order.status === 'pending' && (new Date().getTime() - new Date(order.created_at).getTime() > 30 * 60 * 1000) && (
                                                 <span className="text-[8px] font-black uppercase tracking-[0.25em] px-3 py-1 bg-red-500 text-white rounded-full animate-pulse shadow-lg shadow-red-500/20">
                                                     STALE / CHECK RAZORPAY
