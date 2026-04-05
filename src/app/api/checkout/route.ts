@@ -4,6 +4,7 @@ import Razorpay from "razorpay";
 import { z } from "zod";
 import { verifyAuth } from "@/lib/auth-server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getShippingChargesInternal } from "@/lib/delhivery-service";
 
 const razorpay = new Razorpay({
     key_id: (process.env.RAZORPAY_KEY_ID || "dummy_key_id").trim(),
@@ -20,6 +21,7 @@ const CheckoutSchema = z.object({
     })).min(1, "Items are required"),
     discountCode: z.string().optional(),
     state: z.string().optional().default("Kerala"),
+    pincode: z.string().optional(),
     currency: z.string().default("INR"),
     receipt: z.string().min(1, "Receipt is required"),
     email: z.string().email().optional(),
@@ -38,7 +40,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: validated.error.issues[0].message }, { status: 400 });
         }
 
-        const { items, discountCode, state, currency, receipt, email, userId } = validated.data;
+        const { items, discountCode, state, pincode, currency, receipt, email, userId } = validated.data;
 
         // --- 🔒 SECURITY: SERVER-SIDE AMOUNT CALCULATION ---
         const productIds = items.map(i => i.id);
@@ -69,9 +71,36 @@ export async function POST(req: Request) {
             totalAmount = Math.round(calculatedSubtotal * 0.9);
         }
 
-        // Calculate Shipping (Business Logic)
-        // Free shipping above 2999, else 59 in Kerala, 79 outside.
-        const shippingCharge = totalAmount >= 2999 ? 0 : (state === "Kerala" ? 59 : 79);
+        // --- 🚚 SECURE SHIPPING CALCULATION ---
+        // Free shipping above 2999, else use dynamic logic or fallback
+        let shippingCharge = 0;
+        const isFreeShipping = totalAmount >= 2999 || discountCode === "FREE-SHIPPING";
+
+        if (!isFreeShipping) {
+            if (pincode && pincode.length === 6) {
+                try {
+                    // Estimate weight: 500g per item
+                    const estimatedWeight = items.reduce((acc, item) => acc + (item.quantity * 500), 0);
+                    const deliveryResult = await getShippingChargesInternal(pincode, estimatedWeight);
+                    
+                    if (deliveryResult.success && typeof deliveryResult.charge === 'number') {
+                        shippingCharge = deliveryResult.charge;
+                    } else if (deliveryResult.fallbackCharge) {
+                        shippingCharge = deliveryResult.fallbackCharge;
+                    } else {
+                        // Ultimate fallback logic if Delhivery is down
+                        shippingCharge = (state === "Kerala" ? 59 : 79);
+                    }
+                } catch (err) {
+                    console.error("Shipping calculation error:", err);
+                    shippingCharge = (state === "Kerala" ? 59 : 79);
+                }
+            } else {
+                // Legacy fallback if no pincode provided
+                shippingCharge = (state === "Kerala" ? 59 : 79);
+            }
+        }
+
         totalAmount += shippingCharge;
 
         const order = await razorpay.orders.create({

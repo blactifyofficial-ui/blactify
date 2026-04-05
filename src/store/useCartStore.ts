@@ -21,7 +21,7 @@ interface CartStore {
     getTotalItems: () => number;
     getSubtotal: () => number;
     getTotalPrice: (state?: string) => number;
-    getShippingCharge: (state?: string) => number;
+    getShippingCharge: (state?: string, subtotal?: number) => number;
     discountCode: string | null;
     applyDiscount: (code: string) => void;
     removeDiscount: () => void;
@@ -140,24 +140,23 @@ export const useCartStore = create<CartStore>()(
                 get().items.reduce((acc, item) => acc + (item.price_offer || item.price_base) * item.quantity, 0),
             getTotalPrice: (state) => {
                 const subtotal = get().getSubtotal();
-                const shipping = get().getShippingCharge(state);
-                const discountCode = get().discountCode;
-                let total = subtotal;
+                let discountedSubtotal = subtotal;
 
-                if (discountCode === "WELCOME10") {
-                    total = subtotal * 0.9;
+                if (get().discountCode === "WELCOME10") {
+                    discountedSubtotal = Math.round(subtotal * 0.9);
                 }
 
-                return total + shipping;
+                const shipping = get().getShippingCharge(state, discountedSubtotal);
+                return discountedSubtotal + shipping;
             },
-            getShippingCharge: (state) => {
-                const subtotal = get().getSubtotal();
+            getShippingCharge: (state, providedSubtotal) => {
+                const subtotal = providedSubtotal ?? get().getSubtotal();
                 const discountCode = get().discountCode;
                 const isFreeShippingCouponActive = get().freeShippingEnabled;
 
                 if (subtotal === 0) return 0;
                 if (discountCode === "FREE-SHIPPING" && isFreeShippingCouponActive) return 0;
-                if (subtotal >= 2999) return 0; // Free shipping threshold
+                if (subtotal >= 2999) return 0; // Free shipping threshold (on discounted amount)
 
                 if (state === "Kerala") {
                     return 59;

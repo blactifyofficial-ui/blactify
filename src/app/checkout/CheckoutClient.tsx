@@ -82,7 +82,7 @@ function SafeImage({ src, alt, className }: { src: string | null; alt: string; c
 }
 
 function CheckoutContent({ initialSettings }: { initialSettings: { purchases_enabled: boolean; free_shipping_enabled: boolean } | null }) {
-    const { items, getSubtotal, getTotalPrice, getShippingCharge, clearCart, removeItem, discountCode, applyDiscount, removeDiscount, setFreeShippingEnabled, syncItemPrice } = useCartStore();
+    const { items, getSubtotal, getShippingCharge, clearCart, removeItem, discountCode, applyDiscount, removeDiscount, setFreeShippingEnabled, syncItemPrice } = useCartStore();
     const router = useRouter();
     const { user } = useAuth();
     const [isMounted, setIsMounted] = useState(false);
@@ -139,20 +139,19 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
         ? activeItems.reduce((acc: number, item: CartItem) => acc + (item.price_offer || item.price_base) * item.quantity, 0)
         : getSubtotal();
 
+    const discountedSubtotal = discountCode === "WELCOME10" ? Math.round(subtotal * 0.9) : subtotal;
+    const discountAmount = subtotal - discountedSubtotal;
+
+    const isFreeShippingRule = (discountedSubtotal >= 2999) || (discountCode === "FREE-SHIPPING" && initialSettings?.free_shipping_enabled);
+
     const staticShipping = isDirect
-        ? (subtotal === 0 || (discountCode === "FREE-SHIPPING" && initialSettings?.free_shipping_enabled) ? 0 : (subtotal < 2999 ? (formData.state === "Kerala" ? 59 : 79) : 0))
-        : getShippingCharge(formData.state);
+        ? (isFreeShippingRule ? 0 : (discountedSubtotal < 2999 ? (formData.state === "Kerala" ? 59 : 79) : 0))
+        : getShippingCharge(formData.state, discountedSubtotal);
 
-    // Dynamic shipping takes precedence if available
-    const shipping = dynamicShippingCharge !== null ? dynamicShippingCharge : staticShipping;
+    // Dynamic shipping takes precedence if available, but NOT if free shipping rule applies
+    const shipping = isFreeShippingRule ? 0 : (dynamicShippingCharge !== null ? dynamicShippingCharge : staticShipping);
 
-    const discountAmount = isDirect
-        ? (discountCode === "WELCOME10" ? subtotal * 0.1 : 0)
-        : (subtotal - (getTotalPrice(formData.state) - staticShipping));
-
-    const total = isDirect
-        ? (subtotal - (discountCode === "WELCOME10" ? subtotal * 0.1 : 0) + shipping)
-        : (subtotal - discountAmount + shipping);
+    const total = discountedSubtotal + shipping;
 
 
 
@@ -339,7 +338,8 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
 
                             // --- DYNAMIC SHIPPING COST CALCULATION ---
                             // Check if shipping charge is already overridden by free shipping rule
-                            const isFreeByRule = (subtotal >= 2999) || (discountCode === "FREE-SHIPPING" && initialSettings?.free_shipping_enabled);
+                            const currentDiscountedSubtotal = discountCode === "WELCOME10" ? Math.round(subtotal * 0.9) : subtotal;
+                            const isFreeByRule = (currentDiscountedSubtotal >= 2999) || (discountCode === "FREE-SHIPPING" && initialSettings?.free_shipping_enabled);
                             
                             if (!isFreeByRule) {
                                 try {
@@ -487,18 +487,6 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                 return item;
             });
 
-            const currentSubtotal = latestItems.reduce((acc, item) => acc + (item.price_offer || item.price_base) * item.quantity, 0);
-
-            const currentShipping = dynamicShippingCharge !== null 
-                ? dynamicShippingCharge 
-                : ((currentSubtotal === 0 || (discountCode === "FREE-SHIPPING" && initialSettings?.free_shipping_enabled))
-                    ? 0
-                    : (currentSubtotal < 2999 ? (formData.state === "Kerala" ? 59 : 79) : 0));
-
-            let latestTotal = currentSubtotal;
-            if (discountCode === "WELCOME10") latestTotal = currentSubtotal * 0.9;
-            latestTotal += currentShipping;
-
             // 1. Create order on server
             const token = await auth.currentUser?.getIdToken();
             const response = await fetch("/api/checkout", {
@@ -516,6 +504,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                     })),
                     discountCode: discountCode || undefined,
                     state: formData.state,
+                    pincode: formData.pincode,
                     currency: "INR",
                     receipt: `receipt_${Date.now()}`,
                     userId: user?.uid,
@@ -535,7 +524,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
             const pendingResult = await createPendingOrder({
                 razorpay_order_id: order.id,
                 user_id: user?.uid || "guest",
-                amount: latestTotal,
+                amount: order.amount / 100,
                 currency: "INR",
                 items: latestItems.map(item => ({
                     id: item.id,
@@ -620,7 +609,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                             razorpay_order_id: razorpayResponse.razorpay_order_id || order.id,
                             razorpay_payment_id: razorpayResponse.razorpay_payment_id,
                             user_id: user?.uid || "guest",
-                            amount: latestTotal,
+                            amount: order.amount / 100,
                             currency: "INR",
                             items: latestItems.map(item => ({
                                 id: item.id,
