@@ -107,11 +107,17 @@ export default function MaintenancePage() {
         setShowConfirm(false);
         try {
             const token = await auth.currentUser?.getIdToken();
-            const result = await toggleMaintenanceMode(true, publicMessage, maintenanceEndTime, token);
+            // Clear timer if it's in the past
+            const finalEndTime = maintenanceEndTime && new Date(maintenanceEndTime) > new Date() 
+                ? maintenanceEndTime 
+                : null;
+                
+            const result = await toggleMaintenanceMode(true, publicMessage, finalEndTime, token);
             if (result.success) {
                 setMaintenanceMode(true);
                 setSavedMessage(publicMessage);
-                setSavedEndTime(maintenanceEndTime);
+                setMaintenanceEndTime(finalEndTime);
+                setSavedEndTime(finalEndTime);
                 showSyncFeedback();
             }
         } catch (e) {

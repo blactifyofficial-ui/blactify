@@ -80,7 +80,8 @@ export function MaintenanceGuard({ children }: { children: React.ReactNode }) {
     let isActive = (isMaintenanceMode || MAINTENANCE_CONFIG.isActive) && !timerEnded;
 
     // Check if dynamic timer from database has already ended
-    if (maintenanceEndTime && new Date(maintenanceEndTime) <= new Date()) {
+    // Only auto-reveal if the developer-side override is NOT active
+    if (!MAINTENANCE_CONFIG.isActive && maintenanceEndTime && new Date(maintenanceEndTime) <= new Date()) {
         isActive = false;
     }
 
