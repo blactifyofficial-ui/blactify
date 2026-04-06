@@ -160,7 +160,7 @@ export async function getMaintenanceStatus() {
     try {
         const { data, error } = await supabaseAdmin
             .from("store_settings")
-            .select("maintenance_mode, maintenance_message, bypass_ips")
+            .select("maintenance_mode, maintenance_message, bypass_ips, maintenance_end_time")
             .eq("id", true)
             .single();
 
@@ -172,13 +172,14 @@ export async function getMaintenanceStatus() {
             maintenance_mode: data?.maintenance_mode ?? false,
             maintenance_message: data?.maintenance_message ?? '',
             bypass_ips: data?.bypass_ips ?? [],
+            maintenance_end_time: data?.maintenance_end_time ?? null,
         };
     } catch {
-        return { maintenance_mode: false, maintenance_message: '', bypass_ips: [] };
+        return { maintenance_mode: false, maintenance_message: '', bypass_ips: [], maintenance_end_time: null };
     }
 }
 
-export async function toggleMaintenanceMode(enabled: boolean, message: string, token?: string) {
+export async function toggleMaintenanceMode(enabled: boolean, message: string, endTime?: string | null, token?: string) {
     try {
         const auth = await verifyActionAdminAuth(token);
 
@@ -188,6 +189,7 @@ export async function toggleMaintenanceMode(enabled: boolean, message: string, t
                 id: true,
                 maintenance_mode: enabled,
                 maintenance_message: message || 'We\'re performing scheduled maintenance. We\'ll be back shortly.',
+                maintenance_end_time: endTime || null,
             });
 
         if (error) {

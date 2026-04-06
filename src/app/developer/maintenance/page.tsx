@@ -31,6 +31,9 @@ export default function MaintenancePage() {
     const [publicMessage, setPublicMessage] = useState("We're performing scheduled maintenance. We'll be back shortly.");
     const [savedMessage, setSavedMessage] = useState("");
 
+    const [maintenanceEndTime, setMaintenanceEndTime] = useState<string | null>(null);
+    const [savedEndTime, setSavedEndTime] = useState<string | null>(null);
+
     const [bypassIPs, setBypassIPs] = useState<BypassIP[]>([]);
     const [newIP, setNewIP] = useState("");
     const [newLabel, setNewLabel] = useState("");
@@ -50,6 +53,14 @@ export default function MaintenancePage() {
             if (status.maintenance_message) {
                 setPublicMessage(status.maintenance_message);
                 setSavedMessage(status.maintenance_message);
+            }
+
+            if (status.maintenance_end_time) {
+                setMaintenanceEndTime(status.maintenance_end_time);
+                setSavedEndTime(status.maintenance_end_time);
+            } else {
+                setMaintenanceEndTime(null);
+                setSavedEndTime(null);
             }
 
             if (status.bypass_ips) {
@@ -76,9 +87,11 @@ export default function MaintenancePage() {
             setIsToggling(true);
             try {
                 const token = await auth.currentUser?.getIdToken();
-                const result = await toggleMaintenanceMode(false, publicMessage, token);
+                const result = await toggleMaintenanceMode(false, publicMessage, null, token);
                 if (result.success) {
                     setMaintenanceMode(false);
+                    setMaintenanceEndTime(null);
+                    setSavedEndTime(null);
                     showSyncFeedback();
                 }
             } catch (e) {
@@ -94,10 +107,11 @@ export default function MaintenancePage() {
         setShowConfirm(false);
         try {
             const token = await auth.currentUser?.getIdToken();
-            const result = await toggleMaintenanceMode(true, publicMessage, token);
+            const result = await toggleMaintenanceMode(true, publicMessage, maintenanceEndTime, token);
             if (result.success) {
                 setMaintenanceMode(true);
                 setSavedMessage(publicMessage);
+                setSavedEndTime(maintenanceEndTime);
                 showSyncFeedback();
             }
         } catch (e) {
@@ -108,13 +122,14 @@ export default function MaintenancePage() {
     };
 
     const saveMessage = async () => {
-        if (publicMessage === savedMessage) return;
+        if (publicMessage === savedMessage && maintenanceEndTime === savedEndTime) return;
         setIsToggling(true);
         try {
             const token = await auth.currentUser?.getIdToken();
-            const result = await toggleMaintenanceMode(maintenanceMode, publicMessage, token);
+            const result = await toggleMaintenanceMode(maintenanceMode, publicMessage, maintenanceEndTime, token);
             if (result.success) {
                 setSavedMessage(publicMessage);
+                setSavedEndTime(maintenanceEndTime);
                 showSyncFeedback();
             }
         } catch (e) {
@@ -268,26 +283,78 @@ export default function MaintenancePage() {
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                             <Globe size={16} className="text-[var(--dev-text-dim)]" />
-                            <h3 className="text-[14px] font-semibold text-[var(--dev-text)]">Maintenance Message</h3>
+                            <h3 className="text-[14px] font-semibold text-[var(--dev-text)]">Public Configuration</h3>
                         </div>
-                        {publicMessage !== savedMessage && (
+                        {(publicMessage !== savedMessage || maintenanceEndTime !== savedEndTime) && (
                             <button
                                 onClick={saveMessage}
                                 disabled={isToggling}
                                 className="text-[10px] font-semibold px-3 py-1.5 bg-[var(--dev-accent-bg)] text-[var(--dev-accent)] rounded-lg hover:opacity-80 transition-all"
                             >
-                                Save Message
+                                Save Changes
                             </button>
                         )}
                     </div>
-                    <div>
-                        <label className="text-[10px] font-semibold text-[var(--dev-text-dim)] uppercase tracking-wider block mb-1.5">Public Message</label>
-                        <textarea
-                            value={publicMessage}
-                            onChange={(e) => setPublicMessage(e.target.value)}
-                            rows={3}
-                            className="w-full bg-[var(--dev-input)] border border-[var(--dev-border-strong)] rounded-lg px-4 py-3 text-[12px] text-[var(--dev-text-secondary)] focus:outline-none focus:border-[var(--dev-accent)] transition-colors resize-none"
-                        />
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="text-[10px] font-semibold text-[var(--dev-text-dim)] uppercase tracking-wider block mb-1.5">Launch Message</label>
+                            <textarea
+                                value={publicMessage}
+                                onChange={(e) => setPublicMessage(e.target.value)}
+                                rows={3}
+                                className="w-full bg-[var(--dev-input)] border border-[var(--dev-border-strong)] rounded-lg px-4 py-3 text-[12px] text-[var(--dev-text-secondary)] focus:outline-none focus:border-[var(--dev-accent)] transition-colors resize-none"
+                            />
+                        </div>
+                        
+                        <div>
+                            <label className="text-[10px] font-semibold text-[var(--dev-text-dim)] uppercase tracking-wider block mb-1.5">Schedule Reveal (Timer)</label>
+                            <div className="space-y-3">
+                                <input
+                                    type="datetime-local"
+                                    value={maintenanceEndTime ? maintenanceEndTime.slice(0, 16) : ""}
+                                    onChange={(e) => {
+                                        const date = e.target.value;
+                                        setMaintenanceEndTime(date ? new Date(date).toISOString() : null);
+                                    }}
+                                    className="w-full bg-[var(--dev-input)] border border-[var(--dev-border-strong)] rounded-lg px-4 py-2.5 text-[12px] text-[var(--dev-text-secondary)] focus:outline-none focus:border-[var(--dev-accent)] transition-colors"
+                                />
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => {
+                                            const now = new Date();
+                                            now.setMinutes(now.getMinutes() + 10);
+                                            setMaintenanceEndTime(now.toISOString());
+                                        }}
+                                        className="text-[10px] bg-[var(--dev-hover)] text-[var(--dev-text-dim)] px-2 py-1 rounded border border-[var(--dev-border)] hover:bg-[var(--dev-active)] transition-all"
+                                    >
+                                        +10m
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            const now = new Date();
+                                            now.setHours(now.getHours() + 1);
+                                            setMaintenanceEndTime(now.toISOString());
+                                        }}
+                                        className="text-[10px] bg-[var(--dev-hover)] text-[var(--dev-text-dim)] px-2 py-1 rounded border border-[var(--dev-border)] hover:bg-[var(--dev-active)] transition-all"
+                                    >
+                                        +1h
+                                    </button>
+                                    <button
+                                        onClick={() => setMaintenanceEndTime(null)}
+                                        className="text-[10px] text-red-500 hover:underline px-2 py-1"
+                                    >
+                                        Clear Timer
+                                    </button>
+                                </div>
+                                {!maintenanceEndTime && (
+                                     <p className="text-[10px] text-amber-500 font-medium">No timer set. The site will stay under maintenance indefinitely.</p>
+                                )}
+                                {maintenanceEndTime && (
+                                     <p className="text-[10px] text-emerald-500 font-medium">Timer set for {new Date(maintenanceEndTime).toLocaleString()}</p>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
                     <div className="mt-4">
