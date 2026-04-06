@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { X, LogOut, LayoutDashboard, ShoppingBag, Box, Tag, BarChart3, MessageSquare, Home, Zap, Settings } from "lucide-react";
+import { X, LogOut, LayoutDashboard, ShoppingBag, Box, Tag, BarChart3, MessageSquare, Home, Zap, Settings, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -17,6 +17,7 @@ const NAV_ITEMS = [
     { name: "Drops", href: "/admin/drops", icon: Zap },
     { name: "Home Screen", href: "/admin/home-products", icon: Home },
     { name: "Support", href: "/admin/support", icon: MessageSquare },
+    { name: "Preferences", href: "/admin/preferences", icon: Star },
     { name: "Categories", href: "/admin/categories", icon: Tag },
     { name: "Reports", href: "/admin/reports", icon: BarChart3 },
     { name: "Settings", href: "/admin/settings", icon: Settings },

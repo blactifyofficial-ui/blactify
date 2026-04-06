@@ -12,6 +12,7 @@ import { getUserOrders } from "@/lib/order-sync";
 import { type Product } from "@/components/ui/ProductCard";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { recordProductInterest } from "../../app/actions/user-preferences";
 import { getFriendlyErrorMessage } from "@/lib/error-messages";
 
 interface Review {
@@ -53,6 +54,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
     const storeEnabled = initialSettings?.purchases_enabled ?? true;
     const [hasPurchased, setHasPurchased] = useState(false);
     const [isCheckingPurchase, setIsCheckingPurchase] = useState(false);
+    const [isInterestSubmitting, setIsInterestSubmitting] = useState(false);
 
     // Minimum swipe distance (in px)
     const minSwipeDistance = 50;
@@ -170,6 +172,37 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
         sessionStorage.setItem("direct-checkout-item", JSON.stringify(directItem));
         router.push("/checkout?direct=true");
     }, [user, product, isNoSize, selectedSize, router]);
+    const handleProductInterest = async () => {
+        if (!user) {
+            window.dispatchEvent(new CustomEvent("open-auth-modal"));
+            return;
+        }
+
+        if (isInterestSubmitting) return;
+        setIsInterestSubmitting(true);
+        try {
+            const token = await user.getIdToken();
+            const result = await recordProductInterest({
+                productId: product.id,
+                productName: product.name,
+                userId: user.uid,
+                email: user.email || "",
+                fullName: user.displayName || "Unknown"
+            }, token);
+
+            if (result.success) {
+                toast.success("Interest Recorded", {
+                    description: "We'll let you know once this product is available."
+                });
+            } else {
+                toast.error("Failed to record interest", {
+                    description: result.error
+                });
+            }
+        } finally {
+            setIsInterestSubmitting(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -444,6 +477,17 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                         <ShoppingBag size={18} />
                                         {currentStock <= 0 ? "Unavailable" : "Add to Bag"}
                                     </button>
+
+                                    {currentStock <= 0 && (
+                                        <button
+                                            onClick={handleProductInterest}
+                                            disabled={isInterestSubmitting}
+                                            className="group w-full h-16 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 bg-white text-black border border-zinc-200 hover:bg-zinc-50 transition-all active:scale-[0.98] shadow-sm mt-2 disabled:opacity-50"
+                                        >
+                                            <Star size={16} className={cn("text-zinc-400 group-hover:text-black transition-colors", isInterestSubmitting && "animate-pulse")} />
+                                            {isInterestSubmitting ? "Recording..." : "I would like to purchase this product"}
+                                        </button>
+                                    )}
 
                                     <button
                                         onClick={handleDirectBuy}
