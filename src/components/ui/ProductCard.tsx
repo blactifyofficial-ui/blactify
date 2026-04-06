@@ -8,7 +8,6 @@ import { Plus } from "lucide-react";
 import { useAuth } from "@/store/AuthContext";
 import { useRef } from "react";
 import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 
 import { Magnetic } from "@/components/ui/Magnetic";
@@ -30,7 +29,8 @@ export function ProductCard({ product, className, onImageLoad, hidePrice, priori
     const container = useRef<HTMLDivElement>(null);
 
     useGSAP(() => {
-        gsap.registerPlugin(ScrollTrigger);
+        if (window.innerWidth < 768) return; // Skip GSAP on mobile for performance
+
         gsap.from(container.current, {
             y: 50,
             opacity: 0,

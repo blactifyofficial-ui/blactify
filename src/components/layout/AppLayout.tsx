@@ -1,22 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-if (typeof window !== "undefined") {
-    gsap.registerPlugin(ScrollTrigger);
-}
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { TopNavbar } from "@/components/layout/TopNavbar";
-import { Sidebar } from "@/components/layout/Sidebar";
-import { Footer } from "@/components/layout/Footer";
-import WelcomeBanner from "@/components/ui/WelcomeBanner";
-import WelcomeAnimation from "@/components/ui/WelcomeAnimation";
 import { AuthProvider } from "@/store/AuthContext";
-import { FloatingCart } from "@/components/ui/FloatingCart";
-import { ScrollToTop } from "@/components/ui/ScrollToTop";
 import dynamic from "next/dynamic";
 import { Toaster } from "sonner";
 import { Suspense } from "react";
@@ -31,6 +19,30 @@ const CartDrawer = dynamic(() => import("@/components/ui/CartDrawer").then(mod =
     ssr: false,
 });
 
+const Sidebar = dynamic(() => import("@/components/layout/Sidebar").then(mod => mod.Sidebar), {
+    ssr: false,
+});
+
+const Footer = dynamic(() => import("@/components/layout/Footer").then(mod => mod.Footer), {
+    ssr: false,
+});
+
+const WelcomeBanner = dynamic(() => import("@/components/ui/WelcomeBanner"), {
+    ssr: false,
+});
+
+const WelcomeAnimation = dynamic(() => import("@/components/ui/WelcomeAnimation"), {
+    ssr: false,
+});
+
+const FloatingCart = dynamic(() => import("@/components/ui/FloatingCart").then(mod => mod.FloatingCart), {
+    ssr: false,
+});
+
+const ScrollToTop = dynamic(() => import("@/components/ui/ScrollToTop").then(mod => mod.ScrollToTop), {
+    ssr: false,
+});
+
 function AppLayoutContent({ children }: { children: React.ReactNode }) {
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -40,6 +52,18 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
     const searchParams = useSearchParams();
+
+    // Register GSAP plugins only once on the client
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const initGSAP = async () => {
+                const { gsap } = await import("gsap");
+                const { ScrollTrigger } = await import("gsap/ScrollTrigger");
+                gsap.registerPlugin(ScrollTrigger);
+            };
+            initGSAP();
+        }
+    }, []);
 
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -108,30 +132,52 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                 `}</style>
                 <div className="relative min-h-screen bg-white text-black antialiased">
                     {!isRestricted && <TopNavbar onMenuClick={() => setIsSidebarOpen(true)} />}
-                    {!isRestricted && <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />}
+                    {!isRestricted && (
+                        <Suspense fallback={null}>
+                            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+                        </Suspense>
+                    )}
 
                     <MaintenanceGuard>
                         <main className={cn(!isRestricted && pathname !== "/" && "pt-12 md:pt-14 pb-8")}>
                             {children}
                         </main>
-                        {!isRestricted && <Footer />}
-                        {!isRestricted && <WelcomeBanner />}
-                        {!isRestricted && <WelcomeAnimation />}
                         {!isRestricted && (
-                            <>
-                                <FloatingCart onClick={() => setIsCartOpen(true)} />
-                            </>
+                            <Suspense fallback={null}>
+                                <Footer />
+                            </Suspense>
                         )}
-                        <ScrollToTop />
-                        <CartDrawer
-                            isOpen={isCartOpen}
-                            onClose={() => setIsCartOpen(false)}
-                            onAuthRequired={() => {
-                                setIsCartOpen(false);
-                                setIsAuthOpen(true);
-                            }}
-                        />
-                        <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
+                        {!isRestricted && (
+                            <Suspense fallback={null}>
+                                <WelcomeBanner />
+                            </Suspense>
+                        )}
+                        {!isRestricted && (
+                            <Suspense fallback={null}>
+                                <WelcomeAnimation />
+                            </Suspense>
+                        )}
+                        {!isRestricted && (
+                            <Suspense fallback={null}>
+                                <FloatingCart onClick={() => setIsCartOpen(true)} />
+                            </Suspense>
+                        )}
+                        <Suspense fallback={null}>
+                            <ScrollToTop />
+                        </Suspense>
+                        <Suspense fallback={null}>
+                            <CartDrawer
+                                isOpen={isCartOpen}
+                                onClose={() => setIsCartOpen(false)}
+                                onAuthRequired={() => {
+                                    setIsCartOpen(false);
+                                    setIsAuthOpen(true);
+                                }}
+                            />
+                        </Suspense>
+                        <Suspense fallback={null}>
+                            <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
+                        </Suspense>
                     </MaintenanceGuard>
                 </div>
             </AuthProvider>

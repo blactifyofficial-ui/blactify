@@ -13,6 +13,8 @@ export const Magnetic = ({ children, strength = 0.5 }: MagneticProps) => {
     const container = useRef<HTMLDivElement>(null);
 
     useGSAP(() => {
+        if (window.innerWidth < 768) return; // Skip magnetic effect on mobile
+        
         const el = container.current;
         if (!el) return;
 

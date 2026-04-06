@@ -34,20 +34,18 @@ export function Hero({ images }: HeroProps) {
     // Image crossfade cycle
     useEffect(() => {
         if (images.length <= 1) return;
+        
         const interval = setInterval(() => {
-            const nextIndex = (currentImageIndex + 1) % images.length;
-            const els = container.current?.querySelectorAll(".hero-bg-image");
-            if (els) {
-                gsap.to(els[currentImageIndex], { opacity: 0, scale: 1, duration: 2, ease: "power2.inOut" });
-                gsap.to(els[nextIndex], { opacity: 1, scale: 1.05, duration: 2, ease: "power2.inOut" });
-            }
-            setCurrentImageIndex(nextIndex);
+            setCurrentImageIndex((prev) => (prev + 1) % images.length);
         }, 5000);
+        
         return () => clearInterval(interval);
-    }, [currentImageIndex, images.length]);
+    }, [images.length]);
 
     // Animations
     useGSAP(() => {
+        if (window.innerWidth < 768) return; // Skip heavy animations on mobile
+
         // Entry animation for CTA
         gsap.fromTo(ctaRef.current,
             { y: 20, opacity: 0 },
@@ -72,25 +70,34 @@ export function Hero({ images }: HeroProps) {
         >
             {/* Background Images Wrapper (Clips the images) */}
             <div className="absolute inset-0 w-full h-full overflow-hidden">
-                {images.map((img, i) => (
-                    <div
-                        key={`${img}-${i}`}
-                        className={cn(
-                            "hero-bg-image absolute inset-0 w-full h-full will-change-transform",
-                            i === 0 ? "opacity-100" : "opacity-0"
-                        )}
-                    >
-                        <Image
-                            src={img}
-                            alt={`Hero Collection Image ${i + 1}`}
-                            fill
-                            sizes="100vw"
-                            className="object-contain"
-                            priority={i === 0}
-                            loading={i === 0 ? "eager" : "lazy"}
-                        />
-                    </div>
-                ))}
+                {images.map((img, i) => {
+                    // Only render current, next, and previous for smooth transitions
+                    const isVisible = i === currentImageIndex;
+                    const isNext = i === (currentImageIndex + 1) % images.length;
+                    const isPrev = i === (currentImageIndex - 1 + images.length) % images.length;
+                    
+                    if (!isVisible && !isNext && !isPrev && images.length > 2) return null;
+
+                    return (
+                        <div
+                            key={`${img}-${i}`}
+                            className={cn(
+                                "hero-bg-image absolute inset-0 w-full h-full will-change-transform transition-all duration-[2000ms] ease-in-out",
+                                i === currentImageIndex ? "opacity-100 scale-105" : "opacity-0 scale-100"
+                            )}
+                        >
+                            <Image
+                                src={img}
+                                alt={`Hero Collection Image ${i + 1}`}
+                                fill
+                                sizes="100vw"
+                                className="object-contain"
+                                priority={i === 0}
+                                loading={i === 0 ? "eager" : "lazy"}
+                            />
+                        </div>
+                    );
+                })}
 
                 {/* Grain / Noise (Must stay inside current clip) */}
                 <div className="absolute inset-0 noise-bg pointer-events-none z-[1]" />

@@ -149,8 +149,13 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
                             </div>
                         ))
                     ) : (
-                        products.map((product) => (
-                            <ProductCard key={product.id} product={product} hidePrice />
+                        products.map((product, index) => (
+                            <ProductCard 
+                                key={product.id} 
+                                product={product} 
+                                hidePrice 
+                                priority={index < 2} 
+                            />
                         ))
                     )}
                 </div>

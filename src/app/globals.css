@@ -277,7 +277,15 @@ body {
     z-index: 1;
     animation: var(--animate-noise);
   }
+
+  /* Disable noise animation on mobile for better performance */
+  @media (max-width: 768px) {
+    .noise-bg::after {
+      animation: none;
+    }
+  }
 }
+
 
 h1,
 h2,
