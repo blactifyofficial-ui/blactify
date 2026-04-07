@@ -181,7 +181,7 @@ export default function AdminProductsPage() {
                         </Link>
 
                         {/* View Switcher */}
-                        <div className="hidden sm:flex items-center bg-white border border-zinc-100 p-1 rounded-xl shadow-sm">
+                        <div className="flex items-center bg-white border border-zinc-100 p-1 rounded-xl shadow-sm">
                             <button
                                 onClick={() => setViewMode('grid')}
                                 className={cn(
@@ -211,62 +211,8 @@ export default function AdminProductsPage() {
                 <div className="space-y-6">
                     {products.length > 0 ? (
                         <>
-                            {/* Mobile List View (Compact) */}
-                            <div className="flex flex-col gap-3 sm:hidden">
-                                {products.map((product: Product) => (
-                                    <div key={product.id} className="bg-white p-4 rounded-3xl border border-zinc-100 flex items-center gap-4 group active:scale-[0.98] transition-all">
-                                        <div className="w-16 h-16 bg-zinc-50 rounded-2xl overflow-hidden shrink-0 relative border border-zinc-100">
-                                            {product.product_images?.[0]?.url ? (
-                                                <Image
-                                                    src={product.product_images[0].url}
-                                                    alt={product.name}
-                                                    fill
-                                                    sizes="64px"
-                                                    className="object-cover"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-zinc-200">
-                                                    <Package size={24} />
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 mb-0.5">
-                                                <h3 className="font-black text-sm text-black tracking-tight line-clamp-1 uppercase italic">{product.name}</h3>
-                                                <div className={cn(
-                                                    "w-1.5 h-1.5 rounded-full shrink-0",
-                                                    (product as Product & { visibility_status: string }).visibility_status === 'active' ? "bg-green-500" : "bg-amber-500"
-                                                )} />
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                                <p className="text-[14px] font-black tracking-tighter text-black">₹{(product.price_offer || product.price_base).toLocaleString()}</p>
-                                                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Qty: {product.stock || 0}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2 shrink-0">
-                                            <Link
-                                                href={`/admin/products/edit/${product.id}`}
-                                                className="w-10 h-10 bg-zinc-50 rounded-2xl flex items-center justify-center text-zinc-600 active:bg-black active:text-white transition-all"
-                                            >
-                                                <Edit size={16} />
-                                            </Link>
-                                            <button
-                                                onClick={() => {
-                                                    setProductToDelete(product.id);
-                                                    setDeleteModalOpen(true);
-                                                }}
-                                                className="w-10 h-10 bg-red-50 rounded-2xl flex items-center justify-center text-red-500 active:bg-red-500 active:text-white transition-all"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Desktop Grid View */}
                             {viewMode === 'grid' ? (
-                                <div className="hidden sm:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
                                     {products.map((product: Product) => (
                                         <div key={product.id} className="group bg-white rounded-[2.5rem] border border-zinc-100 overflow-hidden shadow-sm hover:shadow-2xl hover:border-black/5 transition-all duration-700 relative flex flex-col">
                                             <div className="aspect-[4/5] bg-zinc-50 relative overflow-hidden">
@@ -285,21 +231,21 @@ export default function AdminProductsPage() {
                                                 )}
 
                                                 {/* Overlay Actions */}
-                                                <div className="absolute top-5 right-5 flex gap-2 lg:translate-y-2 lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100 transition-all duration-500 z-20">
+                                                <div className="absolute top-5 right-5 flex gap-2 sm:lg:translate-y-2 sm:lg:opacity-0 sm:lg:group-hover:translate-y-0 sm:lg:group-hover:opacity-100 transition-all duration-500 z-20">
                                                     <Link
                                                         href={`/admin/products/edit/${product.id}`}
-                                                        className="w-12 h-12 bg-white/90 backdrop-blur shadow-2xl rounded-full flex items-center justify-center text-zinc-600 hover:text-black hover:scale-110 transition-all border border-zinc-100"
+                                                        className="w-10 h-10 sm:w-12 sm:h-12 bg-white/90 backdrop-blur shadow-2xl rounded-full flex items-center justify-center text-zinc-600 hover:text-black hover:scale-110 transition-all border border-zinc-100"
                                                     >
-                                                        <Edit size={18} />
+                                                        <Edit size={16} />
                                                     </Link>
                                                     <button
                                                         onClick={() => {
                                                             setProductToDelete(product.id);
                                                             setDeleteModalOpen(true);
                                                         }}
-                                                        className="w-12 h-12 bg-white/90 backdrop-blur shadow-2xl rounded-full flex items-center justify-center text-red-400 hover:text-red-600 hover:scale-110 transition-all border border-zinc-100"
+                                                        className="w-10 h-10 sm:w-12 sm:h-12 bg-white/90 backdrop-blur shadow-2xl rounded-full flex items-center justify-center text-red-400 hover:text-red-600 hover:scale-110 transition-all border border-zinc-100"
                                                     >
-                                                        <Trash2 size={18} />
+                                                        <Trash2 size={16} />
                                                     </button>
                                                 </div>
 
@@ -309,14 +255,13 @@ export default function AdminProductsPage() {
                                                     </span>
                                                 </div>
 
-                                                {/* Subtle overlay gradient */}
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                                             </div>
 
-                                            <div className="p-8 flex-1 flex flex-col justify-between">
-                                                <div className="mb-6">
+                                            <div className="p-6 sm:p-8 flex-1 flex flex-col justify-between">
+                                                <div className="mb-4 sm:mb-6">
                                                     <div className="flex items-start justify-between gap-4">
-                                                        <h3 className="font-black text-lg text-black tracking-tight line-clamp-1 group-hover:text-zinc-600 transition-colors uppercase italic">{product.name}</h3>
+                                                        <h3 className="font-black text-md sm:text-lg text-black tracking-tight line-clamp-1 group-hover:text-zinc-600 transition-colors uppercase italic">{product.name}</h3>
                                                         <div className={cn(
                                                             "px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-tighter shrink-0",
                                                             (product as Product & { visibility_status: string }).visibility_status === 'active' ? "bg-green-50 text-green-500" : "bg-amber-50 text-amber-500"
@@ -329,16 +274,16 @@ export default function AdminProductsPage() {
                                                     </div>
                                                 </div>
 
-                                                <div className="flex items-center justify-between pt-6 border-t border-zinc-50">
+                                                <div className="flex items-center justify-between pt-4 sm:pt-6 border-t border-zinc-50">
                                                     <div>
-                                                        <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] mb-1">PRICE</p>
-                                                        <p className="text-xl font-black tracking-tighter text-black">
+                                                        <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] mb-1 text-xs">PRICE</p>
+                                                        <p className="text-lg sm:text-xl font-black tracking-tighter text-black">
                                                             ₹{(product.price_offer || product.price_base).toLocaleString()}
                                                         </p>
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] mb-1">STOCK</p>
-                                                        <p className="text-xl font-black tracking-tighter text-black">
+                                                        <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] mb-1 text-xs">STOCK</p>
+                                                        <p className="text-lg sm:text-xl font-black tracking-tighter text-black">
                                                             {product.stock || 0}
                                                         </p>
                                                     </div>
@@ -348,11 +293,11 @@ export default function AdminProductsPage() {
                                     ))}
                                 </div>
                             ) : (
-                                <div className="hidden sm:flex flex-col gap-4">
+                                <div className="flex flex-col gap-3 sm:gap-4">
                                     {products.map((product: Product) => (
-                                        <div key={product.id} className="group bg-white p-6 rounded-[2rem] border border-zinc-100 flex items-center justify-between hover:shadow-xl hover:border-black/5 transition-all duration-500">
-                                            <div className="flex items-center gap-8">
-                                                <div className="relative w-20 h-24 rounded-2xl overflow-hidden bg-zinc-50 border border-zinc-100 flex-shrink-0">
+                                        <div key={product.id} className="group bg-white p-4 sm:p-6 rounded-[2rem] border border-zinc-100 flex flex-col sm:flex-row sm:items-center justify-between hover:shadow-xl hover:border-black/5 transition-all duration-500 gap-4 sm:gap-0">
+                                            <div className="flex items-center gap-4 sm:gap-8">
+                                                <div className="relative w-16 h-18 sm:w-20 sm:h-24 rounded-2xl overflow-hidden bg-zinc-50 border border-zinc-100 flex-shrink-0">
                                                     {product.product_images?.[0]?.url ? (
                                                         <Image
                                                             src={product.product_images[0].url}
@@ -367,9 +312,9 @@ export default function AdminProductsPage() {
                                                     )}
                                                 </div>
                                                 
-                                                <div className="flex flex-col gap-1">
-                                                    <div className="flex items-center gap-3">
-                                                        <h3 className="font-black text-xl text-black tracking-tight uppercase italic">{product.name}</h3>
+                                                <div className="flex flex-col gap-0.5 sm:gap-1">
+                                                    <div className="flex items-center gap-2 sm:gap-3">
+                                                        <h3 className="font-black text-sm sm:text-lg text-black tracking-tight uppercase italic">{product.name}</h3>
                                                         <div className={cn(
                                                             "px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-tighter",
                                                             (product as Product & { visibility_status: string }).visibility_status === 'active' ? "bg-green-50 text-green-500" : "bg-amber-50 text-amber-500"
@@ -377,42 +322,42 @@ export default function AdminProductsPage() {
                                                             {(product as Product & { visibility_status: string }).visibility_status === 'active' ? "Active" : "Hidden"}
                                                         </div>
                                                     </div>
-                                                    <div className="flex items-center gap-4">
-                                                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{product.categories?.name || "Uncategorized"}</span>
-                                                        <span className="text-zinc-200">•</span>
-                                                        <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest italic">ID: {product.id}</span>
+                                                    <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+                                                        <span className="text-[8px] sm:text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{product.categories?.name || "Uncategorized"}</span>
+                                                        <span className="hidden sm:inline text-zinc-200">•</span>
+                                                        <span className="text-[8px] sm:text-[10px] font-bold text-zinc-300 uppercase tracking-widest italic">ID: {product.id.slice(0, 8)}</span>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center gap-12 text-right">
-                                                <div>
+                                            <div className="flex items-center justify-between sm:justify-end gap-6 sm:gap-12">
+                                                <div className="sm:text-right">
                                                     <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] mb-1">PRICE</p>
-                                                    <p className="text-xl font-black tracking-tighter text-black">
+                                                    <p className="text-md sm:text-xl font-black tracking-tighter text-black">
                                                         ₹{(product.price_offer || product.price_base).toLocaleString()}
                                                     </p>
                                                 </div>
-                                                <div>
+                                                <div className="sm:text-right">
                                                     <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] mb-1">STOCK</p>
-                                                    <p className="text-xl font-black tracking-tighter text-black">
+                                                    <p className="text-md sm:text-xl font-black tracking-tighter text-black">
                                                         {product.stock || 0}
                                                     </p>
                                                 </div>
-                                                <div className="flex items-center gap-2 pl-4">
+                                                <div className="flex items-center gap-2 shrink-0">
                                                     <Link
                                                         href={`/admin/products/edit/${product.id}`}
-                                                        className="w-12 h-12 bg-white border border-zinc-100 rounded-2xl flex items-center justify-center text-zinc-400 hover:text-black hover:bg-zinc-50 hover:shadow-lg transition-all"
+                                                        className="w-10 h-10 sm:w-12 sm:h-12 bg-zinc-50 sm:bg-white border sm:border-zinc-100 rounded-2xl flex items-center justify-center text-zinc-400 hover:text-black hover:bg-zinc-50 hover:shadow-lg transition-all"
                                                     >
-                                                        <Edit size={18} />
+                                                        <Edit size={16} />
                                                     </Link>
                                                     <button
                                                         onClick={() => {
                                                             setProductToDelete(product.id);
                                                             setDeleteModalOpen(true);
                                                         }}
-                                                        className="w-12 h-12 bg-white border border-zinc-100 rounded-2xl flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-50 hover:shadow-lg transition-all"
+                                                        className="w-10 h-10 sm:w-12 sm:h-12 bg-red-50 sm:bg-white border sm:border-zinc-100 rounded-2xl flex items-center justify-center text-red-500 sm:text-zinc-400 hover:text-red-500 hover:bg-red-50 hover:shadow-lg transition-all"
                                                     >
-                                                        <Trash2 size={18} />
+                                                        <Trash2 size={16} />
                                                     </button>
                                                 </div>
                                             </div>
