@@ -301,11 +301,11 @@ export default function AdminCategoriesPage() {
                                 </div>
 
                                 <div className="space-y-4 pt-4 border-t border-zinc-50">
-                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 block italic">Size Options</span>
+                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 block italic">Measurement Fields</span>
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
-                                            placeholder="Add size (e.g. S, M, L)..."
+                                            placeholder="e.g. Waist, Length..."
                                             value={currentField}
                                             onChange={(e) => setCurrentField(e.target.value)}
                                             onKeyDown={(e) => {
