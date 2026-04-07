@@ -102,7 +102,16 @@ export async function POST(req: Request) {
                             try {
                                 const { sendOrderNotifications } = await import("@/lib/notifications-emails");
                                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                sendOrderNotifications({ ...refreshedOrder, id: order_id } as any).catch(e => console.error("Webhook Order Notify Error:", e));
+                                await sendOrderNotifications({ ...refreshedOrder, id: order_id } as any).catch(e => console.error("Webhook Order Notify Error:", e));
+
+                                const { sendMulticastAdminNotification } = await import("@/lib/notifications-server");
+                                const userEmail = (refreshedOrder.customer_details as { email?: string })?.email || "Unknown User";
+                                const totalAmountFormatted = `₹${Number(refreshedOrder.amount).toLocaleString('en-IN')}`;
+                                await sendMulticastAdminNotification(
+                                    "🚨 New Order Received!",
+                                    `Order #${order_id} for ${totalAmountFormatted} just came in By ${userEmail}`,
+                                    { orderId: order_id, type: "new_order" }
+                                ).catch(e => console.error("Webhook FCM Error:", e));
                             } catch (e) {
                                 console.error("Notification error:", e);
                             }

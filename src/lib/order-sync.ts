@@ -204,17 +204,17 @@ export async function confirmOrder(orderData: z.infer<typeof OrderSyncSchema>, t
         const userEmail = data.customer_details?.email || "Unknown User";
         const totalAmountFormatted = `₹${Number(data.amount).toLocaleString('en-IN')}`;
         
-        sendMulticastAdminNotification(
+        await sendMulticastAdminNotification(
             "🚨 New Order Received!",
             `Order #${razorpay_order_id} for ${totalAmountFormatted} just came in By ${userEmail}`,
             { orderId: razorpay_order_id, type: "new_order" }
         ).catch((err) => console.error("FCM: Trigger error:", err));
 
         // 3. Trigger Email & Telegram Notifications (Direct Call)
-        sendOrderNotifications(data).catch(e => console.error("Order Notify Error:", e));
+        await sendOrderNotifications(data).catch(e => console.error("Order Notify Error:", e));
 
         // 4. Google Sheets Sync
-        appendOrderToSheet({
+        await appendOrderToSheet({
             id: razorpay_order_id,
             items: data.items,
             customer_details: data.customer_details,
@@ -261,13 +261,13 @@ async function fallbackSaveOrder(data: z.infer<typeof OrderSyncSchema>) {
 
     // Fire side effects
     const { sendMulticastAdminNotification } = await import("./notifications-server");
-    sendMulticastAdminNotification(
+    await sendMulticastAdminNotification(
         "🚨 New Order Received!",
         `Order #${orderIdToSave} for ₹${data.amount} (fallback save)`,
         { orderId: orderIdToSave, type: "new_order" }
     ).catch(() => { });
 
-    appendOrderToSheet({
+    await appendOrderToSheet({
         id: orderIdToSave,
         items: data.items,
         customer_details: data.customer_details,
