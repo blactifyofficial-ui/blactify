@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { Hero } from "@/components/ui/Hero";
 import { ProductCard, type Product } from "@/components/ui/ProductCard";
 import Link from "next/link";
 import Image from "next/image";
+import { ArrowRight, ArrowLeft } from "lucide-react";
 
 interface CategoryWithImage {
     name: string;
@@ -22,6 +23,14 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
     const router = useRouter();
     const [products, setProducts] = useState<Product[]>(initialProducts);
     const [loading, setLoading] = useState(false);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+    const scroll = (direction: "left" | "right") => {
+        if (scrollContainerRef.current) {
+            const scrollAmount = window.innerWidth > 768 ? 400 : 250;
+            scrollContainerRef.current.scrollBy({ left: direction === "left" ? -scrollAmount : scrollAmount, behavior: "smooth" });
+        }
+    };
 
     // Swipe detection states
     const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -88,15 +97,32 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
             {/* Shop by Category — between Hero and Best Sellers */}
             {initialCategories.length > 0 && (
                 <section className="px-6 py-12 bg-white">
-                    <div className="mb-8">
+                    <div className="mb-8 flex items-end justify-between">
                         <h2 className="text-2xl md:text-3xl font-medium tracking-tight text-black">
                             Shop by Category
                         </h2>
+                        <div className="flex items-center gap-3">
+                            <button 
+                                onClick={() => scroll('left')} 
+                                className="p-2 text-zinc-400 hover:text-black hover:-translate-x-1 transition-all duration-300"
+                                aria-label="Scroll left"
+                            >
+                                <ArrowLeft className="w-5 h-5 md:w-6 md:h-6" />
+                            </button>
+                            <button 
+                                onClick={() => scroll('right')} 
+                                className="p-2 text-zinc-400 hover:text-black hover:translate-x-1 transition-all duration-300"
+                                aria-label="Scroll right"
+                            >
+                                <ArrowRight className="w-5 h-5 md:w-6 md:h-6" />
+                            </button>
+                        </div>
                     </div>
 
                     <div className="relative group/nav">
 
                         <div
+                            ref={scrollContainerRef}
                             className="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-2 snap-x snap-mandatory px-1"
                             onTouchStart={(e) => e.stopPropagation()}
                             onTouchMove={(e) => e.stopPropagation()}
