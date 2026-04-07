@@ -39,7 +39,7 @@ export const getAllCachedProducts = unstable_cache(
                     product_images(url),
                     product_variants(stock)
                 `)
-                .order('updated_at', { ascending: false });
+                .order('created_at', { ascending: false });
 
             if (error) throw error;
             return (data || []) as Product[];
@@ -102,7 +102,7 @@ export async function getProducts(options?: GetProductsOptions) {
         });
     }
 
-    const sortBy = options?.sortBy || "mixed";
+    const sortBy = options?.sortBy || "newest";
     if (sortBy === "mixed") {
         filteredProducts.sort((a, b) => {
             const hashA = a.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
@@ -114,7 +114,7 @@ export async function getProducts(options?: GetProductsOptions) {
     } else if (sortBy === "price-high") {
         filteredProducts.sort((a, b) => b.price_base - a.price_base);
     } else if (sortBy === "newest") {
-        filteredProducts.sort((a, b) => new Date(b.updated_at || b.created_at || 0).getTime() - new Date(a.updated_at || a.created_at || 0).getTime());
+        filteredProducts.sort((a, b) => new Date(b.created_at || b.updated_at || b.id || 0).getTime() - new Date(a.created_at || a.updated_at || a.id || 0).getTime());
     }
 
     // Sort out-of-stock items to the bottom

@@ -83,8 +83,8 @@ export function useAdminProducts({ page, pageSize, searchTerm, categoryId, statu
             const useJSFilter = (status && status !== 'all') || (stockStatus && stockStatus !== 'all');
 
             const finalQuery = useJSFilter 
-                ? query.order("updated_at", { ascending: false, nullsFirst: false }).limit(1000)
-                : query.order("updated_at", { ascending: false, nullsFirst: false }).range(from, to);
+                ? query.order("created_at", { ascending: false, nullsFirst: false }).limit(1000)
+                : query.order("created_at", { ascending: false, nullsFirst: false }).range(from, to);
 
             const { data, error: supabaseError, count } = await finalQuery;
 

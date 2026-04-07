@@ -13,7 +13,7 @@ interface FiltersProps {
     initialSortBy?: string;
 }
 
-export default function Filters({ totalResults, initialSearch = "", initialCategory = "All", initialSortBy = "mixed" }: FiltersProps) {
+export default function Filters({ totalResults, initialSearch = "", initialCategory = "All", initialSortBy = "newest" }: FiltersProps) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -47,7 +47,7 @@ export default function Filters({ totalResults, initialSearch = "", initialCateg
         const params = new URLSearchParams(searchParams.toString());
         const currentSearch = params.get("search") || "";
         const currentCategory = params.get("category") || "All";
-        const currentSortBy = params.get("sortBy") || "mixed";
+        const currentSortBy = params.get("sortBy") || "newest";
 
         let changed = false;
 
@@ -67,7 +67,7 @@ export default function Filters({ totalResults, initialSearch = "", initialCateg
 
         // Sort
         if (sortBy !== currentSortBy) {
-            if (sortBy !== "mixed") params.set("sortBy", sortBy);
+            if (sortBy !== "newest") params.set("sortBy", sortBy);
             else params.delete("sortBy");
             changed = true;
         }
@@ -85,7 +85,7 @@ export default function Filters({ totalResults, initialSearch = "", initialCateg
     const handleReset = () => {
         setSearchQuery("");
         setSelectedCategory("All");
-        setSortBy("mixed");
+        setSortBy("newest");
     };
 
     return (
@@ -112,7 +112,7 @@ export default function Filters({ totalResults, initialSearch = "", initialCateg
                     <span className="text-xs font-medium text-zinc-500 uppercase tracking-widest">
                         {totalResults} Results
                     </span>
-                    {(searchQuery || selectedCategory !== "All" || sortBy !== "mixed") && (
+                    {(searchQuery || selectedCategory !== "All" || sortBy !== "newest") && (
                         <button
                             onClick={handleReset}
                             className="text-[10px] font-bold uppercase tracking-widest underline text-zinc-500 hover:text-black ml-2"
@@ -127,7 +127,7 @@ export default function Filters({ totalResults, initialSearch = "", initialCateg
                         onClick={() => setIsSortOpen(!isSortOpen)}
                         className="flex items-center gap-1.5 text-xs font-medium text-black active:scale-95 transition-all"
                     >
-                        Sort: {sortBy === "mixed" ? "Mixed" : sortBy === "newest" ? "Newest" : sortBy === "price-low" ? "Price Low-High" : "Price High-Low"}
+                        Sort: {sortBy === "newest" ? "Newest" : sortBy === "price-low" ? "Price Low-High" : sortBy === "price-high" ? "Price High-Low" : "Mixed"}
                         <Filter size={12} className={cn("transition-transform", isSortOpen && "rotate-180")} />
                     </button>
 
@@ -139,10 +139,10 @@ export default function Filters({ totalResults, initialSearch = "", initialCateg
                             />
                             <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-zinc-100 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
                                 {[
-                                    { id: "mixed", label: "Mixed (Random)" },
                                     { id: "newest", label: "Newest" },
                                     { id: "price-low", label: "Price: Low to High" },
-                                    { id: "price-high", label: "Price: High to Low" }
+                                    { id: "price-high", label: "Price: High to Low" },
+                                    { id: "mixed", label: "Mixed (Random)" }
                                 ].map((option) => (
                                     <button
                                         key={option.id}
