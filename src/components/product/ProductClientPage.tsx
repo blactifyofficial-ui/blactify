@@ -391,19 +391,29 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                     })()}
                                 </div>
                                 <div className="flex gap-4">
-                                    {sizes.map((size: string) => (
-                                        <button
-                                            key={size}
-                                            onClick={() => setSelectedSize(size)}
-                                            className={`h-16 w-16 rounded-2xl flex items-center justify-center text-xs font-bold transition-all duration-300
-                                                ${selectedSize === size
-                                                    ? "bg-black text-white shadow-xl scale-105"
-                                                    : "bg-white text-black border border-zinc-100 hover:border-zinc-300"
-                                                }`}
-                                        >
-                                            {size}
-                                        </button>
-                                    ))}
+                                    {sizes.map((size: string) => {
+                                        const variant = productVariants.find(v => v.size === size);
+                                        const isOutOfStock = variant ? variant.stock <= 0 : false;
+
+                                        return (
+                                            <button
+                                                key={size}
+                                                onClick={() => setSelectedSize(size)}
+                                                className={`relative overflow-hidden h-16 w-16 rounded-2xl flex items-center justify-center text-xs font-bold transition-all duration-300
+                                                    ${selectedSize === size
+                                                        ? "bg-black text-white shadow-xl scale-105"
+                                                        : "bg-white text-black border border-zinc-100 hover:border-zinc-300"
+                                                    }`}
+                                            >
+                                                {size}
+                                                {isOutOfStock && (
+                                                    <svg className="absolute inset-0 w-full h-full text-red-500 pointer-events-none" preserveAspectRatio="none" viewBox="0 0 100 100">
+                                                        <line x1="0" y1="100" x2="100" y2="0" stroke="currentColor" strokeWidth="2.5" />
+                                                    </svg>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
