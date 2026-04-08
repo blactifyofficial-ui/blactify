@@ -308,7 +308,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                         if (result.data) {
                             const info = result.data as { district?: string; state_code?: string };
                             const stateMapping: Record<string, string> = {
-                                'KL': 'Kerala', 'KA': 'Karnataka', 'TN': 'Tamil Nadu', 
+                                'KL': 'Kerala', 'KA': 'Karnataka', 'TN': 'Tamil Nadu',
                                 'MH': 'Maharashtra', 'DL': 'Delhi', 'TS': 'Telangana',
                                 'AP': 'Andhra Pradesh', 'GA': 'Goa', 'GJ': 'Gujarat',
                                 'HR': 'Haryana', 'HP': 'Himachal Pradesh', 'JK': 'Jammu and Kashmir',
@@ -327,7 +327,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                 district: info.district || prev.district,
                                 state: (info.state_code ? stateMapping[info.state_code] : undefined) || prev.state
                             }));
-                            
+
                             // Clear errors for auto-filled fields
                             setErrors(prev => {
                                 const next = { ...prev };
@@ -340,12 +340,12 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                             // Check if shipping charge is already overridden by free shipping rule
                             const currentDiscountedSubtotal = discountCode === "WELCOME10" ? Math.round(subtotal * 0.9) : subtotal;
                             const isFreeByRule = (currentDiscountedSubtotal >= 2999) || (discountCode === "FREE-SHIPPING" && initialSettings?.free_shipping_enabled);
-                            
+
                             if (!isFreeByRule) {
                                 try {
                                     // Estimate weight: 500g per item
                                     const estimatedWeight = activeItems.reduce((acc, item) => acc + (item.quantity * 500), 0);
-                                    
+
                                     const result = await getShippingCharges(pincode, estimatedWeight);
                                     if (result.success && typeof result.charge === 'number') {
                                         setDynamicShippingCharge(result.charge);
@@ -516,59 +516,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
 
             if (!order.id) {
                 throw new Error("order-creation-failed");
-            }            // ── PHASE 1.5: Pre-register Shipment with Delhivery to catch balance issues ──
-            const { processOrderShipping, alertAdminLowWalletBalance } = await import("@/actions/delhivery");
-            const dummyOrderData = {
-                id: order.id, 
-                amount: order.amount / 100,
-                items: latestItems,
-                shipping_address: {
-                    address: formData.address,
-                    apartment: formData.apartment || undefined,
-                    city: formData.city,
-                    district: formData.district,
-                    state: formData.state,
-                    pincode: formData.pincode,
-                    country: "India",
-                    phone: formData.phone,
-                    firstName: formData.firstName,
-                    lastName: formData.lastName
-                },
-                customer_details: {
-                    name: `${formData.firstName} ${formData.lastName}`.trim(),
-                    email: formData.email,
-                    phone: formData.phone,
-                    secondary_phone: formData.secondaryPhone || undefined
-                },
-                created_at: new Date().toISOString()
-            };
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const shippingResult = await processOrderShipping(dummyOrderData as any);
-            
-            if (!shippingResult.success) {
-                await alertAdminLowWalletBalance(shippingResult.message || "Unknown Error");
-                
-                toast.error("Order cannot be processed", {
-                    description: "Something went wrong while setting up the shipment. Please try again later.",
-                    duration: 8000
-                });
-                setIsProcessing(false);
-                return;
-            }
-
-            let shippingManifestDetails = undefined;
-            if (shippingResult.awb) {
-                 shippingManifestDetails = {
-                     awb: shippingResult.awb,
-                     tracking_link: shippingResult.tracking_link,
-                     label_url: shippingResult.label_url,
-                     status: "registered",
-                     registered_at: new Date().toISOString()
-                 };
-            }
-
-            // ── PHASE 2: Create pending order in DB BEFORE payment ──
+            }            // ── PHASE 2: Create pending order in DB BEFORE payment ──
             // This ensures we have a DB record. If the user pays but the
             // client crashes, the Razorpay webhook can find and confirm this record.
             const pendingResult = await createPendingOrder({
@@ -605,8 +553,6 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                     secondary_phone: formData.secondaryPhone || undefined
                 },
                 discount_code: discountCode || undefined,
-                tracking_id: shippingResult.awb,
-                shipping_manifest_details: shippingManifestDetails
             }, token);
 
             if (!pendingResult.success) {
