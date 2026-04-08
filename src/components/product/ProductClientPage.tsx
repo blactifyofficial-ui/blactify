@@ -398,12 +398,17 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                         return (
                                             <button
                                                 key={size}
-                                                onClick={() => setSelectedSize(size)}
-                                                className={`relative overflow-hidden h-16 w-16 rounded-2xl flex items-center justify-center text-xs font-bold transition-all duration-300
-                                                    ${selectedSize === size
+                                                onClick={() => !isOutOfStock && setSelectedSize(size)}
+                                                disabled={isOutOfStock}
+                                                className={cn(
+                                                    "relative overflow-hidden h-16 w-16 rounded-2xl flex items-center justify-center text-xs font-bold transition-all duration-300",
+                                                    selectedSize === size
                                                         ? "bg-black text-white shadow-xl scale-105"
-                                                        : "bg-white text-black border border-zinc-100 hover:border-zinc-300"
-                                                    }`}
+                                                        : "bg-white text-black border border-zinc-100",
+                                                    isOutOfStock
+                                                        ? "opacity-40 cursor-not-allowed bg-zinc-50"
+                                                        : "hover:border-zinc-300"
+                                                )}
                                             >
                                                 {size}
                                                 {isOutOfStock && (
