@@ -24,6 +24,16 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
     const [products, setProducts] = useState<Product[]>(initialProducts);
     const [loading, setLoading] = useState(false);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(true);
+
+    const checkScroll = () => {
+        if (scrollContainerRef.current) {
+            const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+            setCanScrollLeft(scrollLeft > 10);
+            setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+        }
+    };
 
     const scroll = (direction: "left" | "right") => {
         if (scrollContainerRef.current) {
@@ -58,6 +68,19 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
         setTouchStart(null);
         setTouchEnd(null);
     };
+
+    useEffect(() => {
+        checkScroll();
+        const container = scrollContainerRef.current;
+        if (container) {
+            container.addEventListener("scroll", checkScroll);
+            window.addEventListener("resize", checkScroll);
+            return () => {
+                container.removeEventListener("scroll", checkScroll);
+                window.removeEventListener("resize", checkScroll);
+            };
+        }
+    }, [initialCategories]);
 
     useEffect(() => {
         if (initialProducts.length === 0) {
@@ -101,25 +124,32 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
                         <h2 className="text-2xl md:text-3xl font-medium tracking-tight text-black">
                             Shop by Category
                         </h2>
-                        <div className="flex items-center gap-3">
-                            <button 
-                                onClick={() => scroll('left')} 
-                                className="p-2 text-zinc-400 hover:text-black hover:-translate-x-1 transition-all duration-300"
-                                aria-label="Scroll left"
-                            >
-                                <ArrowLeft className="w-5 h-5 md:w-6 md:h-6" />
-                            </button>
-                            <button 
-                                onClick={() => scroll('right')} 
-                                className="p-2 text-zinc-400 hover:text-black hover:translate-x-1 transition-all duration-300"
-                                aria-label="Scroll right"
-                            >
-                                <ArrowRight className="w-5 h-5 md:w-6 md:h-6" />
-                            </button>
-                        </div>
                     </div>
 
                     <div className="relative group/nav">
+                        <button 
+                            onClick={() => scroll('left')} 
+                            className={`absolute left-2 md:left-4 top-[40%] -translate-y-1/2 z-10 p-2 md:p-3 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-black shadow-xl transition-all duration-300 hover:bg-white/40 active:scale-95 ${
+                                canScrollLeft 
+                                ? "opacity-100 md:opacity-0 md:group-hover/nav:opacity-100 translate-x-0" 
+                                : "opacity-0 -translate-x-4 pointer-events-none"
+                            }`}
+                            aria-label="Scroll left"
+                        >
+                            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6" />
+                        </button>
+
+                        <button 
+                            onClick={() => scroll('right')} 
+                            className={`absolute right-2 md:right-4 top-[40%] -translate-y-1/2 z-10 p-2 md:p-3 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-black shadow-xl transition-all duration-300 hover:bg-white/40 active:scale-95 ${
+                                canScrollRight 
+                                ? "opacity-100 md:opacity-0 md:group-hover/nav:opacity-100 translate-x-0" 
+                                : "opacity-0 translate-x-4 pointer-events-none"
+                            }`}
+                            aria-label="Scroll right"
+                        >
+                            <ArrowRight className="w-5 h-5 md:w-6 md:h-6" />
+                        </button>
 
                         <div
                             ref={scrollContainerRef}
