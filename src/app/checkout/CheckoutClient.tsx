@@ -91,7 +91,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
     const [discountInput, setDiscountInput] = useState("");
     const [stockErrors, setStockErrors] = useState<Record<string, string>>({});
     const [priceErrors, setPriceErrors] = useState<Record<string, string>>({});
-    const storeEnabled = initialSettings?.purchases_enabled ?? true;
+    const storeEnabled = (initialSettings?.purchases_enabled ?? true) || process.env.NODE_ENV === "development";
 
     const searchParams = useSearchParams();
     const isDirect = searchParams.get("direct") === "true";
@@ -516,9 +516,59 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
 
             if (!order.id) {
                 throw new Error("order-creation-failed");
+            }            // ── PHASE 1.5: Pre-register Shipment with Delhivery to catch balance issues ──
+            const { processOrderShipping, alertAdminLowWalletBalance } = await import("@/actions/delhivery");
+            const dummyOrderData = {
+                id: order.id, 
+                amount: order.amount / 100,
+                items: latestItems,
+                shipping_address: {
+                    address: formData.address,
+                    apartment: formData.apartment || undefined,
+                    city: formData.city,
+                    district: formData.district,
+                    state: formData.state,
+                    pincode: formData.pincode,
+                    country: "India",
+                    phone: formData.phone,
+                    firstName: formData.firstName,
+                    lastName: formData.lastName
+                },
+                customer_details: {
+                    name: `${formData.firstName} ${formData.lastName}`.trim(),
+                    email: formData.email,
+                    phone: formData.phone,
+                    secondary_phone: formData.secondaryPhone || undefined
+                },
+                created_at: new Date().toISOString()
+            };
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const shippingResult = await processOrderShipping(dummyOrderData as any);
+            
+            if (!shippingResult.success) {
+                await alertAdminLowWalletBalance(shippingResult.message || "Unknown Error");
+                
+                toast.error("Order cannot be processed", {
+                    description: "Something went wrong while setting up the shipment. Please try again later.",
+                    duration: 8000
+                });
+                setIsProcessing(false);
+                return;
             }
 
-            // ── PHASE 1: Create pending order in DB BEFORE payment ──
+            let shippingManifestDetails = undefined;
+            if (shippingResult.awb) {
+                 shippingManifestDetails = {
+                     awb: shippingResult.awb,
+                     tracking_link: shippingResult.tracking_link,
+                     label_url: shippingResult.label_url,
+                     status: "registered",
+                     registered_at: new Date().toISOString()
+                 };
+            }
+
+            // ── PHASE 2: Create pending order in DB BEFORE payment ──
             // This ensures we have a DB record. If the user pays but the
             // client crashes, the Razorpay webhook can find and confirm this record.
             const pendingResult = await createPendingOrder({
@@ -555,6 +605,8 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                     secondary_phone: formData.secondaryPhone || undefined
                 },
                 discount_code: discountCode || undefined,
+                tracking_id: shippingResult.awb,
+                shipping_manifest_details: shippingManifestDetails
             }, token);
 
             if (!pendingResult.success) {
@@ -562,8 +614,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
             }
 
 
-
-            // 2. Load Razorpay script
+            // 3. Load Razorpay script
             const isLoaded = await loadRazorpay();
             if (!isLoaded) {
                 throw new Error("Razorpay SDK failed to load");

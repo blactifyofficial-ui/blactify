@@ -50,7 +50,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
     const [touchStart, setTouchStart] = useState<number | null>(null);
     const [touchEnd, setTouchEnd] = useState<number | null>(null);
     const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
-    const storeEnabled = initialSettings?.purchases_enabled ?? true;
+    const storeEnabled = (initialSettings?.purchases_enabled ?? true) || process.env.NODE_ENV === "development";
     const [hasPurchased, setHasPurchased] = useState(false);
     const [isCheckingPurchase, setIsCheckingPurchase] = useState(false);
 

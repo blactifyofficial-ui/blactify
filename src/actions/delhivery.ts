@@ -48,3 +48,18 @@ export async function trackShipment(waybill: string) {
 export async function processOrderShipping(order: Order) {
     return await processOrderShippingInternal(order);
 }
+
+export async function alertAdminLowWalletBalance(errorMessage: string) {
+    try {
+        const { sendMulticastAdminNotification } = await import("@/lib/notifications-server");
+        await sendMulticastAdminNotification(
+            "⚠️ Delhivery Wallet Issue",
+            `Shipping API returned an error, likely low wallet balance. Gateway blocked. Details: ${errorMessage}`,
+            { type: "wallet_alert" }
+        );
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to send wallet alert:", error);
+        return { success: false };
+    }
+}

@@ -36,7 +36,8 @@ export const useCartStore = create<CartStore>()(
             items: [],
             addItem: async (product, size) => {
                 const settings = await getStoreSettings();
-                if (settings && !settings.purchases_enabled) {
+                const isDevelopment = process.env.NODE_ENV === "development";
+                if (settings && !settings.purchases_enabled && !isDevelopment) {
                     toast.error("Store is temporarily paused");
                     return false;
                 }

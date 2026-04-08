@@ -11,6 +11,7 @@ import { auth } from "@/lib/firebase";
 interface OrderDetail {
     id: string;
     amount: number;
+    tracking_id?: string;
     items: {
         id: string;
         name: string;
@@ -162,6 +163,19 @@ export default function CheckoutSuccessPage() {
                 <p className="text-zinc-500 max-w-md mx-auto text-sm md:text-base leading-relaxed">
                     Order <span className="font-mono text-zinc-900">#{order.id.slice(0, 12)}</span> is being processed.
                 </p>
+                {order.tracking_id && (
+                    <div className="mt-4 p-4 bg-zinc-50 rounded-lg border border-zinc-100 flex flex-col items-center animate-in fade-in slide-in-from-bottom-3 duration-1000 delay-300">
+                        <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider mb-1">Tracking Generated (Delhivery)</span>
+                        <a 
+                            href={`https://track.delhivery.com/tracking/track?id=${order.tracking_id}`}
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1"
+                        >
+                            {order.tracking_id}
+                        </a>
+                    </div>
+                )}
                 <div className="mt-8 flex flex-col sm:flex-row items-center gap-4">
                     <Link
                         href="/"
