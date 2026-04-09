@@ -100,27 +100,8 @@ function MaintenanceScreen({ message }: { message: string }) {
             </div>
 
             <div className="relative z-10 max-w-md mx-auto flex flex-col items-center">
-                {/* Brand Logo */}
-                <div className="relative mb-10">
-                    <div className="w-24 h-24 bg-white rounded-md flex items-center justify-center shadow-2xl shadow-black/5 transition-transform duration-700 hover:scale-105 overflow-hidden">
-                        <img 
-                            src="/welcome-eye.png" 
-                            alt="Blactify Logo" 
-                            className="w-14 h-14 object-contain"
-                        />
-                    </div>
-                    {/* Ping indicator */}
-                    <div className="absolute -top-1 -right-1 w-4 h-4">
-                        <div className="absolute inset-0 bg-amber-400 rounded-full animate-ping opacity-75" />
-                        <div className="absolute inset-0 bg-amber-400 rounded-full" />
-                    </div>
-                </div>
-
-                {/* Brand */}
-                <h1
-                    className="text-4xl md:text-5xl font-black text-black tracking-tighter mb-2"
-                    style={{ textTransform: "uppercase", letterSpacing: "-0.04em" }}
-                >
+                {/* Brand Logo - Replaced eye with standardized text branding */}
+                <h1 className="text-4xl md:text-6xl font-yapari text-black tracking-tighter mb-2 uppercase animate-in fade-in slide-in-from-bottom-4 duration-1000">
                     BLACTIFY
                 </h1>
 

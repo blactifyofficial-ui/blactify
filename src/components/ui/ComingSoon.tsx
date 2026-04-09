@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { cn } from "@/lib/utils";
-import logoIcon from "@/app/logo-v1.png";
 
 export function ComingSoon() {
     const [mounted, setMounted] = useState(false);
@@ -33,14 +31,9 @@ export function ComingSoon() {
                     "relative z-10 mb-2 md:mb-6 transition-all duration-1000 ease-in-out",
                     isVisible ? "opacity-100" : "opacity-30"
                 )}>
-                    <Image
-                        src={logoIcon}
-                        alt="Blactify"
-                        width={200}
-                        height={200}
-                        className="object-contain"
-                        priority
-                    />
+                    <span className="text-5xl md:text-7xl font-yapari uppercase tracking-tighter">
+                        BLACTIFY
+                    </span>
                 </div>
 
                 {/* Main Heading */}

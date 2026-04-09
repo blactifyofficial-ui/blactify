@@ -33,8 +33,7 @@ export function SearchDrawer({ isOpen, onClose }: SearchDrawerProps) {
                 const { data, error } = await supabase
                     .from("products")
                     .select("*, categories(name), product_images(url)")
-                    .not("home_order", "is", null)
-                    .order("home_order", { ascending: true })
+                    .order("created_at", { ascending: false })
                     .limit(5);
 
                 if (error) throw error;

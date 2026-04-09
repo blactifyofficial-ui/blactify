@@ -133,13 +133,9 @@ export default function InvoicePage() {
                 <div className="flex justify-between items-start mb-16 border-b border-zinc-100 pb-8 break-inside-avoid">
                     <div className="flex flex-col items-start gap-4">
                         <Link href="/">
-                            <Image
-                                src="/logo-v1.png"
-                                alt="Blactify"
-                                width={120}
-                                height={30}
-                                className="h-6 w-auto object-contain"
-                            />
+                            <span className="text-2xl font-yapari uppercase tracking-tighter">
+                                BLACTIFY
+                            </span>
                         </Link>
                         <div>
                             <p className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] font-medium">Keep it blactify</p>

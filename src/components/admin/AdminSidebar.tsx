@@ -2,21 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { X, LogOut, LayoutDashboard, ShoppingBag, Box, Tag, BarChart3, MessageSquare, Home, Zap, Settings } from "lucide-react";
+import { X, LogOut, LayoutDashboard, ShoppingBag, Box, Tag, BarChart3, MessageSquare, Zap, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useState } from "react";
 import { LogoutModal } from "@/components/ui/LogoutModal";
 import { useNotificationStore } from "@/store/useNotificationStore";
-import Image from "next/image";
 
 const NAV_ITEMS = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { name: "Orders", href: "/admin/orders", icon: ShoppingBag, showBadge: true },
     { name: "Products", href: "/admin/products", icon: Box },
     { name: "Drops", href: "/admin/drops", icon: Zap },
-    { name: "Home Screen", href: "/admin/home-products", icon: Home },
     { name: "Support", href: "/admin/support", icon: MessageSquare },
     { name: "Categories", href: "/admin/categories", icon: Tag },
     { name: "Reports", href: "/admin/reports", icon: BarChart3 },
@@ -65,13 +63,9 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                 {/* Desktop Logo & Close Button (Mobile Only) */}
                 <div className="p-8 pt-16 md:pt-10 pb-6 border-b border-zinc-900/50 flex items-center justify-between shrink-0">
                     <Link href="/admin" className="flex flex-col gap-1 group">
-                        <Image
-                            src="/logo-v1.png"
-                            alt="Blactify"
-                            width={120}
-                            height={30}
-                            className="h-6 w-auto object-contain invert brightness-0 transition-opacity duration-300 group-hover:opacity-70"
-                        />
+                        <span className="text-xl font-yapari uppercase tracking-tighter transition-all duration-300 group-hover:opacity-70 text-white">
+                            BLACTIFY
+                        </span>
                         <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500">Admin Panel</p>
                     </Link>
                     <div className="flex items-center gap-3">

@@ -87,7 +87,6 @@ export interface Product {
     image3?: string;
     size_variants?: string[];
     stock?: number;
-    show_on_home?: boolean;
 }
 
 export interface CustomerDetails {

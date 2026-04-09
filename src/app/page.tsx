@@ -19,8 +19,6 @@ const getInitialProducts = unstable_cache(
       const { data, error } = await supabase
         .from("products")
         .select("*, product_images(*), product_variants(*)")
-        .not("home_order", "is", null)
-        .order("home_order", { ascending: true })
         .order("created_at", { ascending: false })
         .limit(6);
 
