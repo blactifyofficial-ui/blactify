@@ -1,12 +1,6 @@
 @import "tailwindcss";
 
-@font-face {
-  font-family: 'Druk Wide Bold';
-  src: url('/fonts/DrukWideBold.woff') format('woff');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
+/* Discovery Typography Unified */
 
 :root {
   --background: #ffffff;
@@ -17,9 +11,10 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-black: #333639;
-  --font-sans: var(--font-outfit), var(--font-inter), ui-sans-serif, system-ui;
-  --font-aesthetic: var(--font-space-grotesk), ui-serif, serif;
-  --font-heading: var(--font-outfit); /* Unified with Discovery */
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui;
+  --font-aesthetic: var(--font-outfit), ui-sans-serif, system-ui;
+  --font-heading: var(--font-outfit);
+  --font-inter: var(--font-outfit), ui-sans-serif, system-ui;
 
   --animate-in: in 1s ease-out;
   --animate-fade-in: fade-in 1s ease-out forwards;
@@ -186,7 +181,7 @@ h3 {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-outfit), var(--font-inter), Arial, Helvetica, sans-serif;
+  font-family: var(--font-outfit), Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;

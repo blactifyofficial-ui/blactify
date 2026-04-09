@@ -15,7 +15,7 @@ export default function ProfilePage() {
 
     if (!user) {
         return (
-            <div className="flex min-h-[60vh] flex-col items-center justify-center px-6 text-center font-sans">
+            <div className="flex min-h-[60vh] flex-col items-center justify-center px-6 text-center">
                 <div className="mb-6 rounded-full bg-zinc-100 p-6">
                     <User size={48} className="text-zinc-300" />
                 </div>
@@ -39,7 +39,7 @@ export default function ProfilePage() {
     ];
 
     return (
-        <div className="px-6 py-12 font-sans bg-white min-h-screen">
+        <div className="px-6 py-12 bg-white min-h-screen">
             <div className="flex items-center gap-4 mb-12">
                 <div className="relative h-20 w-20 overflow-hidden rounded-full bg-zinc-100">
                     {user.photoURL ? (

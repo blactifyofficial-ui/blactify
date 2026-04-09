@@ -112,7 +112,7 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                         </button>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto px-6 py-6 font-sans">
+                    <div className="flex-1 overflow-y-auto px-6 py-6">
                         {items.length === 0 ? (
                             <div className="flex h-full flex-col items-center justify-center text-center">
                                 <ShoppingBag size={48} className="mb-4 text-zinc-300" />
@@ -170,7 +170,7 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                     </div>
 
                     {items.length > 0 && (
-                        <div className="border-t border-zinc-200/50 px-6 py-6 font-sans bg-white/40 backdrop-blur-lg">
+                        <div className="border-t border-zinc-200/50 px-6 py-6 bg-white/40 backdrop-blur-lg">
                             <div className="mb-6 flex items-center justify-between">
                                 <span className="text-sm font-bold uppercase tracking-widest text-zinc-400">Total</span>
                                 <span className="text-xl font-medium text-black">₹{getTotalPrice().toFixed(2)}</span>

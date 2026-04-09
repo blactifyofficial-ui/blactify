@@ -206,7 +206,7 @@ export default function AdminCategoriesPage() {
     };
 
     return (
-        <div className="max-w-5xl mx-auto space-y-12 pb-20 font-inter animate-in fade-in duration-700">
+        <div className="max-w-5xl mx-auto space-y-12 pb-20 animate-in fade-in duration-700">
             {croppingImage && (
                 <ImageCropper
                     image={croppingImage}
@@ -355,7 +355,7 @@ export default function AdminCategoriesPage() {
                                     <button
                                         type="button"
                                         onClick={resetForm}
-                                        className="flex-1 py-4 border border-zinc-100 text-zinc-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-50 transition-all font-aesthetic"
+                                        className="flex-1 py-4 border border-zinc-100 text-zinc-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-50 transition-all"
                                     >
                                         Cancel
                                     </button>
@@ -504,7 +504,7 @@ function CategoryProductsModal({ isOpen, onClose, category }: { isOpen: boolean,
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-zinc-50/30 font-inter">
+                <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-zinc-50/30">
                     {category.products && category.products.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {category.products.map((prod) => (

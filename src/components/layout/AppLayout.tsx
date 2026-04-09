@@ -27,12 +27,11 @@ const Footer = dynamic(() => import("@/components/layout/Footer").then(mod => mo
     ssr: false,
 });
 
-
-const FloatingCart = dynamic(() => import("@/components/ui/FloatingCart").then(mod => mod.FloatingCart), {
+const ScrollToTop = dynamic(() => import("@/components/ui/ScrollToTop").then(mod => mod.ScrollToTop), {
     ssr: false,
 });
 
-const ScrollToTop = dynamic(() => import("@/components/ui/ScrollToTop").then(mod => mod.ScrollToTop), {
+const SearchDrawer = dynamic(() => import("@/components/ui/SearchDrawer").then(mod => mod.SearchDrawer), {
     ssr: false,
 });
 
@@ -40,6 +39,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isAuthOpen, setIsAuthOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [isSubdomain, setIsSubdomain] = useState(false);
     const pathname = usePathname();
@@ -109,7 +109,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                     toastOptions={{
                         classNames: {
                             toast: cn(
-                                "rounded-full border border-zinc-100 shadow-xl font-sans bg-white w-auto min-w-fit mx-auto",
+                                "rounded-full border border-zinc-100 shadow-xl bg-white w-auto min-w-fit mx-auto",
                                 isMobile ? "p-2 px-4 max-w-[200px]" : "p-2 px-4 max-w-[280px]"
                             ),
                             title: cn("font-bold", isMobile ? "text-xs" : "text-sm"),
@@ -124,7 +124,13 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                     }
                 `}</style>
                 <div className="relative min-h-screen bg-white text-black antialiased">
-                    {!isRestricted && <TopNavbar onMenuClick={() => setIsSidebarOpen(true)} />}
+                    {!isRestricted && (
+                        <TopNavbar 
+                            onMenuClick={() => setIsSidebarOpen(true)} 
+                            onSearchClick={() => setIsSearchOpen(true)}
+                            onCartClick={() => setIsCartOpen(true)}
+                        />
+                    )}
                     {!isRestricted && (
                         <Suspense fallback={null}>
                             <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
@@ -132,7 +138,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                     )}
 
                     <MaintenanceGuard>
-                        <main className={cn(!isRestricted && pathname !== "/" && "pt-12 md:pt-14 pb-8")}>
+                        <main className={cn(!isRestricted && pathname !== "/" && "pt-16 md:pt-20 pb-8")}>
                             {children}
                         </main>
                         {!isRestricted && (
@@ -140,11 +146,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                                 <Footer />
                             </Suspense>
                         )}
-                        {!isRestricted && (
-                            <Suspense fallback={null}>
-                                <FloatingCart onClick={() => setIsCartOpen(true)} />
-                            </Suspense>
-                        )}
+
                         <Suspense fallback={null}>
                             <ScrollToTop />
                         </Suspense>
@@ -156,6 +158,12 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                                     setIsCartOpen(false);
                                     setIsAuthOpen(true);
                                 }}
+                            />
+                        </Suspense>
+                        <Suspense fallback={null}>
+                            <SearchDrawer
+                                isOpen={isSearchOpen}
+                                onClose={() => setIsSearchOpen(false)}
                             />
                         </Suspense>
                         <Suspense fallback={null}>

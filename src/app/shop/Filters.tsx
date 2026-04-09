@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { Search, Filter } from "lucide-react";
+import { Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
 
@@ -90,22 +90,7 @@ export default function Filters({ totalResults, initialSearch = "", initialCateg
 
     return (
         <>
-            <header className="mb-0 mt-2">
-                <h1 className="font-empire text-xl mb-2">Store</h1>
 
-                <div className="flex flex-col gap-4">
-                    <div className="relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
-                        <input
-                            type="text"
-                            placeholder="Search our collection..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-zinc-50 border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-sans focus:ring-2 focus:ring-black outline-none transition-all"
-                        />
-                    </div>
-                </div>
-            </header>
 
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-zinc-50 mt-4">
                 <div className="flex items-center gap-3">

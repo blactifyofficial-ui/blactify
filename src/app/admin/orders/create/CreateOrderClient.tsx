@@ -245,7 +245,7 @@ export default function CreateOrderClient() {
     const total = subtotal + shipping;
 
     return (
-        <div className="space-y-10 pb-20 font-inter animate-in fade-in duration-700">
+        <div className="space-y-10 pb-20 animate-in fade-in duration-700">
             <AdminPageHeader
                 title="Create Order"
                 subtitle="Manually create a new order for a customer"

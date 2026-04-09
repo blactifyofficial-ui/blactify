@@ -1,23 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 
 export function Footer() {
     return (
-        <footer className="bg-white px-6 py-20 pb-40 md:pb-20 font-sans border-t border-zinc-100">
+        <footer className="bg-white px-6 py-20 pb-40 md:pb-20 border-t border-zinc-100">
             <div className="mx-auto max-w-7xl">
                 <div className="flex flex-col md:flex-row justify-between gap-12 md:gap-24">
                     {/* Left Section: Branding & Copyright */}
                     <div className="space-y-6 flex-1">
                         <Link href="/" className="inline-block group">
-                            <Image
-                                src="/logo-v1.png"
-                                alt="Blactify"
-                                width={240}
-                                height={60}
-                                className="h-10 md:h-14 w-auto object-contain transition-all duration-500 group-hover:opacity-70"
-                            />
+                            <span className="text-2xl md:text-3xl font-black uppercase tracking-tighter transition-all duration-500 group-hover:opacity-70">
+                                Blactify
+                            </span>
                         </Link>
                         <div className="space-y-4 pt-4">
                             <p className="text-[11px] font-medium leading-relaxed text-zinc-400">

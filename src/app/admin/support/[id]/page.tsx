@@ -125,7 +125,7 @@ export default function AdminTicketDetailPage({ params }: { params: Promise<{ id
     if (!ticket) return null;
 
     return (
-        <main className="min-h-screen bg-zinc-50/50 pb-20 pt-8 font-sans">
+        <main className="min-h-screen bg-zinc-50/50 pb-20 pt-8">
             <div className="px-6 max-w-4xl mx-auto">
                 <header className="mb-10">
                     <Link href="/admin/support" className="flex items-center gap-2 text-zinc-400 hover:text-black transition-colors mb-6 text-xs font-bold uppercase tracking-widest">

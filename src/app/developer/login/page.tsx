@@ -51,7 +51,7 @@ export default function DeveloperLoginPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#000] text-white flex flex-col items-center justify-center p-8 font-sans transition-all">
+        <div className="min-h-screen bg-[#000] text-white flex flex-col items-center justify-center p-8 transition-all">
             <div className="w-full max-w-[400px] flex flex-col items-center">
                 {/* Logo Section */}
                 <div className="mb-16 animate-in fade-in slide-in-from-bottom-4 duration-1000">

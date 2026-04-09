@@ -44,7 +44,7 @@ export default function AdminSupportPage() {
     });
 
     return (
-        <main className="min-h-screen bg-zinc-50/50 pb-20 pt-8 font-sans">
+        <main className="min-h-screen bg-zinc-50/50 pb-20 pt-8">
             <div className="px-6 max-w-7xl mx-auto">
                 <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>

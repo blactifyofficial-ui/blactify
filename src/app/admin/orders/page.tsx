@@ -42,7 +42,7 @@ export default function AdminOrdersPage() {
     };
 
     return (
-        <div className="space-y-8 font-inter animate-in fade-in duration-700">
+        <div className="space-y-8 animate-in fade-in duration-700">
             <AdminPageHeader
                 title="Orders"
                 subtitle="Manage and track customer orders"

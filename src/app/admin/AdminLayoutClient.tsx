@@ -67,7 +67,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
                     // Small toast notification
                     toast.success("New Order!", {
                         description: `Order #${(payload.new as { id: string }).id.slice(-6)} received`,
-                        className: "font-sans",
+                        className: "",
                     });
                 }
             )
@@ -91,7 +91,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
                     if (newNotif.type !== 'new_order') {
                         toast.info(newNotif.title, {
                             description: newNotif.body,
-                            className: "font-sans",
+                            className: "",
                         });
                     }
                 }
@@ -111,7 +111,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
     return (
         <AdminGuard>
             <NotificationManager>
-                <div className="min-h-screen bg-zinc-50 flex flex-col md:flex-row font-inter text-zinc-900">
+                <div className="min-h-screen bg-zinc-50 flex flex-col md:flex-row text-zinc-900">
                     <AdminMobileHeader onMenuClick={() => setIsSidebarOpen(true)} />
                     <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 

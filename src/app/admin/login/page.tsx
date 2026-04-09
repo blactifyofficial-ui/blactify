@@ -73,7 +73,7 @@ function AdminLoginContent() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-zinc-50 p-6 font-sans">
+        <div className="min-h-screen flex items-center justify-center bg-zinc-50 p-6">
             <div className="w-full max-w-md bg-white p-12 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-zinc-100 text-center relative overflow-hidden">
                 {/* Visual Flair */}
                 <div className="absolute top-0 left-0 w-full h-1 bg-black"></div>
@@ -130,7 +130,7 @@ function AdminLoginContent() {
 export default function AdminLoginPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen flex items-center justify-center bg-zinc-50 font-sans">
+            <div className="min-h-screen flex items-center justify-center bg-zinc-50">
                 <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
             </div>
         }>

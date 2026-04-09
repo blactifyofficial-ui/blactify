@@ -107,7 +107,7 @@ export default function SettingsPage() {
 
     if (!user) {
         return (
-            <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center font-sans">
+            <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
                 <h1 className="font-empire text-3xl mb-4">Access Denied</h1>
                 <p className="text-zinc-500 mb-8">Please sign in to access settings.</p>
                 <Link href="/profile" className="bg-black text-white px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest">
@@ -118,7 +118,7 @@ export default function SettingsPage() {
     }
 
     return (
-        <main className="min-h-screen bg-white pb-20 pt-8 font-sans">
+        <main className="min-h-screen bg-white pb-20 pt-8">
             <div className="px-6 max-w-lg mx-auto">
                 <header className="mb-10">
                     <Link href="/profile" className="flex items-center gap-2 text-zinc-400 hover:text-black transition-colors mb-6 text-xs font-bold uppercase tracking-widest">

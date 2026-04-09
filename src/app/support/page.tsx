@@ -125,7 +125,7 @@ export default function SupportPage() {
 
     if (!user) {
         return (
-            <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center font-sans">
+            <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
                 <h1 className="font-empire text-3xl mb-4">Support Center</h1>
                 <p className="text-zinc-500 mb-8">Please sign in to raise a support ticket.</p>
                 <Link href="/profile" className="bg-black text-white px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest">
@@ -137,7 +137,7 @@ export default function SupportPage() {
 
     if (submitted) {
         return (
-            <main className="min-h-screen bg-white flex items-center justify-center px-6 font-sans">
+            <main className="min-h-screen bg-white flex items-center justify-center px-6">
                 <div className="max-w-md w-full text-center py-20 bg-zinc-50 rounded-[40px] border border-zinc-100 p-8">
                     <div className="flex justify-center mb-8">
                         <div className="h-20 w-20 rounded-full bg-black flex items-center justify-center text-white scale-110 animate-bounce">
@@ -157,7 +157,7 @@ export default function SupportPage() {
     }
 
     return (
-        <main className="min-h-screen bg-white pb-20 pt-8 font-sans">
+        <main className="min-h-screen bg-white pb-20 pt-8">
             <div className="px-6 max-w-lg mx-auto">
                 <header className="mb-10">
                     <button onClick={() => router.back()} className="flex items-center gap-2 text-zinc-400 hover:text-black transition-colors mb-6 text-xs font-bold uppercase tracking-widest">

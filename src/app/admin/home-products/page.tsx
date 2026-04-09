@@ -150,7 +150,7 @@ export default function HomeProductsPage() {
     if (loading) return <AdminLoading message="Loading home screen settings..." />;
 
     return (
-        <div className="max-w-4xl mx-auto space-y-10 pb-20 font-inter animate-in fade-in duration-700">
+        <div className="max-w-4xl mx-auto space-y-10 pb-20 animate-in fade-in duration-700">
             <AdminPageHeader
                 title="Home Screen Layout"
                 subtitle="Select up to 6 products to feature on your home screen and arrange their order."

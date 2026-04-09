@@ -134,7 +134,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                         </button>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-6 font-sans">
+                    <form onSubmit={handleSubmit} className="space-y-6">
                         {mode === "signin" ? (
                             <>
                                 <div className="space-y-2">

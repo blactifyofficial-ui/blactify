@@ -5,7 +5,7 @@ import { ChevronLeft } from "lucide-react";
 
 export default function TermsOfServicePage() {
     return (
-        <main className="min-h-screen bg-white pb-24 pt-8 font-sans">
+        <main className="min-h-screen bg-white pb-24 pt-8">
             <div className="mx-auto max-w-3xl px-6">
                 <header className="mb-12">
                     <Link href="/" className="mb-8 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-black transition-colors">

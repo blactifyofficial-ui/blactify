@@ -24,7 +24,7 @@ export function DeveloperGuard({ children }: { children: React.ReactNode }) {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-[#050505] p-10 font-sans">
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[#050505] p-10">
                 <div className="relative mb-8">
                     <div className="absolute inset-0 bg-emerald-500/10 blur-[60px] rounded-full scale-150 animate-pulse" />
                     <Command size={48} className="text-emerald-500 relative animate-bounce" />
@@ -53,7 +53,7 @@ export function DeveloperGuard({ children }: { children: React.ReactNode }) {
 
     if (user && user.email !== ALLOWED_EMAIL) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-[#050505] font-sans">
+            <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-[#050505]">
                 <div className="mb-12 relative">
                     <div className="absolute inset-0 bg-red-500/10 blur-[80px] rounded-full scale-150" />
                     <ShieldAlert size={80} strokeWidth={1.5} className="text-red-500 relative animate-in zoom-in duration-500" />

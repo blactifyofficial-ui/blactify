@@ -33,7 +33,7 @@ export function RecentActivity({ orders }: RecentActivityProps) {
                             className="flex items-center justify-between p-5 bg-white border border-zinc-50 rounded-[2.5rem] hover:border-black/5 hover:bg-zinc-50/50 hover:shadow-xl hover:shadow-black/5 transition-all duration-500 group/item"
                         >
                             <div className="flex items-center gap-6">
-                                <div className="w-14 h-14 bg-black text-white rounded-2xl flex items-center justify-center text-sm font-black shadow-xl group-hover/item:scale-105 transition-transform duration-500 font-aesthetic">
+                                <div className="w-14 h-14 bg-black text-white rounded-2xl flex items-center justify-center text-sm font-black shadow-xl group-hover/item:scale-105 transition-transform duration-500">
                                     {order.customer_details?.name?.[0]?.toUpperCase() || "#"}
                                 </div>
                                 <div className="space-y-1.5">

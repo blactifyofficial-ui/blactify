@@ -37,7 +37,7 @@ export default function AdminSettingsPage() {
         await new Promise(r => setTimeout(r, 1000));
         toast.success("Admin details updated successfully", {
             description: "Changes are now live across all platforms.",
-            className: "font-inter"
+            className: ""
         });
         setSaving(false);
     };

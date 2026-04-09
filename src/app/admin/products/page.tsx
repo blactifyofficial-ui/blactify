@@ -87,7 +87,7 @@ export default function AdminProductsPage() {
 
 
     return (
-        <div className="space-y-8 pb-20 font-inter animate-in fade-in duration-700">
+        <div className="space-y-8 pb-20 animate-in fade-in duration-700">
             <DeleteModal
                 isOpen={deleteModalOpen}
                 onClose={() => setDeleteModalOpen(false)}

@@ -137,7 +137,7 @@ export default function AdminDropsPage() {
     const paginatedDrops = drops.slice((currentPage - 1) * dropsPerPage, currentPage * dropsPerPage);
 
     return (
-        <div className="max-w-5xl mx-auto space-y-12 pb-20 font-inter animate-in fade-in duration-700">
+        <div className="max-w-5xl mx-auto space-y-12 pb-20 animate-in fade-in duration-700">
             <DeleteModal
                 isOpen={deleteModalOpen}
                 onClose={() => setDeleteModalOpen(false)}

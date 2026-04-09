@@ -9,9 +9,9 @@ export function AdminMobileHeader({ onMenuClick }: { onMenuClick: () => void }) 
             <div className="flex items-center gap-3">
                 <button
                     onClick={onMenuClick}
-                    className="w-9 h-9 flex items-center justify-center bg-black text-white rounded-lg active:scale-95 transition-all shadow-sm"
+                    className="w-11 h-11 flex items-center justify-center bg-black text-white rounded-xl active:scale-95 transition-all shadow-sm"
                 >
-                    <Menu size={18} strokeWidth={2.5} />
+                    <Menu size={20} strokeWidth={2} />
                 </button>
                 <div className="flex flex-col">
                     <h2 className="text-sm font-black tracking-tight text-black leading-none uppercase">Blactify</h2>

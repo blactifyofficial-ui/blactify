@@ -183,7 +183,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
         return (
             <div className="flex flex-col items-center justify-center min-h-screen py-20 px-6 text-center">
                 <h1 className="font-empire text-3xl mb-4 text-black">Product Not Found</h1>
-                <p className="text-zinc-500 mb-8 font-sans">The item you are looking for might have been removed or is temporarily unavailable.</p>
+                <p className="text-zinc-500 mb-8">The item you are looking for might have been removed or is temporarily unavailable.</p>
                 <Link href="/shop" className="px-8 py-4 bg-black text-white rounded-full text-xs font-bold uppercase tracking-widest">
                     Back to Store
                 </Link>
@@ -202,7 +202,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
         : (product.stock ?? 0);
 
     return (
-        <main className="min-h-screen bg-white text-black pb-24 font-inter overflow-x-hidden w-full relative">
+        <main className="min-h-screen bg-white text-black pb-24 overflow-x-hidden w-full relative">
             <div className="max-w-7xl mx-auto">
                 {/* Breadcrumbs */}
                 <nav className="px-6 py-6 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
@@ -358,7 +358,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                             </div>
                         </div>
 
-                        <p className="text-sm text-zinc-500 font-sans leading-relaxed mb-10">
+                        <p className="text-sm text-zinc-500 leading-relaxed mb-10">
                             Elevate your everyday rotation with the {product.name}. Crafted from premium materials for unmatched comfort and a modern silhouette that fits any occasion. Features signature branding and refined detailing.
                         </p>
 
@@ -492,7 +492,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                 </div>
                                 <div>
                                     <h4 className="text-[10px] font-bold uppercase tracking-widest text-black mb-1">Free Delivery</h4>
-                                    <p className="text-xs text-zinc-400 font-sans leading-relaxed">Complimentary shipping on all orders over ₹2,999.</p>
+                                    <p className="text-xs text-zinc-400 leading-relaxed">Complimentary shipping on all orders over ₹2,999.</p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-5">
@@ -501,7 +501,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                 </div>
                                 <div>
                                     <h4 className="text-[10px] font-bold uppercase tracking-widest text-black mb-1">No Returns</h4>
-                                    <p className="text-xs text-zinc-400 font-sans leading-relaxed">This item is non-returnable due to its nature and quality standards.</p>
+                                    <p className="text-xs text-zinc-400 leading-relaxed">This item is non-returnable due to its nature and quality standards.</p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-5">
@@ -510,7 +510,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                 </div>
                                 <div>
                                     <h4 className="text-[10px] font-bold uppercase tracking-widest text-black mb-1">Authentic Care</h4>
-                                    <p className="text-xs text-zinc-400 font-sans leading-relaxed">Every piece is verified for premium quality assurance.</p>
+                                    <p className="text-xs text-zinc-400 leading-relaxed">Every piece is verified for premium quality assurance.</p>
                                 </div>
                             </div>
                         </div>
@@ -534,7 +534,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                     <div className="flex flex-col gap-10">
                         {reviews.length === 0 ? (
                             <div className="py-20 bg-zinc-50 rounded-3xl text-center">
-                                <p className="text-zinc-500 font-sans italic">No reviews yet. Be the first to share your experience!</p>
+                                <p className="text-zinc-500 italic">No reviews yet. Be the first to share your experience!</p>
                             </div>
                         ) : (
                             reviews.map((review) => (
@@ -554,7 +554,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                             {new Date(review.created_at).toLocaleDateString()}
                                         </span>
                                     </div>
-                                    <p className="text-sm font-sans text-zinc-600 leading-relaxed mb-6">
+                                    <p className="text-sm text-zinc-600 leading-relaxed mb-6">
                                         {review.comment}
                                     </p>
                                     <div className="flex items-center gap-4">
@@ -576,7 +576,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
 
                         {!user ? (
                             <div className="space-y-6">
-                                <p className="text-xs text-zinc-400 font-sans">Please sign in to write a review.</p>
+                                <p className="text-xs text-zinc-400">Please sign in to write a review.</p>
                                 <button
                                     onClick={() => window.dispatchEvent(new CustomEvent('open-auth-modal'))}
                                     className="px-10 py-4 bg-white text-black rounded-full text-[10px] font-bold uppercase tracking-widest shadow-xl shadow-white/5 active:scale-95 transition-all"
@@ -591,7 +591,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                             </div>
                         ) : hasPurchased ? (
                             <div className="space-y-6">
-                                <p className="text-xs text-zinc-400 font-sans italic">Verified Buyer. We value your feedback.</p>
+                                <p className="text-xs text-zinc-400 italic">Verified Buyer. We value your feedback.</p>
                                 <button
                                     onClick={() => setIsReviewModalOpen(true)}
                                     className="px-10 py-4 bg-white text-black rounded-full text-[10px] font-bold uppercase tracking-widest shadow-xl shadow-white/5 active:scale-95 transition-all"
@@ -605,7 +605,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                     <ShieldCheck size={14} className="text-zinc-500" />
                                     <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-[0.2em]">Verified Purchase Only</span>
                                 </div>
-                                <p className="text-xs text-zinc-400 font-sans max-w-xs mx-auto leading-relaxed">
+                                <p className="text-xs text-zinc-400 max-w-xs mx-auto leading-relaxed">
                                     To maintain the highest standards of authenticity, only shoppers who have experienced this product can leave a review.
                                 </p>
                                 {storeEnabled ? (
@@ -642,7 +642,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                 </button>
                             </div>
 
-                            <form onSubmit={handlePostReview} className="space-y-8 font-sans">
+                            <form onSubmit={handlePostReview} className="space-y-8">
                                 <div className="space-y-4 text-center">
                                     <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Rating</label>
                                     <div className="flex justify-center gap-4">

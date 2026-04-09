@@ -112,7 +112,7 @@ export default function InvoicePage() {
     const total = order.amount;
 
     return (
-        <div className="min-h-screen bg-white text-black font-sans p-4 md:p-16 print:p-0">
+        <div className="min-h-screen bg-white text-black p-4 md:p-16 print:p-0">
             {/* Non-printing navigation */}
             <div className="mb-8 flex justify-between items-center print:hidden">
                 <Link href="/orders" className="flex items-center gap-2 text-zinc-500 hover:text-black text-sm uppercase tracking-wide font-medium">

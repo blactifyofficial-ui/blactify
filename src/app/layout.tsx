@@ -1,15 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Outfit, Space_Grotesk } from "next/font/google";
+import { Outfit } from "next/font/google";
 import { AppLayout } from "@/components/layout/AppLayout";
 import "./globals.css";
 
 export const preferredRegion = "sin1";
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
-});
+
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -17,11 +13,7 @@ const outfit = Outfit({
   display: "swap",
 });
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
-  subsets: ["latin"],
-  display: "swap",
-});
+
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://blactify.com"),
@@ -118,7 +110,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://cdn.shopify.com" />
 
       </head>
-      <body className={`${inter.variable} ${outfit.variable} ${spaceGrotesk.variable} font-sans antialiased text-black`}>
+      <body className={`${outfit.variable} font-sans antialiased text-black`}>
         <script dangerouslySetInnerHTML={{ __html: `
           if ('serviceWorker' in navigator) {
             const isInternal = 

@@ -77,7 +77,7 @@ export default function OrdersPage() {
 
     if (!user) {
         return (
-            <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center font-sans">
+            <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
                 <h1 className="font-empire text-3xl mb-4">Please Sign In</h1>
                 <p className="text-zinc-500 mb-8">You need to be logged in to view your orders.</p>
                 <Link href="/profile" className="bg-black text-white px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest">
@@ -88,7 +88,7 @@ export default function OrdersPage() {
     }
 
     return (
-        <main className="min-h-screen bg-white pb-20 pt-8 font-sans">
+        <main className="min-h-screen bg-white pb-20 pt-8">
             <div className="px-6">
                 <header className="mb-10">
                     <div className="flex items-end justify-between">

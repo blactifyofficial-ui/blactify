@@ -47,11 +47,11 @@ export function SalesGrowthChart({ revenueByMonth }: SalesGrowthChartProps) {
             </div>
 
             <div className="flex justify-between items-center relative z-10 px-1 border-t border-white/5 pt-8 mt-6">
-                <span className="text-[9px] font-black text-zinc-700 uppercase tracking-[0.3em] font-aesthetic">Start</span>
+                <span className="text-[9px] font-black text-zinc-700 uppercase tracking-[0.3em]">Start</span>
                 <div className="flex gap-1">
                     {[1, 2, 3].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-white/10"></div>)}
                 </div>
-                <span className="text-[9px] font-black text-zinc-700 uppercase tracking-[0.3em] font-aesthetic">Current</span>
+                <span className="text-[9px] font-black text-zinc-700 uppercase tracking-[0.3em]">Current</span>
             </div>
 
             {/* Aesthetic Noise Overlay */}

@@ -202,7 +202,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
 
     if (!order) {
         return (
-            <div className="text-center py-32 font-inter">
+            <div className="text-center py-32">
                 <AlertCircle className="mx-auto text-zinc-100 mb-6" size={64} />
                 <h2 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-4">Order Not Found</h2>
                 <Link href="/admin/orders" className="flex items-center gap-2 text-zinc-400 hover:text-black transition-colors mb-6 text-xs font-bold uppercase tracking-widest">
@@ -221,7 +221,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
     const shippingCharge = order.amount - itemsSubtotal;
 
     return (
-        <div className="space-y-12 animate-in fade-in duration-700 pb-20 font-inter max-w-6xl mx-auto">
+        <div className="space-y-12 animate-in fade-in duration-700 pb-20 max-w-6xl mx-auto">
             <AdminPageHeader
                 title="Order Details"
                 subtitle={`Order #${order.id.slice(0, 12)}`}
