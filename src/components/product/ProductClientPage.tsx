@@ -49,6 +49,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [touchStart, setTouchStart] = useState<number | null>(null);
     const [touchEnd, setTouchEnd] = useState<number | null>(null);
+    const [quantity, setQuantity] = useState(1);
     const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
     const storeEnabled = (initialSettings?.purchases_enabled ?? true) || process.env.NODE_ENV === "development";
     const [hasPurchased, setHasPurchased] = useState(false);
@@ -200,6 +201,25 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
     const currentStock = productVariants.length > 0
         ? productVariants.reduce((acc: number, v) => acc + v.stock, 0)
         : (product.stock ?? 0);
+
+    const activeStock = useMemo(() => {
+        if (!selectedSize) return currentStock;
+        const variant = productVariants.find(v => v.size === selectedSize);
+        return variant ? variant.stock : 0;
+    }, [selectedSize, currentStock, productVariants]);
+
+    const minQuantity = useMemo(() => {
+        if (activeStock <= 0) return 0;
+        return Math.min(5, activeStock);
+    }, [activeStock]);
+
+    useEffect(() => {
+        if (activeStock > 0 && quantity < minQuantity) {
+            setQuantity(minQuantity);
+        } else if (activeStock > 0 && quantity > activeStock) {
+            setQuantity(activeStock);
+        }
+    }, [minQuantity, activeStock, quantity]);
 
     return (
         <main className="min-h-screen bg-white text-black pb-24 overflow-x-hidden w-full relative">
@@ -401,19 +421,19 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                                 onClick={() => !isOutOfStock && setSelectedSize(size)}
                                                 disabled={isOutOfStock}
                                                 className={cn(
-                                                    "relative overflow-hidden h-16 w-16 rounded-md flex items-center justify-center text-xs font-bold transition-all duration-300",
+                                                    "relative overflow-hidden h-10 min-w-[40px] w-auto px-4 rounded-sm flex items-center justify-center text-[13px] font-normal transition-all duration-300",
                                                     selectedSize === size
-                                                        ? "bg-black text-white shadow-xl scale-105"
-                                                        : "bg-white text-black border border-zinc-100",
+                                                        ? "bg-black text-white"
+                                                        : "bg-white text-black border border-zinc-200",
                                                     isOutOfStock
-                                                        ? "opacity-40 cursor-not-allowed bg-zinc-50"
-                                                        : "hover:border-zinc-300"
+                                                        ? "opacity-30 cursor-not-allowed bg-zinc-50"
+                                                        : "hover:border-zinc-400"
                                                 )}
                                             >
                                                 {size}
                                                 {isOutOfStock && (
-                                                    <svg className="absolute inset-0 w-full h-full text-red-500 pointer-events-none" preserveAspectRatio="none" viewBox="0 0 100 100">
-                                                        <line x1="0" y1="100" x2="100" y2="0" stroke="currentColor" strokeWidth="2.5" />
+                                                    <svg className="absolute inset-0 w-full h-full text-zinc-300 pointer-events-none" preserveAspectRatio="none" viewBox="0 0 100 100">
+                                                        <line x1="0" y1="100" x2="100" y2="0" stroke="currentColor" strokeWidth="1" />
                                                     </svg>
                                                 )}
                                             </button>
@@ -433,9 +453,32 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                             </div>
                         )}
 
-                        <div className="relative flex flex-col gap-3 mt-8 lg:mt-0">
+                        <div className="relative flex items-center gap-3 mt-8">
                             {storeEnabled ? (
                                 <>
+                                    {/* Quantity Selector */}
+                                    <div className="flex items-center h-12 border border-zinc-200 rounded-sm overflow-hidden bg-white">
+                                        <button 
+                                            type="button"
+                                            onClick={() => setQuantity(prev => Math.max(minQuantity, prev - 1))}
+                                            disabled={quantity <= minQuantity}
+                                            className="w-10 h-full flex items-center justify-center text-lg font-light hover:bg-zinc-50 transition-colors border-r border-zinc-100 disabled:opacity-20"
+                                        >
+                                            -
+                                        </button>
+                                        <div className="w-10 h-full flex items-center justify-center text-sm font-medium">
+                                            {quantity}
+                                        </div>
+                                        <button 
+                                            type="button"
+                                            onClick={() => setQuantity(prev => Math.min(activeStock, prev + 1))}
+                                            disabled={quantity >= activeStock}
+                                            className="w-10 h-full flex items-center justify-center text-lg font-light hover:bg-zinc-50 transition-colors border-l border-zinc-100 disabled:opacity-20"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+
                                     <button
                                         onClick={async () => {
                                             if (!user) {
@@ -446,37 +489,39 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                                 toast.error("Please select a size first");
                                                 return;
                                             }
-                                            await addItem(product!, selectedSize || undefined);
+                                            // Add item with specific quantity
+                                            for(let i=0; i<quantity; i++) {
+                                                await addItem(product!, selectedSize || undefined);
+                                            }
+                                            setQuantity(minQuantity);
                                         }}
-                                        disabled={currentStock <= 0}
+                                        disabled={activeStock <= 0}
                                         className={cn(
-                                            "w-full h-16 rounded-md text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all",
-                                            currentStock <= 0
-                                                ? "bg-zinc-100 text-zinc-400 cursor-not-allowed"
-                                                : "bg-black text-white shadow-2xl shadow-black/10"
+                                            "flex-1 h-12 rounded-sm text-sm font-medium transition-all",
+                                            activeStock <= 0
+                                                ? "bg-zinc-50 text-zinc-300 border border-zinc-100 cursor-not-allowed"
+                                                : "bg-white text-zinc-500 border border-zinc-200 hover:border-zinc-400 active:bg-zinc-50"
                                         )}
                                     >
-                                        <ShoppingBag size={18} />
-                                        {currentStock <= 0 ? "Unavailable" : "Add to Bag"}
+                                        {activeStock <= 0 ? "Unavailable" : "Add to cart"}
                                     </button>
 
                                     <button
                                         onClick={handleDirectBuy}
-                                        disabled={currentStock <= 0}
+                                        disabled={activeStock <= 0}
                                         className={cn(
-                                            "w-full h-16 rounded-md text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all",
-                                            currentStock <= 0
+                                            "flex-1 h-12 rounded-sm text-sm font-medium transition-all",
+                                            activeStock <= 0
                                                 ? "hidden"
-                                                : "bg-white text-black border border-zinc-200"
+                                                : "bg-black text-white hover:bg-zinc-900 active:bg-black"
                                         )}
                                     >
-                                        Buy Now
-                                        <ArrowRight size={18} />
+                                        Buy now
                                     </button>
                                 </>
                             ) : (
-                                <div className="w-full h-16 rounded-md bg-zinc-100 flex flex-col items-center justify-center text-center px-4">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-2">
+                                <div className="w-full h-12 rounded-sm bg-zinc-50 border border-zinc-100 flex items-center justify-center text-center px-4">
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
                                         <ShieldCheck size={14} />
                                         Store is currently paused
                                     </span>
@@ -487,7 +532,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                         {/* Features Grid - Inside details for desktop layout if preferred, or outside below */}
                         <div className="mt-16 grid grid-cols-1 gap-8 py-10 border-t border-zinc-50">
                             <div className="flex items-start gap-5">
-                                <div className="p-3.5 bg-zinc-50 rounded-md text-black">
+                                <div className="p-3.5 bg-zinc-50 rounded-2xl text-black">
                                     <Truck size={20} />
                                 </div>
                                 <div>
@@ -496,7 +541,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                 </div>
                             </div>
                             <div className="flex items-start gap-5">
-                                <div className="p-3.5 bg-zinc-50 rounded-md text-black">
+                                <div className="p-3.5 bg-zinc-50 rounded-2xl text-black">
                                     <X size={20} />
                                 </div>
                                 <div>
@@ -505,7 +550,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                 </div>
                             </div>
                             <div className="flex items-start gap-5">
-                                <div className="p-3.5 bg-zinc-50 rounded-md text-black">
+                                <div className="p-3.5 bg-zinc-50 rounded-2xl text-black">
                                     <ShieldCheck size={20} />
                                 </div>
                                 <div>
@@ -533,8 +578,8 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
 
                     <div className="flex flex-col gap-10">
                         {reviews.length === 0 ? (
-                            <div className="py-20 bg-zinc-50 rounded-3xl text-center">
-                                <p className="text-zinc-500 italic">No reviews yet. Be the first to share your experience!</p>
+                            <div className="py-16 bg-white border border-zinc-50 rounded-md text-center">
+                                <p className="text-zinc-400 text-sm">No reviews yet. Be the first to share your experience!</p>
                             </div>
                         ) : (
                             reviews.map((review) => (
@@ -558,7 +603,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                         {review.comment}
                                     </p>
                                     <div className="flex items-center gap-4">
-                                        <div className="h-8 w-8 rounded-full bg-zinc-100 flex items-center justify-center text-[10px] font-bold uppercase text-zinc-500">
+                                        <div className="h-4 w-4 rounded-md bg-zinc-100 flex items-center justify-center text-[8px] font-bold uppercase text-zinc-500">
                                             {review.profiles?.full_name?.charAt(0) || "U"}
                                         </div>
                                         <span className="text-[10px] font-bold uppercase tracking-widest text-black">
@@ -571,7 +616,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                     </div>
 
                     {/* Write Review Trigger */}
-                    <div className="mt-12 p-10 bg-black rounded-[40px] text-center text-white">
+                    <div className="mt-12 p-10 bg-black rounded-md text-center text-white">
                         <h3 className="text-xl font-medium mb-2 uppercase">Share Your Thoughts</h3>
 
                         {!user ? (
@@ -579,7 +624,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                 <p className="text-xs text-zinc-400">Please sign in to write a review.</p>
                                 <button
                                     onClick={() => window.dispatchEvent(new CustomEvent('open-auth-modal'))}
-                                    className="px-10 py-4 bg-white text-black rounded-full text-[10px] font-bold uppercase tracking-widest shadow-xl shadow-white/5 active:scale-95 transition-all"
+                                    className="px-10 py-4 bg-white text-black rounded-md text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-100 active:scale-95 transition-all"
                                 >
                                     Log In / Sign Up
                                 </button>
@@ -591,10 +636,10 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                             </div>
                         ) : hasPurchased ? (
                             <div className="space-y-6">
-                                <p className="text-xs text-zinc-400 italic">Verified Buyer. We value your feedback.</p>
+                                <p className="text-xs text-zinc-400">Verified Buyer. We value your feedback.</p>
                                 <button
                                     onClick={() => setIsReviewModalOpen(true)}
-                                    className="px-10 py-4 bg-white text-black rounded-full text-[10px] font-bold uppercase tracking-widest shadow-xl shadow-white/5 active:scale-95 transition-all"
+                                    className="px-10 py-4 bg-white text-black rounded-md text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-100 active:scale-95 transition-all"
                                 >
                                     Write a Review
                                 </button>
@@ -767,7 +812,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                 </table>
                             </div>
 
-                            <p className="mt-6 text-[10px] font-bold uppercase tracking-widest text-zinc-400 italic text-center">
+                            <p className="mt-6 text-[10px] font-bold uppercase tracking-widest text-zinc-400 text-center">
                                 * All measurements are in inches unless otherwise specified.
                             </p>
                         </div>

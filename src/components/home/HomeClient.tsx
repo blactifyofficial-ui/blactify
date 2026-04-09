@@ -90,7 +90,7 @@ export default function HomeClient({ initialCategories }: HomeClientProps) {
             {/* Promotional Image Section */}
             <section className="px-6 py-12 md:py-20 bg-white">
                 <div className="mx-auto max-w-4xl">
-                    <div className="relative aspect-[3/4] md:aspect-[4/5] w-full group overflow-hidden">
+                    <Link href="/shop" className="block relative aspect-[3/4] md:aspect-[4/5] w-full group overflow-hidden cursor-pointer">
                         <Image
                             src="/2.jpeg"
                             alt="Blactify Collection"
@@ -98,7 +98,7 @@ export default function HomeClient({ initialCategories }: HomeClientProps) {
                             className="object-contain transition-transform duration-1000 group-hover:scale-105"
                             sizes="(max-width: 768px) 100vw, 80vw"
                         />
-                    </div>
+                    </Link>
                 </div>
             </section>
         </main>

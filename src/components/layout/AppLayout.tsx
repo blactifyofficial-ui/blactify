@@ -27,9 +27,7 @@ const Footer = dynamic(() => import("@/components/layout/Footer").then(mod => mo
     ssr: false,
 });
 
-const ScrollToTop = dynamic(() => import("@/components/ui/ScrollToTop").then(mod => mod.ScrollToTop), {
-    ssr: false,
-});
+
 
 const SearchDrawer = dynamic(() => import("@/components/ui/SearchDrawer").then(mod => mod.SearchDrawer), {
     ssr: false,
@@ -147,9 +145,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                             </Suspense>
                         )}
 
-                        <Suspense fallback={null}>
-                            <ScrollToTop />
-                        </Suspense>
+
                         <Suspense fallback={null}>
                             <CartDrawer
                                 isOpen={isCartOpen}
