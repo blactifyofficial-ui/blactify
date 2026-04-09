@@ -29,19 +29,26 @@ export function ProductCard({ product, className, onImageLoad, hidePrice, priori
     const container = useRef<HTMLDivElement>(null);
 
     useGSAP(() => {
-        if (window.innerWidth < 768) return; // Skip GSAP on mobile for performance
+        if (window.innerWidth < 768) return;
 
-        gsap.from(container.current, {
-            y: 30,
-            opacity: 0,
-            duration: 0.6,
-            ease: "power1.out",
+        const tl = gsap.timeline({
             scrollTrigger: {
                 trigger: container.current,
                 start: "top bottom-=50px",
                 toggleActions: "play none none none"
             }
         });
+
+        tl.fromTo(container.current,
+            { clipPath: 'inset(100% 0 0 0)', y: 40, opacity: 0 },
+            { clipPath: 'inset(0% 0 0 0)', y: 0, opacity: 1, duration: 1.2, ease: "power3.out" }
+        );
+
+        tl.fromTo(".product-image-container img",
+            { scale: 1.2 },
+            { scale: 1, duration: 1.5, ease: "power2.out" },
+            "-=1.0"
+        );
     }, { scope: container });
 
     // Use price_offer as the primary price if available
@@ -50,7 +57,7 @@ export function ProductCard({ product, className, onImageLoad, hidePrice, priori
 
     return (
         <div ref={container} className={cn("group flex flex-col gap-3 accelerate", className)}>
-            <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-100">
+            <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-100 product-image-container">
                 <Link href={`/product/${product.handle || product.id}`} className="relative block h-full w-full bg-zinc-50">
                     {(product.product_images?.[0]?.url || product.main_image) ? (
                         <Image

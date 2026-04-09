@@ -1,13 +1,20 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Hero } from "@/components/ui/Hero";
 import { ProductCard, type Product } from "@/components/ui/ProductCard";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, ArrowLeft } from "lucide-react";
+import { useRef } from "react";
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+if (typeof window !== "undefined") {
+    gsap.registerPlugin(ScrollTrigger);
+}
 
 interface CategoryWithImage {
     name: string;
@@ -23,24 +30,9 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
     const router = useRouter();
     const [products, setProducts] = useState<Product[]>(initialProducts);
     const [loading, setLoading] = useState(false);
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
-    const [canScrollLeft, setCanScrollLeft] = useState(false);
-    const [canScrollRight, setCanScrollRight] = useState(true);
-
-    const checkScroll = () => {
-        if (scrollContainerRef.current) {
-            const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
-            setCanScrollLeft(scrollLeft > 10);
-            setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
-        }
-    };
-
-    const scroll = (direction: "left" | "right") => {
-        if (scrollContainerRef.current) {
-            const scrollAmount = window.innerWidth > 768 ? 400 : 250;
-            scrollContainerRef.current.scrollBy({ left: direction === "left" ? -scrollAmount : scrollAmount, behavior: "smooth" });
-        }
-    };
+    const containerRef = useRef<HTMLDivElement>(null);
+    const discoveryRef = useRef<HTMLDivElement>(null);
+    const bestSellersRef = useRef<HTMLDivElement>(null);
 
     // Swipe detection states
     const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -70,19 +62,6 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
     };
 
     useEffect(() => {
-        checkScroll();
-        const container = scrollContainerRef.current;
-        if (container) {
-            container.addEventListener("scroll", checkScroll);
-            window.addEventListener("resize", checkScroll);
-            return () => {
-                container.removeEventListener("scroll", checkScroll);
-                window.removeEventListener("resize", checkScroll);
-            };
-        }
-    }, [initialCategories]);
-
-    useEffect(() => {
         if (initialProducts.length === 0) {
             setLoading(true);
             async function fetchProducts() {
@@ -106,8 +85,70 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
         }
     }, [initialProducts]);
 
+    useGSAP(() => {
+        if (window.innerWidth < 768) return;
+
+        // Discovery Section Mask Reveal
+        if (discoveryRef.current) {
+            const items = discoveryRef.current.querySelectorAll('.discovery-item');
+            items.forEach((item) => {
+                const img = item.querySelector('img');
+                gsap.fromTo(item, 
+                    { 
+                        clipPath: 'inset(100% 0 0 0)',
+                        y: 30,
+                        opacity: 0 
+                    },
+                    {
+                        clipPath: 'inset(0% 0 0 0)',
+                        y: 0,
+                        opacity: 1,
+                        duration: 1.2,
+                        ease: "power3.out",
+                        scrollTrigger: {
+                            trigger: item,
+                            start: "top bottom-=50px",
+                            toggleActions: "play none none none"
+                        }
+                    }
+                );
+                
+                if (img) {
+                    gsap.fromTo(img,
+                        { scale: 1.2 },
+                        { 
+                            scale: 1, 
+                            duration: 1.8, 
+                            ease: "power2.out",
+                            scrollTrigger: {
+                                trigger: item,
+                                start: "top bottom-=50px"
+                            }
+                        }
+                    );
+                }
+            });
+        }
+
+        // Best Sellers Title Animation
+        if (bestSellersRef.current) {
+            gsap.from(bestSellersRef.current.querySelector('h2'), {
+                x: -30,
+                opacity: 0,
+                duration: 0.8,
+                ease: "power2.out",
+                scrollTrigger: {
+                    trigger: bestSellersRef.current,
+                    start: "top bottom-=100px",
+                    toggleActions: "play none none none"
+                }
+            });
+        }
+    }, { scope: containerRef });
+
     return (
         <main 
+            ref={containerRef}
             className="flex flex-col min-h-screen"
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
@@ -117,68 +158,33 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
                 images={products.map(p => p.product_images?.[0]?.url || p.main_image || "/placeholder-product.jpg")}
             />
 
-            {/* Shop by Category — between Hero and Best Sellers */}
+            {/* Discover By Category - Above Best Sellers */}
             {initialCategories.length > 0 && (
-                <section className="px-6 py-12 bg-white">
-                    <div className="mb-8 flex items-end justify-between">
-                        <h2 className="text-2xl md:text-3xl font-medium tracking-tight text-black">
-                            Shop by Category
-                        </h2>
-                    </div>
+                <section ref={discoveryRef} className="px-6 py-12 md:py-24 pb-32 border-t border-zinc-50 bg-[#FAFAFA]/50">
+                    <div className="mx-auto max-w-7xl">
+                        <div className="text-center mb-16">
+                            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400 mb-2">Discovery</h2>
+                        </div>
 
-                    <div className="relative group/nav">
-                        <button 
-                            onClick={() => scroll('left')} 
-                            className={`absolute left-2 md:left-4 top-[40%] -translate-y-1/2 z-10 p-2 md:p-3 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-black shadow-xl transition-all duration-300 hover:bg-white/40 active:scale-95 ${
-                                canScrollLeft 
-                                ? "opacity-100 md:opacity-0 md:group-hover/nav:opacity-100 translate-x-0" 
-                                : "opacity-0 -translate-x-4 pointer-events-none"
-                            }`}
-                            aria-label="Scroll left"
-                        >
-                            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6" />
-                        </button>
-
-                        <button 
-                            onClick={() => scroll('right')} 
-                            className={`absolute right-2 md:right-4 top-[40%] -translate-y-1/2 z-10 p-2 md:p-3 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-black shadow-xl transition-all duration-300 hover:bg-white/40 active:scale-95 ${
-                                canScrollRight 
-                                ? "opacity-100 md:opacity-0 md:group-hover/nav:opacity-100 translate-x-0" 
-                                : "opacity-0 translate-x-4 pointer-events-none"
-                            }`}
-                            aria-label="Scroll right"
-                        >
-                            <ArrowRight className="w-5 h-5 md:w-6 md:h-6" />
-                        </button>
-
-                        <div
-                            ref={scrollContainerRef}
-                            className="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-2 snap-x snap-mandatory px-1"
-                            onTouchStart={(e) => e.stopPropagation()}
-                            onTouchMove={(e) => e.stopPropagation()}
-                            onTouchEnd={(e) => e.stopPropagation()}
-                        >
+                        <div className="flex flex-wrap justify-center gap-x-8 gap-y-16 md:gap-x-12 lg:gap-x-16">
                             {initialCategories.map((cat) => (
                                 <Link
                                     key={cat.name}
                                     href={`/shop?category=${encodeURIComponent(cat.name)}`}
-                                    className="group flex flex-col gap-4 flex-shrink-0 w-[220px] md:w-[260px] snap-start"
+                                    className="discovery-item group flex flex-col items-center text-center gap-4 transition-transform duration-500 hover:-translate-y-1 w-[28%] md:w-[20%] lg:w-[10%]"
                                 >
-                                    <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
+                                    <div className="relative w-full aspect-square flex items-center justify-center p-4">
                                         <Image
                                             src={cat.image}
                                             alt={cat.name}
                                             fill
-                                            sizes="(max-width: 768px) 220px, 260px"
-                                            className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                                            sizes="(max-width: 768px) 33vw, 150px"
+                                            className="object-contain transition-transform duration-700 cubic-bezier(0.34, 1.56, 0.64, 1) group-hover:scale-110"
                                         />
-                                        <div className="absolute top-0 left-0 w-0 h-[2px] bg-black transition-all duration-700 group-hover:w-full" />
                                     </div>
-                                    <div className="px-1 text-center">
-                                        <span className="text-black text-xs md:text-sm font-bold uppercase tracking-[0.2em]">
-                                            {cat.name}
-                                        </span>
-                                    </div>
+                                    <span className="text-[11px] font-bold text-black uppercase tracking-widest opacity-80 group-hover:opacity-100 transition-opacity whitespace-nowrap overflow-hidden text-ellipsis w-full">
+                                        {cat.name}
+                                    </span>
                                 </Link>
                             ))}
                         </div>
@@ -187,21 +193,21 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
             )}
 
             {/* Best Sellers */}
-            <section className="px-6 py-12">
+            <section ref={bestSellersRef} className="px-6 py-20 bg-white">
                 <div className="mb-12 flex items-end justify-between">
-                    <h2 className="text-2xl md:text-3xl font-medium tracking-tight text-black">Best Sellers</h2>
+                    <h2 className="text-3xl font-medium tracking-tight text-black">Best Sellers</h2>
                     <Link href="/shop" className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-300 hover:text-black transition-colors">
                         View All
                     </Link>
                 </div>
 
-                <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4 lg:grid-cols-6">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-12 md:grid-cols-4 lg:grid-cols-6">
                     {loading ? (
                         [...Array(6)].map((_, i) => (
                             <div key={i} className="flex flex-col gap-4">
-                                <div className="aspect-[4/5] bg-zinc-100 rounded-3xl"></div>
-                                <div className="h-4 bg-zinc-100 rounded-full w-3/4"></div>
-                                <div className="h-3 bg-zinc-100 rounded-full w-1/2"></div>
+                                <div className="aspect-[4/5] bg-zinc-100 rounded-3xl animate-pulse"></div>
+                                <div className="h-4 bg-zinc-100 rounded-full w-3/4 animate-pulse"></div>
+                                <div className="h-3 bg-zinc-100 rounded-full w-1/2 animate-pulse"></div>
                             </div>
                         ))
                     ) : (
