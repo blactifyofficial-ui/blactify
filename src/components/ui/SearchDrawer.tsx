@@ -55,8 +55,10 @@ export function SearchDrawer({ isOpen, onClose }: SearchDrawerProps) {
             >
                 <div className="flex h-full flex-col">
                     {/* Header */}
-                    <div className="flex items-center justify-between border-b border-zinc-100 px-8 py-4">
-                        <h2 className="text-[11px] font-medium text-black">Find Your Product Now!</h2>
+                    <div className="flex items-center justify-between border-b border-zinc-100 px-8 py-6">
+                        <span className="font-yapari text-2xl tracking-tighter uppercase transition-opacity duration-500">
+                            Blactify
+                        </span>
                         <button
                             onClick={onClose}
                             className="p-1 border border-black hover:bg-zinc-50 transition-colors text-black"

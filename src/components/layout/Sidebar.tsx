@@ -99,7 +99,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <div className="flex flex-col h-full">
                     {/* Header */}
                     <div className="flex items-center justify-between px-6 py-6 border-b border-zinc-100">
-                        <span className="font-empire text-2xl tracking-tighter">BLACTIFY</span>
+                        <span className="font-yapari text-2xl tracking-tighter transition-all duration-500">
+                            Blactify
+                        </span>
                         <button
                             onClick={onClose}
                             className="p-2 hover:bg-zinc-50 rounded-full transition-colors"

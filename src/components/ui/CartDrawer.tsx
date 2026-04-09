@@ -105,8 +105,10 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                 )}
             >
                 <div className="flex h-full flex-col">
-                    <div className="flex items-center justify-between border-b border-zinc-200/50 px-6 py-4">
-                        <h2 className="font-empire text-xl text-black">Bag</h2>
+                    <div className="flex items-center justify-between border-b border-zinc-200/50 px-6 py-6">
+                        <span className="font-yapari text-2xl tracking-tighter uppercase transition-opacity duration-500">
+                            Blactify
+                        </span>
                         <button aria-label="Close" onClick={onClose} className="p-2 hover:bg-zinc-100 rounded-md transition-colors">
                             <X size={20} />
                         </button>
