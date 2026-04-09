@@ -7,7 +7,7 @@ import { Drop } from "@/lib/drops-local";
 import { useAdminStats } from "@/hooks/useAdminStats";
 import { AdminLoading, AdminPageHeader } from "@/components/admin/AdminUI";
 import { auth } from "@/lib/firebase";
-import { getStoreSettings, togglePurchaseStatus, toggleFreeShippingStatus } from "@/app/actions/settings";
+import { getStoreSettings, togglePurchaseStatus } from "@/app/actions/settings";
 
 // New Component Imports
 import { StatsGrid } from "@/components/admin/dashboard/StatsGrid";
@@ -21,11 +21,9 @@ import { DisablePurchaseModal } from "@/components/admin/dashboard/DisablePurcha
 export default function AdminDashboardPage() {
     const { stats, loading } = useAdminStats();
     const [purchasesEnabled, setPurchasesEnabled] = useState(true);
-    const [freeShippingEnabled, setFreeShippingEnabled] = useState(false);
     const [showDisableModal, setShowDisableModal] = useState(false);
     const [confirmationText, setConfirmationText] = useState("");
     const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
-    const [isUpdatingFreeShipping, setIsUpdatingFreeShipping] = useState(false);
     const [upcomingDrops, setUpcomingDrops] = useState<Drop[]>([]);
 
     const fetchDrops = async () => {
@@ -49,7 +47,6 @@ export default function AdminDashboardPage() {
         getStoreSettings().then(settings => {
             if (settings) {
                 setPurchasesEnabled(settings.purchases_enabled ?? true);
-                setFreeShippingEnabled(settings.free_shipping_enabled ?? false);
             }
         });
         fetchDrops();
@@ -73,20 +70,6 @@ export default function AdminDashboardPage() {
         }
     };
 
-    const handleToggleFreeShipping = async () => {
-        setIsUpdatingFreeShipping(true);
-        const newStatus = !freeShippingEnabled;
-        try {
-            const token = await auth.currentUser?.getIdToken();
-            const result = await toggleFreeShippingStatus(newStatus, token);
-            if (result.success) {
-                setFreeShippingEnabled(newStatus);
-                toast.success(`Free shipping coupon ${newStatus ? 'enabled' : 'disabled'}`);
-            }
-        } finally {
-            setIsUpdatingFreeShipping(false);
-        }
-    };
 
     const confirmDisable = async () => {
         if (confirmationText !== "STOP BUYING") return;
@@ -122,9 +105,6 @@ export default function AdminDashboardPage() {
                     purchasesEnabled={purchasesEnabled}
                     onTogglePurchases={handleTogglePurchases}
                     isUpdatingPurchases={isUpdatingSettings}
-                    freeShippingEnabled={freeShippingEnabled}
-                    onToggleFreeShipping={handleToggleFreeShipping}
-                    isUpdatingFreeShipping={isUpdatingFreeShipping}
                 />
             </div>
 

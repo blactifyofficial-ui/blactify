@@ -43,7 +43,7 @@ interface OrderDetail {
     };
     payment_id?: string;
     payment_details?: {
-        discount_code?: string;
+        method?: string;
     };
 }
 
@@ -104,17 +104,9 @@ export default function InvoicePage() {
         return acc + price * item.quantity;
     }, 0);
 
-    const discountCode = order.payment_details?.discount_code;
-    const isFreeShipping = discountCode === "FREE-SHIPPING";
-
-    // Re-calculate basic shipping cost (without discount)
-    const baseShipping = subtotal < 2999 ? 59 : 0;
-
-    // The actual shipping charged (saved in total, but we need it for display)
-    const currentShipping = isFreeShipping ? 0 : baseShipping;
-
-    // Price discount (not including shipping savings)
-    const priceDiscount = discountCode === "WELCOME10" ? (subtotal * 0.1) : 0;
+    // The amount paid was order.amount, which is subtotal + shipping
+    // We can infer shipping from total - subtotal
+    const currentShipping = order.amount - subtotal;
 
     // The actual amount paid
     const total = order.amount;
@@ -292,18 +284,6 @@ export default function InvoicePage() {
                             <span>Shipping</span>
                             <span className="text-zinc-900 md:w-32 md:text-right">{currentShipping > 0 ? `₹${currentShipping.toLocaleString()}` : 'FREE'}</span>
                         </div>
-                        {priceDiscount > 1 && (
-                            <div className="flex justify-between md:justify-end md:gap-12 text-[10px] font-bold uppercase tracking-widest text-green-600">
-                                <span>{discountCode === "WELCOME10" ? "Welcome Offer" : "Discount"}</span>
-                                <span className="md:w-32 md:text-right">-₹{Math.round(priceDiscount).toLocaleString()}</span>
-                            </div>
-                        )}
-                        {isFreeShipping && (
-                            <div className="flex justify-between md:justify-end md:gap-12 text-[10px] font-bold uppercase tracking-widest text-green-600">
-                                <span>Free Shipping Coupon</span>
-                                <span className="md:w-32 md:text-right">-₹{baseShipping.toLocaleString()}</span>
-                            </div>
-                        )}
                         <div className="flex justify-between md:justify-end md:gap-12 pt-4 border-t border-zinc-100">
                             <span className="text-xs font-bold uppercase tracking-[0.2em]">Total</span>
                             <span className="text-xl font-bold md:w-32 md:text-right">₹{total.toLocaleString()}</span>

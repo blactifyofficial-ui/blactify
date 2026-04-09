@@ -27,13 +27,6 @@ const Footer = dynamic(() => import("@/components/layout/Footer").then(mod => mo
     ssr: false,
 });
 
-const WelcomeBanner = dynamic(() => import("@/components/ui/WelcomeBanner"), {
-    ssr: false,
-});
-
-const WelcomeAnimation = dynamic(() => import("@/components/ui/WelcomeAnimation"), {
-    ssr: false,
-});
 
 const FloatingCart = dynamic(() => import("@/components/ui/FloatingCart").then(mod => mod.FloatingCart), {
     ssr: false,
@@ -145,16 +138,6 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                         {!isRestricted && (
                             <Suspense fallback={null}>
                                 <Footer />
-                            </Suspense>
-                        )}
-                        {!isRestricted && (
-                            <Suspense fallback={null}>
-                                <WelcomeBanner />
-                            </Suspense>
-                        )}
-                        {!isRestricted && (
-                            <Suspense fallback={null}>
-                                <WelcomeAnimation />
                             </Suspense>
                         )}
                         {!isRestricted && (

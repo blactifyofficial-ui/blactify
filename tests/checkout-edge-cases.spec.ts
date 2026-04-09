@@ -16,7 +16,7 @@ test.describe('Checkout Edge Cases - Full Suite', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ purchases_enabled: true, free_shipping_enabled: true }),
+        body: JSON.stringify({ purchases_enabled: true }),
       });
     });
   });
@@ -96,13 +96,9 @@ test.describe('Checkout Edge Cases - Full Suite', () => {
     await expect(page.locator('text=Authentication Required')).toBeVisible();
   });
 
-  /**
-   * EDGE CASE: Invalid Coupon Application
-   * Expected: Should display "Invalid discount code" toast.
-   */
-  test('edge: invalid coupon code', async () => {
-    // This requires reaching the checkout page after adding an item and logging in.
-    // I will mock the cart to verify internal store logic if needed.
+  test('edge: invalid coupon code removed', async () => {
+    // Coupons have been removed from the system.
+    // This test is no longer applicable.
   });
 
   /**

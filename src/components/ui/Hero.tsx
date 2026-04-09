@@ -16,6 +16,7 @@ export function Hero({ images }: HeroProps) {
     const ctaRef = useRef<HTMLDivElement>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isClicked, setIsClicked] = useState(false);
+    const [showIntroEye, setShowIntroEye] = useState(false);
     const router = useRouter();
 
     const handleClick = (e: React.MouseEvent) => {
@@ -41,6 +42,18 @@ export function Hero({ images }: HeroProps) {
         
         return () => clearInterval(interval);
     }, [images.length]);
+
+    // Intro "Peek" animation for the eye logo
+    useEffect(() => {
+        // Wait for the main button animation to start (0.5s)
+        const startTimer = setTimeout(() => setShowIntroEye(true), 1200);
+        const endTimer = setTimeout(() => setShowIntroEye(false), 2400);
+
+        return () => {
+            clearTimeout(startTimer);
+            clearTimeout(endTimer);
+        };
+    }, []);
 
     // Animations
     useGSAP(() => {
@@ -82,7 +95,7 @@ export function Hero({ images }: HeroProps) {
                         <div
                             key={`${img}-${i}`}
                             className={cn(
-                                "hero-bg-image absolute inset-0 w-full h-full will-change-transform transition-all duration-[2000ms] ease-in-out",
+                                "hero-bg-image absolute inset-0 w-full h-full accelerate transition-all duration-[2000ms] ease-in-out",
                                 i === currentImageIndex ? "opacity-100 scale-105" : "opacity-0 scale-100"
                             )}
                         >
@@ -118,14 +131,13 @@ export function Hero({ images }: HeroProps) {
                         {/* Logo Animation */}
                         <div className={cn(
                             "relative flex items-center max-w-0 opacity-0 -translate-x-3 transition-all duration-700 cubic-bezier(0.34, 1.56, 0.64, 1) group-hover:max-w-[40px] group-hover:opacity-100 group-hover:translate-x-0",
-                            isClicked && "max-w-[40px] opacity-100 translate-x-0"
+                            (isClicked || showIntroEye) && "max-w-[40px] opacity-100 translate-x-0"
                         )}>
                             <Image
                                 src="/welcome-eye.png"
                                 alt="Logo"
-                                width={20}
-                                height={20}
-                                unoptimized
+                                width={24}
+                                height={24}
                                 className={cn(
                                     "object-contain min-w-[20px] md:min-w-[24px] md:w-[24px] md:h-[24px] transition-transform duration-500 group-hover:scale-110",
                                     isClicked && "scale-110"

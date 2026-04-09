@@ -24,17 +24,14 @@ export async function sendOrderNotifications(order: z.infer<typeof OrderSyncSche
     let shippingDisplay = 0;
     if (order.shipping_address) {
         const state = order.shipping_address.state || "";
-        if (order.discount_code !== "FREE-SHIPPING") {
-            if (subtotal < 2999) {
-                shippingDisplay = state === "Kerala" ? 59 : 79;
-            }
+        if (subtotal < 2999) {
+            shippingDisplay = state === "Kerala" ? 59 : 79;
         }
     } else {
         // Fallback
         shippingDisplay = subtotal < 2999 ? 59 : 0;
     }
 
-    const discount = (subtotal + shippingDisplay) - Number(order.amount);
 
     const getEmailHtml = (isSeller: boolean) => `
         <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eeeeee; border-radius: 12px; overflow: hidden; color: #333333;">
@@ -94,12 +91,6 @@ export async function sendOrderNotifications(order: z.infer<typeof OrderSyncSche
                                 <td style="font-size: 13px; font-weight: 600; color: #888888; text-transform: uppercase;">Shipping</td>
                                 <td style="text-align: right; font-size: 14px; font-weight: 600; color: #333333;">${shippingDisplay === 0 ? "Free" : `₹${shippingDisplay.toLocaleString('en-IN')}`}</td>
                             </tr>
-                            ${discount > 1 ? `
-                            <tr>
-                                <td style="font-size: 13px; font-weight: 600; color: #10b981; text-transform: uppercase;">Discount</td>
-                                <td style="text-align: right; font-size: 14px; font-weight: 600; color: #10b981;">-₹${Math.round(discount).toLocaleString('en-IN')}</td>
-                            </tr>
-                            ` : ""}
                             <tr>
                                 <td style="padding-top: 10px; font-size: 16px; font-weight: 800; color: #111111; text-transform: uppercase;">Total Amount</td>
                                 <td style="padding-top: 10px; text-align: right; font-size: 20px; font-weight: 900; color: #333639;">₹${Number(order.amount).toLocaleString('en-IN')}</td>

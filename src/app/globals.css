@@ -21,8 +21,6 @@
   --font-aesthetic: var(--font-space-grotesk), ui-serif, serif;
   --font-heading: "Druk Wide Bold", sans-serif;
 
-  --animate-eye-glow: eye-glow 2s ease-in-out infinite;
-  --animate-eye-glow-dark: eye-glow-dark 2s ease-in-out infinite;
   --animate-in: in 1s ease-out;
   --animate-fade-in: fade-in 1s ease-out forwards;
   --animate-slide-up: slide-up 1s ease-out forwards;
@@ -31,33 +29,8 @@
   --animate-noise: noise 0.2s infinite;
   --animate-ken-burns: ken-burns 10s ease-out forwards;
 
-  @keyframes eye-glow {
-
-    0%,
-    100% {
-      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
-      opacity: 0.8;
-    }
-
-    50% {
-      filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.7));
-      opacity: 1;
-    }
-  }
-
-  @keyframes eye-glow-dark {
-
-    0%,
-    100% {
-      filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.05));
-      opacity: 0.8;
-    }
-
-    50% {
-      filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.15));
-      opacity: 1;
-    }
-  }
+  /* Performance utilities */
+  --will-change-gpu: transform, opacity;
 
   @keyframes in {
     from {
@@ -270,12 +243,17 @@ body {
   .noise-bg::after {
     content: "";
     position: absolute;
-    inset: -200%;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-    opacity: 0.05;
+    inset: 0;
+    /* Performant noise using multiple small-scale linear gradients */
+    background-image: 
+      linear-gradient(45deg, rgba(0,0,0,0.02) 25%, transparent 25%),
+      linear-gradient(-45deg, rgba(0,0,0,0.02) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, rgba(0,0,0,0.02) 75%),
+      linear-gradient(-45deg, transparent 75%, rgba(0,0,0,0.02) 75%);
+    background-size: 4px 4px;
+    opacity: 0.15;
     pointer-events: none;
     z-index: 1;
-    animation: var(--animate-noise);
   }
 
   /* Disable noise animation on mobile for better performance */
@@ -283,6 +261,12 @@ body {
     .noise-bg::after {
       animation: none;
     }
+  }
+
+  .accelerate {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    backface-visibility: hidden;
   }
 }
 

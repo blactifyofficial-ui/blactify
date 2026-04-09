@@ -22,11 +22,6 @@ interface CartStore {
     getSubtotal: () => number;
     getTotalPrice: (state?: string) => number;
     getShippingCharge: (state?: string, subtotal?: number) => number;
-    discountCode: string | null;
-    applyDiscount: (code: string) => void;
-    removeDiscount: () => void;
-    freeShippingEnabled: boolean;
-    setFreeShippingEnabled: (enabled: boolean) => void;
     syncItemPrice: (cartId: string, base: number, offer?: number) => void;
 }
 
@@ -141,42 +136,20 @@ export const useCartStore = create<CartStore>()(
                 get().items.reduce((acc, item) => acc + (item.price_offer || item.price_base) * item.quantity, 0),
             getTotalPrice: (state) => {
                 const subtotal = get().getSubtotal();
-                let discountedSubtotal = subtotal;
-
-                if (get().discountCode === "WELCOME10") {
-                    discountedSubtotal = Math.round(subtotal * 0.9);
-                }
-
-                const shipping = get().getShippingCharge(state, discountedSubtotal);
-                return discountedSubtotal + shipping;
+                const shipping = get().getShippingCharge(state, subtotal);
+                return subtotal + shipping;
             },
             getShippingCharge: (state, providedSubtotal) => {
                 const subtotal = providedSubtotal ?? get().getSubtotal();
-                const discountCode = get().discountCode;
-                const isFreeShippingCouponActive = get().freeShippingEnabled;
 
                 if (subtotal === 0) return 0;
-                if (discountCode === "FREE-SHIPPING" && isFreeShippingCouponActive) return 0;
-                if (subtotal >= 2999) return 0; // Free shipping threshold (on discounted amount)
+                if (subtotal >= 2999) return 0; // Free shipping threshold
 
                 if (state === "Kerala") {
                     return 59;
                 }
                 return 79;
             },
-            discountCode: null,
-            applyDiscount: (code) => {
-                const normalizedCode = code.trim().toUpperCase();
-                set({ discountCode: normalizedCode });
-                toast.success(`Coupon code ${normalizedCode} applied`);
-            },
-            removeDiscount: () => {
-                const code = get().discountCode;
-                set({ discountCode: null });
-                if (code) toast.success(`Coupon code ${code} removed`);
-            },
-            freeShippingEnabled: false,
-            setFreeShippingEnabled: (enabled: boolean) => set({ freeShippingEnabled: enabled }),
             syncItemPrice: (cartId, base, offer) => {
                 set({
                     items: get().items.map((item) =>

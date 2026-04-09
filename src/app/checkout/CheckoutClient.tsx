@@ -12,8 +12,6 @@ import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { loadRazorpay } from "@/lib/razorpay";
 import { createPendingOrder, confirmOrder } from "@/lib/order-sync";
-import { markWelcomeDiscountUsed } from "@/actions/profile";
-import { Tag } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { checkPincodeServiceability, getShippingCharges } from "@/actions/delhivery";
@@ -52,7 +50,7 @@ interface RazorpaySuccessResponse {
 }
 
 interface CheckoutClientProps {
-    initialSettings: { purchases_enabled: boolean; free_shipping_enabled: boolean } | null;
+    initialSettings: { purchases_enabled: boolean } | null;
 }
 
 export default function CheckoutClient({ initialSettings }: CheckoutClientProps) {
@@ -81,14 +79,13 @@ function SafeImage({ src, alt, className }: { src: string | null; alt: string; c
     );
 }
 
-function CheckoutContent({ initialSettings }: { initialSettings: { purchases_enabled: boolean; free_shipping_enabled: boolean } | null }) {
-    const { items, getSubtotal, getShippingCharge, clearCart, removeItem, discountCode, applyDiscount, removeDiscount, setFreeShippingEnabled, syncItemPrice } = useCartStore();
+function CheckoutContent({ initialSettings }: { initialSettings: { purchases_enabled: boolean } | null }) {
+    const { items, getSubtotal, clearCart, removeItem, syncItemPrice } = useCartStore();
     const router = useRouter();
     const { user } = useAuth();
     const [isMounted, setIsMounted] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [showOrderSummary, setShowOrderSummary] = useState(false);
-    const [discountInput, setDiscountInput] = useState("");
     const [stockErrors, setStockErrors] = useState<Record<string, string>>({});
     const [priceErrors, setPriceErrors] = useState<Record<string, string>>({});
     const storeEnabled = (initialSettings?.purchases_enabled ?? true) || process.env.NODE_ENV === "development";
@@ -97,11 +94,6 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
     const isDirect = searchParams.get("direct") === "true";
     const [directItem, setDirectItem] = useState<CartItem | null>(null);
 
-    useEffect(() => {
-        if (initialSettings) {
-            setFreeShippingEnabled(initialSettings.free_shipping_enabled);
-        }
-    }, [initialSettings, setFreeShippingEnabled]);
 
     useEffect(() => {
         if (isDirect) {
@@ -139,19 +131,11 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
         ? activeItems.reduce((acc: number, item: CartItem) => acc + (item.price_offer || item.price_base) * item.quantity, 0)
         : getSubtotal();
 
-    const discountedSubtotal = discountCode === "WELCOME10" ? Math.round(subtotal * 0.9) : subtotal;
-    const discountAmount = subtotal - discountedSubtotal;
+    const isFreeShippingRule = subtotal >= 2999;
 
-    const isFreeShippingRule = (discountedSubtotal >= 2999) || (discountCode === "FREE-SHIPPING" && initialSettings?.free_shipping_enabled);
+    const shipping = isFreeShippingRule ? 0 : (dynamicShippingCharge !== null ? dynamicShippingCharge : (formData.state === "Kerala" ? 59 : 79));
 
-    const staticShipping = isDirect
-        ? (isFreeShippingRule ? 0 : (discountedSubtotal < 2999 ? (formData.state === "Kerala" ? 59 : 79) : 0))
-        : getShippingCharge(formData.state, discountedSubtotal);
-
-    // Dynamic shipping takes precedence if available, but NOT if free shipping rule applies
-    const shipping = isFreeShippingRule ? 0 : (dynamicShippingCharge !== null ? dynamicShippingCharge : staticShipping);
-
-    const total = discountedSubtotal + shipping;
+    const total = subtotal + shipping;
 
 
 
@@ -338,8 +322,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
 
                             // --- DYNAMIC SHIPPING COST CALCULATION ---
                             // Check if shipping charge is already overridden by free shipping rule
-                            const currentDiscountedSubtotal = discountCode === "WELCOME10" ? Math.round(subtotal * 0.9) : subtotal;
-                            const isFreeByRule = (currentDiscountedSubtotal >= 2999) || (discountCode === "FREE-SHIPPING" && initialSettings?.free_shipping_enabled);
+                            const isFreeByRule = subtotal >= 2999;
 
                             if (!isFreeByRule) {
                                 try {
@@ -374,7 +357,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
 
         const timer = setTimeout(verifyPincode, 500); // Debounce
         return () => clearTimeout(timer);
-    }, [formData.pincode, activeItems, discountCode, initialSettings?.free_shipping_enabled, subtotal]);
+    }, [formData.pincode, activeItems, subtotal]);
 
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
@@ -502,7 +485,6 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                         price_base: item.price_base,
                         price_offer: item.price_offer
                     })),
-                    discountCode: discountCode || undefined,
                     state: formData.state,
                     pincode: formData.pincode,
                     currency: "INR",
@@ -552,7 +534,6 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                     phone: formData.phone,
                     secondary_phone: formData.secondaryPhone || undefined
                 },
-                discount_code: discountCode || undefined,
             }, token);
 
             if (!pendingResult.success) {
@@ -643,15 +624,10 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                 razorpay_signature: razorpayResponse.razorpay_signature,
                                 method: "Razorpay",
                                 timestamp: new Date().toISOString(),
-                                discount_code: discountCode
                             }
                         }, token);
 
                         if (saveResult.success) {
-                            if (discountCode === "WELCOME10" && user) {
-                                const token = await user.getIdToken();
-                                await markWelcomeDiscountUsed(user.uid, token);
-                            }
 
                             if (isDirect) {
                                 sessionStorage.removeItem("direct-checkout-item");
@@ -659,7 +635,6 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                 clearCart();
                             }
 
-                            removeDiscount();
                             sessionStorage.removeItem("checkout-form-data");
                             cleanupRazorpayModal();
                             router.push(`/checkout/success?order_id=${razorpayResponse.razorpay_order_id}`);
@@ -854,64 +829,11 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                         </div>
                                     </div>
                                 ))}
-                                <div className="space-y-3 pt-4 border-t border-zinc-200/50">
-                                    <div className="flex gap-2">
-                                        <input
-                                            placeholder="Discount code"
-                                            value={discountInput}
-                                            onChange={(e) => setDiscountInput(e.target.value.toUpperCase())}
-                                            className="flex-1 h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                const normalizedInput = discountInput.trim().toUpperCase();
-                                                if (normalizedInput === "WELCOME10") {
-                                                    applyDiscount(normalizedInput);
-                                                    setDiscountInput("");
-                                                } else if (normalizedInput === "FREE-SHIPPING") {
-                                                    if (initialSettings?.free_shipping_enabled) {
-                                                        applyDiscount(normalizedInput);
-                                                        setDiscountInput("");
-                                                    } else {
-                                                        toast.error("FREE-SHIPPING coupon is currently disabled");
-                                                    }
-                                                } else {
-                                                    toast.error("Invalid discount code");
-                                                }
-                                            }}
-                                            className="h-12 px-6 bg-black text-white text-sm font-medium rounded-md hover:bg-zinc-800 transition-colors"
-                                        >
-                                            Apply
-                                        </button>
-                                    </div>
-
-                                    {discountCode && (
-                                        <div className="flex items-center justify-between py-2 px-3 bg-zinc-100 rounded-lg text-sm">
-                                            <div className="flex items-center gap-2 text-zinc-900 font-medium uppercase tracking-wider text-[10px]">
-                                                <Tag size={12} className="text-zinc-500" />
-                                                {discountCode}
-                                            </div>
-                                            <button
-                                                onClick={removeDiscount}
-                                                className="text-[10px] text-zinc-400 hover:text-red-500 transition-colors uppercase font-bold tracking-tighter"
-                                            >
-                                                Remove
-                                            </button>
-                                        </div>
-                                    )}
-
                                     <div className="flex justify-between text-sm text-zinc-600 pt-2">
                                         <span>Subtotal</span>
                                         <span>₹{subtotal.toFixed(2)}</span>
                                     </div>
 
-                                    {discountCode && discountAmount > 0 && (
-                                        <div className="flex justify-between text-sm text-blue-600">
-                                            <span>Discount ({discountCode})</span>
-                                            <span>-₹{discountAmount.toFixed(2)}</span>
-                                        </div>
-                                    )}
                                     <div className="flex justify-between text-sm text-zinc-600">
                                         <span>Shipping</span>
                                         <span>{shipping === 0 ? "Free" : `₹${shipping.toFixed(2)}`}</span>
@@ -922,8 +844,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                         <span>INR ₹{total.toFixed(2)}</span>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
                     </div>
 
                     <form onSubmit={handlePayment} className="space-y-8">
@@ -1293,67 +1214,11 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
 
                     <div className="h-px w-full bg-zinc-200 my-4" />
 
-                    <div className="space-y-3">
-                        <div className="flex gap-2">
-                            <input
-                                placeholder="Discount code"
-                                value={discountInput}
-                                onChange={(e) => setDiscountInput(e.target.value.toUpperCase())}
-                                className="flex-1 h-12 px-4 rounded-md border border-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow placeholder:text-zinc-500"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const normalizedInput = discountInput.trim().toUpperCase();
-                                    if (normalizedInput === "WELCOME10") {
-                                        applyDiscount(normalizedInput);
-                                        setDiscountInput("");
-                                    } else if (normalizedInput === "FREE-SHIPPING") {
-                                        if (initialSettings?.free_shipping_enabled) {
-                                            applyDiscount(normalizedInput);
-                                            setDiscountInput("");
-                                        } else {
-                                            toast.error("FREE-SHIPPING coupon is currently disabled");
-                                        }
-                                    } else {
-                                        toast.error("Invalid discount code");
-                                    }
-                                }}
-                                className="h-12 px-6 bg-black text-white text-sm font-medium rounded-md hover:bg-zinc-800 transition-colors"
-                            >
-                                Apply
-                            </button>
-                        </div>
-
-                        {discountCode && (
-                            <div className="flex items-center justify-between py-2 px-3 bg-zinc-100 rounded-lg text-sm">
-                                <div className="flex items-center gap-2 text-zinc-900 font-medium uppercase tracking-wider text-[10px]">
-                                    <Tag size={12} className="text-zinc-500" />
-                                    {discountCode}
-                                </div>
-                                <button
-                                    onClick={removeDiscount}
-                                    className="text-[10px] text-zinc-400 hover:text-red-500 transition-colors uppercase font-bold tracking-tighter"
-                                >
-                                    Remove
-                                </button>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="h-px w-full bg-zinc-200 my-4" />
-
                     <div className="space-y-3 text-sm text-zinc-600">
                         <div className="flex justify-between">
                             <span>Subtotal</span>
                             <span className="font-medium text-zinc-900">₹{subtotal.toFixed(2)}</span>
                         </div>
-                        {discountCode && discountAmount > 0 && (
-                            <div className="flex justify-between text-blue-600">
-                                <span>Discount ({discountCode})</span>
-                                <span>-₹{discountAmount.toFixed(2)}</span>
-                            </div>
-                        )}
                         <div className="flex justify-between">
                             <span>Shipping</span>
                             <span className="font-medium text-zinc-900">{shipping === 0 ? "Free" : `₹${shipping.toFixed(2)}`}</span>

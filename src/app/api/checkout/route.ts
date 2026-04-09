@@ -19,7 +19,6 @@ const CheckoutSchema = z.object({
         price_base: z.number(),
         price_offer: z.number().optional().nullable()
     })).min(1, "Items are required"),
-    discountCode: z.string().optional(),
     state: z.string().optional().default("Kerala"),
     pincode: z.string().optional(),
     currency: z.string().default("INR"),
@@ -40,7 +39,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: validated.error.issues[0].message }, { status: 400 });
         }
 
-        const { items, discountCode, state, pincode, currency, receipt, email, userId } = validated.data;
+        const { items, state, pincode, currency, receipt, email, userId } = validated.data;
 
         // --- 🔒 SECURITY: SERVER-SIDE AMOUNT CALCULATION ---
         const productIds = items.map(i => i.id);
@@ -65,16 +64,10 @@ export async function POST(req: Request) {
             calculatedSubtotal += unitPrice * item.quantity;
         }
 
-        // Apply discount (e.g., WELCOME10)
-        let totalAmount = calculatedSubtotal;
-        if (discountCode === "WELCOME10") {
-            totalAmount = Math.round(calculatedSubtotal * 0.9);
-        }
-
         // --- 🚚 SECURE SHIPPING CALCULATION ---
         // Free shipping above 2999, else use dynamic logic or fallback
         let shippingCharge = 0;
-        const isFreeShipping = totalAmount >= 2999 || discountCode === "FREE-SHIPPING";
+        const isFreeShipping = calculatedSubtotal >= 2999;
 
         if (!isFreeShipping) {
             if (pincode && pincode.length === 6) {
@@ -101,7 +94,7 @@ export async function POST(req: Request) {
             }
         }
 
-        totalAmount += shippingCharge;
+        const totalAmount = calculatedSubtotal + shippingCharge;
 
         const order = await razorpay.orders.create({
             amount: Math.round(totalAmount * 100), // convert to paise

@@ -32,13 +32,13 @@ export function ProductCard({ product, className, onImageLoad, hidePrice, priori
         if (window.innerWidth < 768) return; // Skip GSAP on mobile for performance
 
         gsap.from(container.current, {
-            y: 50,
+            y: 30,
             opacity: 0,
-            duration: 0.8,
-            ease: "power2.out",
+            duration: 0.6,
+            ease: "power1.out",
             scrollTrigger: {
                 trigger: container.current,
-                start: "top bottom-=100px",
+                start: "top bottom-=50px",
                 toggleActions: "play none none none"
             }
         });
@@ -49,7 +49,7 @@ export function ProductCard({ product, className, onImageLoad, hidePrice, priori
     const hasDiscount = product.price_offer && product.price_offer < product.price_base;
 
     return (
-        <div ref={container} className={cn("group flex flex-col gap-3", className)}>
+        <div ref={container} className={cn("group flex flex-col gap-3 accelerate", className)}>
             <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-100">
                 <Link href={`/product/${product.handle || product.id}`} className="relative block h-full w-full bg-zinc-50">
                     {(product.product_images?.[0]?.url || product.main_image) ? (

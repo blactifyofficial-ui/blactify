@@ -24,14 +24,14 @@ export function ComingSoon() {
         <div className="relative min-h-screen bg-[#F5F5F5] flex items-center justify-center font-heading p-6 selection:bg-black selection:text-white">
             {/* Minimal Content Container */}
             <div className={cn(
-                "w-full max-w-4xl aspect-[4/3] rounded-[60px] md:rounded-[120px] flex flex-col items-center justify-center text-center p-6 md:p-20 shadow-sm transition-all duration-1000 ease-in-out animate-zoom-in",
+                "w-full max-w-4xl aspect-[4/3] rounded-[60px] md:rounded-[120px] flex flex-col items-center justify-center text-center p-6 md:p-20 shadow-sm transition-all duration-1000 ease-in-out animate-zoom-in accelerate",
                 isVisible ? "bg-[#EBEBEB]" : "bg-[#EBEBEB]/40 backdrop-blur-sm"
             )}>
 
                 {/* Logo */}
                 <div className={cn(
                     "relative z-10 mb-2 md:mb-6 transition-all duration-1000 ease-in-out",
-                    isVisible ? "opacity-100 animate-eye-glow-dark" : "opacity-30"
+                    isVisible ? "opacity-100" : "opacity-30"
                 )}>
                     <Image
                         src={logoIcon}

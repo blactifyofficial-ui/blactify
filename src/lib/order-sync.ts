@@ -20,7 +20,6 @@ export async function createPendingOrder(orderData: {
     items: z.infer<typeof OrderSyncSchema>["items"];
     shipping_address: z.infer<typeof OrderSyncSchema>["shipping_address"];
     customer_details: z.infer<typeof OrderSyncSchema>["customer_details"];
-    discount_code?: string;
     tracking_id?: string;
     shipping_manifest_details?: Record<string, unknown>;
 }, token?: string) {
@@ -44,7 +43,6 @@ export async function createPendingOrder(orderData: {
                 customer_details: orderData.customer_details,
                 tracking_id: orderData.tracking_id || null,
                 payment_details: {
-                    discount_code: orderData.discount_code || null,
                     created_at: new Date().toISOString(),
                     ...(orderData.shipping_manifest_details ? { shipping: orderData.shipping_manifest_details } : {})
                 },
