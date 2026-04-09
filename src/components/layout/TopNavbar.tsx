@@ -22,7 +22,7 @@ export function TopNavbar({ onMenuClick, onSearchClick, onCartClick }: {
                 {/* Left: Hamburger Menu */}
                 <button
                     onClick={onMenuClick}
-                    className="absolute left-0 p-2 hover:bg-zinc-100 rounded-full transition-colors z-10"
+                    className="absolute left-0 p-2 hover:bg-zinc-100 rounded-md transition-colors z-10"
                     aria-label="Open menu"
                 >
                     <Menu size={20} strokeWidth={1.2} />
@@ -46,22 +46,22 @@ export function TopNavbar({ onMenuClick, onSearchClick, onCartClick }: {
                 <div className="absolute right-0 flex items-center gap-1 md:gap-2 z-10">
                     <button 
                         onClick={onSearchClick}
-                        className="p-2 hover:bg-zinc-100 rounded-full transition-colors" 
+                        className="p-2 hover:bg-zinc-100 rounded-md transition-colors" 
                         aria-label="Search"
                     >
                         <Search size={20} strokeWidth={1.2} />
                     </button>
-                    <Link href="/profile" className="p-2 hover:bg-zinc-100 rounded-full transition-colors" aria-label="Profile">
+                    <Link href="/profile" className="p-2 hover:bg-zinc-100 rounded-md transition-colors" aria-label="Profile">
                         <User size={20} strokeWidth={1.2} />
                     </Link>
                     <button 
                         onClick={onCartClick}
-                        className="p-2 hover:bg-zinc-100 rounded-full transition-colors relative" 
+                        className="p-2 hover:bg-zinc-100 rounded-md transition-colors relative" 
                         aria-label="Cart"
                     >
                         <ShoppingBag size={20} strokeWidth={1.2} />
                         {cartCount > 0 && (
-                            <span className="absolute top-1 right-1 bg-black text-white text-[8px] font-black w-4 h-4 flex items-center justify-center rounded-full border border-white">
+                            <span className="absolute top-1.5 right-1.5 bg-black text-white text-[7px] font-black w-3.5 h-3.5 flex items-center justify-center rounded-sm border border-white">
                                 {cartCount}
                             </span>
                         )}

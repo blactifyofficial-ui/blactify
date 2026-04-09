@@ -102,7 +102,7 @@ function MaintenanceScreen({ message }: { message: string }) {
             <div className="relative z-10 max-w-md mx-auto flex flex-col items-center">
                 {/* Brand Logo */}
                 <div className="relative mb-10">
-                    <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center shadow-2xl shadow-black/5 transition-transform duration-700 hover:scale-105 overflow-hidden">
+                    <div className="w-24 h-24 bg-white rounded-md flex items-center justify-center shadow-2xl shadow-black/5 transition-transform duration-700 hover:scale-105 overflow-hidden">
                         <img 
                             src="/welcome-eye.png" 
                             alt="Blactify Logo" 
@@ -142,7 +142,7 @@ function MaintenanceScreen({ message }: { message: string }) {
                     href="https://instagram.com/blactify"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 mb-10 px-6 py-2 bg-zinc-50 border border-zinc-200 rounded-full text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] transition-all hover:bg-zinc-100 hover:scale-105 active:scale-95"
+                    className="inline-flex items-center gap-2 mb-10 px-6 py-2 bg-zinc-50 border border-zinc-200 rounded-md text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] transition-all hover:bg-zinc-100 hover:scale-105 active:scale-95"
                 >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
@@ -153,7 +153,7 @@ function MaintenanceScreen({ message }: { message: string }) {
                 </a>
 
                 {/* Status indicator */}
-                <div className="flex items-center gap-3 px-6 py-3 bg-zinc-50 border border-zinc-100 rounded-full">
+                <div className="flex items-center gap-3 px-6 py-3 bg-zinc-50 border border-zinc-100 rounded-md">
                     <div className="relative flex items-center justify-center">
                         <div className="w-2.5 h-2.5 bg-amber-400 rounded-full" />
                         <div className="absolute w-2.5 h-2.5 bg-amber-400 rounded-full animate-ping" />

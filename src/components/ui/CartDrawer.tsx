@@ -107,7 +107,7 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                 <div className="flex h-full flex-col">
                     <div className="flex items-center justify-between border-b border-zinc-200/50 px-6 py-4">
                         <h2 className="font-empire text-xl text-black">Bag</h2>
-                        <button aria-label="Close" onClick={onClose} className="p-2 hover:bg-zinc-100 rounded-full">
+                        <button aria-label="Close" onClick={onClose} className="p-2 hover:bg-zinc-100 rounded-md transition-colors">
                             <X size={20} />
                         </button>
                     </div>
@@ -173,15 +173,15 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                         <div className="border-t border-zinc-200/50 px-6 py-6 bg-white/40 backdrop-blur-lg">
                             <div className="mb-6 flex items-center justify-between">
                                 <span className="text-sm font-bold uppercase tracking-widest text-zinc-400">Total</span>
-                                <span className="text-xl font-medium text-black">₹{getTotalPrice().toFixed(2)}</span>
+                                <span className="text-xl font-medium text-black">₹{Math.round(getTotalPrice()).toLocaleString()}</span>
                             </div>
-                            <button
-                                onClick={handleCheckout}
-                                disabled={isCheckingOut}
-                                className="w-full rounded-full bg-black py-4 text-xs font-bold uppercase tracking-widest text-white active:scale-[0.98] transition-all disabled:opacity-50"
-                            >
-                                {isCheckingOut ? "Processing..." : "Checkout"}
-                            </button>
+                                <button
+                                    onClick={handleCheckout}
+                                    disabled={items.length === 0}
+                                    className="w-full rounded-md bg-black py-4 text-xs font-bold uppercase tracking-widest text-white active:scale-[0.98] transition-all disabled:opacity-50"
+                                >
+                                    Proceed to Checkout
+                                </button>
                         </div>
                     )}
                 </div>

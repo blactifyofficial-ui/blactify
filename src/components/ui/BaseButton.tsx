@@ -31,7 +31,7 @@ export const BaseButton = React.forwardRef<HTMLButtonElement, BaseButtonProps>(
                 ref={ref}
                 disabled={disabled || isLoading}
                 className={cn(
-                    "inline-flex items-center justify-center rounded-full font-medium transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2",
+                    "inline-flex items-center justify-center rounded-md font-medium transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2",
                     variants[variant],
                     sizes[size],
                     className

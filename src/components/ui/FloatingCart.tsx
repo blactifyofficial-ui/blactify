@@ -29,7 +29,7 @@ export function FloatingCart({ onClick }: { onClick: () => void }) {
         <button
             onClick={onClick}
             className={cn(
-                "fixed bottom-8 right-6 z-[60] w-14 h-14 rounded-full transition-all duration-500 transform active:scale-95 flex items-center justify-center",
+                "fixed bottom-8 right-6 z-[60] w-14 h-14 rounded-md transition-all duration-500 transform active:scale-95 flex items-center justify-center",
                 "bg-white/80 backdrop-blur-xl border border-zinc-200/50 shadow-[0_12px_40px_rgba(0,0,0,0.15)]",
                 "text-black hover:bg-white hover:shadow-[0_12px_40px_rgba(0,0,0,0.2)]",
                 isVisible ? "translate-y-0 opacity-100 scale-100" : "translate-y-10 opacity-0 scale-50 pointer-events-none"
@@ -39,7 +39,7 @@ export function FloatingCart({ onClick }: { onClick: () => void }) {
             <div className="relative flex items-center justify-center">
                 <ShoppingBag size={28} strokeWidth={2} />
                 {mounted && cartItemCount > 0 && (
-                    <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-black text-[10px] font-bold text-white border-2 border-white shadow-sm animate-in zoom-in duration-300">
+                    <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-sm bg-black text-[10px] font-bold text-white border-2 border-white shadow-sm animate-in zoom-in duration-300">
                         {cartItemCount}
                     </span>
                 )}

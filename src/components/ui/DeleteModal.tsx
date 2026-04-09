@@ -33,12 +33,12 @@ export function DeleteModal({
             />
             <div
                 className={cn(
-                    "fixed left-1/2 top-1/2 z-[80] w-full max-w-sm -translate-x-1/2 -translate-y-1/2 bg-white p-6 shadow-2xl rounded-3xl transition-all duration-300 scale-100 opacity-100",
+                    "fixed left-1/2 top-1/2 z-[80] w-full max-w-sm -translate-x-1/2 -translate-y-1/2 bg-white p-6 shadow-2xl rounded-md transition-all duration-300 scale-100 opacity-100",
                     !isOpen && "scale-95 opacity-0 pointer-events-none"
                 )}
             >
                 <div className="flex flex-col items-center text-center space-y-4">
-                    <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center text-red-500">
+                    <div className="w-12 h-12 bg-red-50 rounded-md flex items-center justify-center text-red-500">
                         <AlertTriangle size={24} />
                     </div>
 
@@ -51,14 +51,14 @@ export function DeleteModal({
                         <button
                             onClick={onClose}
                             disabled={loading}
-                            className="flex-1 px-4 py-3 bg-white border border-zinc-200 rounded-xl text-sm font-bold text-zinc-700 hover:bg-zinc-50 hover:border-zinc-300 transition-all disabled:opacity-50"
+                            className="flex-1 px-4 py-3 bg-white border border-zinc-200 rounded-md text-sm font-bold text-zinc-700 hover:bg-zinc-50 hover:border-zinc-300 transition-all disabled:opacity-50"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={onConfirm}
                             disabled={loading}
-                            className="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl text-sm font-bold hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                            className="flex-1 px-4 py-3 bg-red-500 text-white rounded-md text-sm font-bold hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                             {loading ? "Deleting..." : "Delete"}
                         </button>

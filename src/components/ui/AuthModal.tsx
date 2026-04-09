@@ -120,7 +120,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
             />
             <div
                 className={cn(
-                    "fixed inset-x-0 bottom-0 z-[160] mx-auto w-full max-w-md bg-white rounded-t-[40px] shadow-[0_-20px_50px_rgba(0,0,0,0.2)] transition-transform duration-500 ease-in-out",
+                    "fixed inset-x-0 bottom-0 z-[160] mx-auto w-full max-w-md bg-white rounded-t-md shadow-[0_-20px_50px_rgba(0,0,0,0.2)] transition-transform duration-500 ease-in-out",
                     isOpen ? "translate-y-0" : "translate-y-full"
                 )}
             >
@@ -129,7 +129,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                         <h2 className="font-empire text-3xl">
                             {mode === "signin" ? "Login" : "Sign Up"}
                         </h2>
-                        <button aria-label="Close" onClick={onClose} className="p-2 hover:bg-zinc-100 rounded-full">
+                        <button aria-label="Close" onClick={onClose} className="p-2 hover:bg-zinc-100 rounded-md transition-colors">
                             <X size={20} />
                         </button>
                     </div>
@@ -253,8 +253,8 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                         )}
 
                         {error && (
-                            <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-100 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-300">
-                                <div className="shrink-0 h-1.5 w-1.5 bg-red-500 rounded-full" />
+                            <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-100 rounded-md animate-in fade-in slide-in-from-top-2 duration-300">
+                                <div className="shrink-0 h-1.5 w-1.5 bg-red-500 rounded-sm" />
                                 <p className="text-[10px] font-bold text-red-600 uppercase tracking-widest leading-relaxed">
                                     {error}
                                 </p>
@@ -263,7 +263,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
 
                         <button
                             disabled={loading || (mode === "signup" && step === "otp" && otp.length < 6)}
-                            className="w-full flex items-center justify-center gap-2 rounded-full bg-black py-4 text-xs font-bold uppercase tracking-widest text-white active:scale-[0.98] transition-all disabled:opacity-50"
+                            className="w-full flex items-center justify-center gap-2 rounded-md bg-black py-4 text-xs font-bold uppercase tracking-widest text-white active:scale-[0.98] transition-all disabled:opacity-50"
                         >
                             {loading ? "Processing..." : mode === "signin" ? "Login" : step === "details" ? "Join Now" : "Verify & Join"}
                             {!loading && <ArrowRight size={16} />}
@@ -282,7 +282,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                             type="button"
                             onClick={handleGoogleSignIn}
                             disabled={loading}
-                            className="w-full flex items-center justify-center gap-3 rounded-full border border-zinc-200 py-4 text-xs font-bold uppercase tracking-widest text-black hover:bg-zinc-50 active:scale-[0.98] transition-all disabled:opacity-50"
+                            className="w-full flex items-center justify-center gap-3 rounded-md border border-zinc-200 py-4 text-xs font-bold uppercase tracking-widest text-black hover:bg-zinc-50 active:scale-[0.98] transition-all disabled:opacity-50"
                         >
                             <svg className="h-4 w-4" viewBox="0 0 24 24">
                                 <path

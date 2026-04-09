@@ -52,7 +52,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, className }:
             <button
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="w-10 h-10 flex items-center justify-center bg-white border border-zinc-100 rounded-xl text-zinc-400 hover:text-black hover:border-zinc-300 disabled:opacity-30 disabled:hover:text-zinc-400 disabled:hover:border-zinc-100 transition-all active:scale-90"
+                className="w-10 h-10 flex items-center justify-center bg-white border border-zinc-100 rounded-md text-zinc-400 hover:text-black hover:border-zinc-300 disabled:opacity-30 disabled:hover:text-zinc-400 disabled:hover:border-zinc-100 transition-all active:scale-90"
             >
                 <ChevronLeft size={18} />
             </button>
@@ -74,9 +74,9 @@ export function Pagination({ currentPage, totalPages, onPageChange, className }:
                             key={page}
                             onClick={() => onPageChange(page)}
                             className={cn(
-                                "w-10 h-10 flex items-center justify-center rounded-xl text-xs font-black transition-all active:scale-90",
+                                "w-10 h-10 flex items-center justify-center rounded-md text-xs font-black transition-all active:scale-90",
                                 isActive
-                                    ? "bg-black text-white shadow-lg shadow-black/10 scale-105"
+                                    ? "bg-black text-white scale-105"
                                     : "bg-white border border-zinc-100 text-zinc-400 hover:text-black hover:border-zinc-300"
                             )}
                         >
@@ -89,7 +89,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, className }:
             <button
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="w-10 h-10 flex items-center justify-center bg-white border border-zinc-100 rounded-xl text-zinc-400 hover:text-black hover:border-zinc-300 disabled:opacity-30 disabled:hover:text-zinc-400 disabled:hover:border-zinc-100 transition-all active:scale-90"
+                className="w-10 h-10 flex items-center justify-center bg-white border border-zinc-100 rounded-md text-zinc-400 hover:text-black hover:border-zinc-300 disabled:opacity-30 disabled:hover:text-zinc-400 disabled:hover:border-zinc-100 transition-all active:scale-90"
             >
                 <ChevronRight size={18} />
             </button>

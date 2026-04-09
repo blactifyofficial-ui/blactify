@@ -77,7 +77,7 @@ export function ProductCard({ product, className, onImageLoad, hidePrice, priori
                                     }
                                     addItem(product);
                                 }}
-                                className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-black shadow-lg opacity-0 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 active:scale-90"
+                                className="flex h-10 w-10 items-center justify-center rounded-md bg-white text-black shadow-lg opacity-0 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 active:scale-90"
                             >
                                 <Plus size={20} />
                             </button>

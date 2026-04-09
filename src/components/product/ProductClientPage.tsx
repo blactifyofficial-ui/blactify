@@ -185,7 +185,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
             <div className="flex flex-col items-center justify-center min-h-screen py-20 px-6 text-center">
                 <h1 className="font-empire text-3xl mb-4 text-black">Product Not Found</h1>
                 <p className="text-zinc-500 mb-8">The item you are looking for might have been removed or is temporarily unavailable.</p>
-                <Link href="/shop" className="px-8 py-4 bg-black text-white rounded-full text-xs font-bold uppercase tracking-widest">
+                <Link href="/shop" className="px-8 py-4 bg-black text-white rounded-md text-xs font-bold uppercase tracking-widest">
                     Back to Store
                 </Link>
             </div>
@@ -236,7 +236,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                 <div className="lg:grid lg:grid-cols-2 lg:gap-12 lg:items-start lg:px-6">
                     {/* Images Gallery - Single Image Slider */}
                     <div
-                        className="relative aspect-[4/5] w-full bg-zinc-50 overflow-hidden group lg:rounded-3xl cursor-grab active:cursor-grabbing touch-action-none"
+                        className="relative aspect-[4/5] w-full bg-zinc-50 overflow-hidden group lg:rounded-md cursor-grab active:cursor-grabbing touch-action-none"
                         style={{ touchAction: 'pan-y' }}
                         onTouchStart={(e) => {
                             setTouchStart(e.targetTouches[0].clientX);
@@ -314,13 +314,13 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                             <>
                                 <button
                                     onClick={() => setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : productImages.length - 1))}
-                                    className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                    className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/80 backdrop-blur-sm rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
                                 >
                                     <ChevronLeft size={20} />
                                 </button>
                                 <button
                                     onClick={() => setCurrentImageIndex((prev) => (prev < productImages.length - 1 ? prev + 1 : 0))}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/80 backdrop-blur-sm rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
                                 >
                                     <ChevronRight size={20} />
                                 </button>
@@ -335,7 +335,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                         key={index}
                                         onClick={() => setCurrentImageIndex(index)}
                                         className={cn(
-                                            "h-1.5 transition-all duration-300 rounded-full",
+                                            "h-1.5 transition-all duration-300 rounded-sm",
                                             currentImageIndex === index ? "w-8 bg-black" : "w-1.5 bg-black/20"
                                         )}
                                     />
@@ -371,7 +371,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                     </div>
                                 ) : (
                                     <div className="flex items-center gap-2">
-                                        <div className="h-1.5 w-1.5 bg-black rounded-full animate-pulse" />
+                                        <div className="h-1.5 w-1.5 bg-black rounded-sm animate-pulse" />
                                         <span className="text-[10px] font-bold text-black uppercase tracking-[0.2em]">New Arrival</span>
                                     </div>
                                 )}
@@ -446,7 +446,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                         {/* Stock Status */}
                         {currentStock <= 0 && (
                             <div className="mb-6">
-                                <div className="flex items-center gap-2 text-red-500 font-bold uppercase tracking-widest text-[10px] bg-red-50 p-3 rounded-xl border border-red-100">
+                                <div className="flex items-center gap-2 text-red-500 font-bold uppercase tracking-widest text-[10px] bg-red-50 p-3 rounded-md border border-red-100">
                                     <X size={14} />
                                     Out of Stock
                                 </div>
@@ -532,7 +532,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                         {/* Features Grid - Inside details for desktop layout if preferred, or outside below */}
                         <div className="mt-16 grid grid-cols-1 gap-8 py-10 border-t border-zinc-50">
                             <div className="flex items-start gap-5">
-                                <div className="p-3.5 bg-zinc-50 rounded-2xl text-black">
+                                <div className="p-3.5 bg-zinc-50 rounded-md text-black">
                                     <Truck size={20} />
                                 </div>
                                 <div>
@@ -541,7 +541,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                 </div>
                             </div>
                             <div className="flex items-start gap-5">
-                                <div className="p-3.5 bg-zinc-50 rounded-2xl text-black">
+                                <div className="p-3.5 bg-zinc-50 rounded-md text-black">
                                     <X size={20} />
                                 </div>
                                 <div>
@@ -550,7 +550,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                 </div>
                             </div>
                             <div className="flex items-start gap-5">
-                                <div className="p-3.5 bg-zinc-50 rounded-2xl text-black">
+                                <div className="p-3.5 bg-zinc-50 rounded-md text-black">
                                     <ShieldCheck size={20} />
                                 </div>
                                 <div>
@@ -646,7 +646,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                             </div>
                         ) : (
                             <div className="space-y-6">
-                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/10 mb-2">
+                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 rounded-sm border border-white/10 mb-2">
                                     <ShieldCheck size={14} className="text-zinc-500" />
                                     <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-[0.2em]">Verified Purchase Only</span>
                                 </div>
@@ -679,10 +679,10 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                             className="fixed inset-0 z-[100] bg-black/40 transition-opacity"
                             onClick={() => setIsReviewModalOpen(false)}
                         />
-                        <div className="fixed inset-x-0 bottom-0 z-[110] mx-auto w-full max-w-md bg-white rounded-t-[40px] p-10 shadow-2xl animate-in slide-in-from-bottom duration-500">
+                        <div className="fixed inset-x-0 bottom-0 z-[110] mx-auto w-full max-w-md bg-white rounded-t-lg p-10 shadow-2xl animate-in slide-in-from-bottom duration-500">
                             <div className="flex items-center justify-between mb-8">
                                 <h2 className="text-2xl font-medium uppercase text-black">Write Review</h2>
-                                <button onClick={() => setIsReviewModalOpen(false)} className="p-2 hover:bg-zinc-100 rounded-full transition-colors">
+                                <button onClick={() => setIsReviewModalOpen(false)} className="p-2 hover:bg-zinc-100 rounded-md transition-colors">
                                     <X size={20} />
                                 </button>
                             </div>
@@ -710,14 +710,14 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                         required
                                         value={newComment}
                                         onChange={(e) => setNewComment(e.target.value)}
-                                        className="w-full h-32 bg-zinc-50 border-none rounded-3xl p-6 text-sm outline-none focus:ring-2 focus:ring-black transition-all resize-none"
+                                        className="w-full h-32 bg-zinc-50 border-none rounded-md p-6 text-sm outline-none focus:ring-1 focus:ring-black transition-all resize-none"
                                         placeholder="Tell us what you think..."
                                     />
                                 </div>
 
                                 <button
                                     disabled={isSubmitting}
-                                    className="w-full h-16 bg-black text-white rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-3 shadow-2xl shadow-black/10 active:scale-95 transition-all disabled:opacity-50"
+                                    className="w-full h-16 bg-black text-white rounded-md text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-3 shadow-2xl shadow-black/10 active:scale-95 transition-all disabled:opacity-50"
                                 >
                                     {isSubmitting ? "Posting..." : "Post Review"}
                                     <Send size={16} />
@@ -735,22 +735,22 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                             onClick={() => setIsSizeGuideOpen(false)}
                         />
                         <div
-                            className="fixed inset-x-0 bottom-0 z-[110] mx-auto w-full max-w-2xl bg-white rounded-t-[3rem] p-10 sm:p-14 shadow-[0_-40px_100px_rgba(0,0,0,0.2)] flex flex-col max-h-[90vh] border-t border-zinc-100/50 transform transition-all duration-1000 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] animate-in slide-in-from-bottom-full zoom-in-[0.98]"
+                            className="fixed inset-x-0 bottom-0 z-[110] mx-auto w-full max-w-2xl bg-white rounded-t-lg p-10 sm:p-14 shadow-[0_-40px_100px_rgba(0,0,0,0.2)] flex flex-col max-h-[90vh] border-t border-zinc-100/50 transform transition-all duration-1000 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] animate-in slide-in-from-bottom-full zoom-in-[0.98]"
                         >
                             {/* Decorative Handle */}
-                            <div className="w-12 h-1 bg-zinc-100 rounded-full mx-auto mb-10 shrink-0" />
+                            <div className="w-12 h-1 bg-zinc-100 rounded-sm mx-auto mb-10 shrink-0" />
 
                             <div className="flex items-center justify-between mb-12 flex-shrink-0 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-150 fill-mode-both">
                                 <div className="space-y-1.5">
-                                    <h2 className="text-4xl font-extrabold uppercase tracking-tighter text-black leading-none">Dimensions</h2>
+1:                                    <h2 className="text-4xl font-extrabold uppercase tracking-tighter text-black leading-none">Dimensions</h2>
                                     <div className="flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 bg-black rounded-full" />
+                                        <div className="w-1.5 h-1.5 bg-black rounded-sm" />
                                         <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-400">Precision Analysis Protocol</p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => setIsSizeGuideOpen(false)}
-                                    className="w-14 h-14 flex items-center justify-center hover:bg-black hover:text-white rounded-full transition-all duration-500 border border-zinc-100 group"
+                                    className="w-14 h-14 flex items-center justify-center hover:bg-black hover:text-white rounded-md transition-all duration-500 border border-zinc-100 group"
                                 >
                                     <X size={24} className="group-hover:rotate-90 transition-transform duration-500" />
                                 </button>
