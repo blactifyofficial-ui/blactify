@@ -93,7 +93,7 @@ export function useAdminProducts({ page, pageSize, searchTerm, categoryId, statu
             let processedData = (data || []).map(product => {
                 const images = product.product_images || [];
                 const mainImg = images.find((img: { position: number }) => img.position === 0) || images[0];
-                const stock = (product.product_variants as { stock: number }[])?.reduce((sum, v) => sum + (v.stock || 0), 0) || 0;
+                const stock = (product.product_variants as { stock: number }[])?.reduce((sum, v) => sum + (Number(v.stock) || 0), 0) || 0;
                 
                 const is_hidden_by_drop = hiddenProductIds.has(product.id);
                 const is_out_of_stock_long = product.out_of_stock_at && new Date(product.out_of_stock_at) <= sevenDaysAgo;

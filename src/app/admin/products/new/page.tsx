@@ -228,8 +228,8 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                 id: (data.id || "") as string,
                 name: (data.name || "") as string,
                 handle: (data.handle || "") as string,
-                price_base: (data.price_base || "") as string | number,
-                price_offer: (data.price_offer || "") as string | number,
+                price_base: data.price_base ?? "" as string | number,
+                price_offer: data.price_offer ?? "" as string | number,
                 category_id: (data.category_id || "") as string,
                 main_image: (mainImg?.url || "") as string,
                 image1: (img1?.url || "") as string,
@@ -352,8 +352,8 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                 id: finalId,
                 name: formData.name,
                 handle: formData.handle || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-                price_base: parseFloat(String(formData.price_base)) || 0,
-                price_offer: formData.price_offer ? parseFloat(String(formData.price_offer)) : null,
+                price_base: Number(formData.price_base) || 0,
+                price_offer: (formData.price_offer !== "" && formData.price_offer !== null) ? Number(formData.price_offer) : null,
                 category_id: formData.category_id || null,
                 description: formData.description,
                 variants: formData.variants,
@@ -465,7 +465,9 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
     };
 
     const updateVariantStock = (index: number, newStock: string) => {
-        const stockVal = parseInt(newStock) || 0;
+        const stockVal = newStock === "" ? 0 : parseInt(newStock);
+        if (isNaN(stockVal)) return;
+
         setFormData(prev => ({
             ...prev,
             variants: prev.variants.map((v, i) => i === index ? { ...v, stock: stockVal } : v)

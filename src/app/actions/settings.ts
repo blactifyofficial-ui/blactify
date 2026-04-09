@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { Resend } from "resend";
 import { SELLER_CONFIG } from "@/lib/config";
 import { verifyActionAdminAuth } from "@/lib/auth-server";
+import { sendMulticastAdminNotification } from "@/lib/notifications-server";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://dummy.supabase.co";
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "dummy";
@@ -106,6 +107,25 @@ export async function togglePurchaseStatus(status: boolean, token?: string) {
         revalidatePath("/product/[id]", "page");
         revalidatePath("/product/[id]", "layout");
         revalidatePath("/", "layout");
+
+        // Send Firebase Notification
+        try {
+            if (!status) {
+                await sendMulticastAdminNotification(
+                    "🚨 Purchase Infrastructure STOPPED",
+                    "Store purchases have been manually disabled by an admin.",
+                    { type: "purchase_toggle", enabled: "false" }
+                );
+            } else {
+                await sendMulticastAdminNotification(
+                    "✅ Purchase Infrastructure RESTORED",
+                    "Store purchases are now active and live.",
+                    { type: "purchase_toggle", enabled: "true" }
+                );
+            }
+        } catch (fcmErr) {
+            console.error("Failed to send purchase toggle FCM alert", fcmErr);
+        }
 
         // Log the action
         const { logAction } = await import("@/lib/logger");

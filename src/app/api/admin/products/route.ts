@@ -13,7 +13,7 @@ export async function POST(request: Request) {
         const { id, name, handle, price_base, price_offer, category_id, description, variants, images } = body;
 
         // 1. Calculate Total Stock from variants in body
-        const totalStock = variants?.reduce((acc: number, v: { stock: number }) => acc + v.stock, 0) || 0;
+        const totalStock = variants?.reduce((acc: number, v: { stock: number }) => acc + (Number(v.stock) || 0), 0) || 0;
 
         // 2. Insert Product
         const { error: productError } = await supabaseAdmin
@@ -22,8 +22,8 @@ export async function POST(request: Request) {
                 id,
                 name,
                 handle,
-                price_base,
-                price_offer,
+                price_base: Number(price_base) || 0,
+                price_offer: (price_offer !== null && price_offer !== undefined && price_offer !== "") ? Number(price_offer) : null,
                 category_id,
                 description,
                 out_of_stock_at: totalStock <= 0 ? new Date().toISOString() : null,
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
                     .upsert([{
                         product_id: id,
                         size: variant.size,
-                        stock: variant.stock
+                        stock: Number(variant.stock) || 0
                     }], { onConflict: 'product_id, size' })
                     .select()
                     .single();
@@ -107,7 +107,7 @@ export async function PUT(request: Request) {
         const { id, name, handle, price_base, price_offer, category_id, description, variants, images } = body;
 
         // 1. Calculate Total Stock from variants in body
-        const totalStock = variants?.reduce((acc: number, v: { stock: number }) => acc + v.stock, 0) || 0;
+        const totalStock = variants?.reduce((acc: number, v: { stock: number }) => acc + (Number(v.stock) || 0), 0) || 0;
 
         // 2. Update Product
         const { error: productError } = await supabaseAdmin
@@ -115,8 +115,8 @@ export async function PUT(request: Request) {
             .update({
                 name,
                 handle,
-                price_base,
-                price_offer,
+                price_base: Number(price_base) || 0,
+                price_offer: (price_offer !== null && price_offer !== undefined && price_offer !== "") ? Number(price_offer) : null,
                 category_id,
                 description,
                 out_of_stock_at: totalStock <= 0 ? new Date().toISOString() : null,
@@ -148,7 +148,7 @@ export async function PUT(request: Request) {
                     .upsert([{
                         product_id: id,
                         size: variant.size,
-                        stock: variant.stock
+                        stock: Number(variant.stock) || 0
                     }], { onConflict: 'product_id, size' })
                     .select()
                     .single();
