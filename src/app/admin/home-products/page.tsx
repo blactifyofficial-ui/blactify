@@ -184,7 +184,7 @@ export default function HomeProductsPage() {
                             {searching ? (
                                 <div className="py-10 flex flex-col items-center justify-center text-zinc-300">
                                     <Loader2 className="animate-spin mb-2" size={20} />
-                                    <span className="text-[10px] font-black uppercase tracking-widest italic">Searching...</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Searching...</span>
                                 </div>
                             ) : searchResults.length > 0 ? (
                                 searchResults.map(product => (
@@ -215,11 +215,11 @@ export default function HomeProductsPage() {
                                     </button>
                                 ))
                             ) : searchTerm ? (
-                                <div className="py-10 text-center text-zinc-300 italic text-[10px] font-black uppercase tracking-widest">
+                                <div className="py-10 text-center text-zinc-300 text-[10px] font-black uppercase tracking-widest">
                                     No products found
                                 </div>
                             ) : (
-                                <div className="py-10 text-center text-zinc-300 italic text-[10px] font-black uppercase tracking-widest">
+                                <div className="py-10 text-center text-zinc-300 text-[10px] font-black uppercase tracking-widest">
                                     Start typing to search
                                 </div>
                             )}
@@ -287,7 +287,7 @@ export default function HomeProductsPage() {
                         ) : (
                             <div className="py-20 text-center">
                                 <Home className="mx-auto text-zinc-50 mb-6" size={60} />
-                                <p className="text-zinc-400 text-[10px] font-black uppercase tracking-widest italic">
+                                <p className="text-zinc-400 text-[10px] font-black uppercase tracking-widest">
                                     No products selected for home screen
                                 </p>
                             </div>

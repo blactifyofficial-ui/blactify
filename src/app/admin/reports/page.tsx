@@ -201,7 +201,7 @@ export default function AdminReportsPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <AdminCard className="group relative overflow-hidden">
                     <div className="relative z-10">
-                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-3 italic">Gross Revenue</p>
+                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-3">Gross Revenue</p>
                         <h3 className="text-4xl font-black tracking-tighter text-black group-hover:translate-x-1 transition-transform duration-500">₹{totalRevenue.toLocaleString()}</h3>
                         <div className="mt-8 flex items-center gap-3 bg-zinc-50 w-fit px-4 py-2 rounded-full border border-zinc-100 shadow-sm">
                             <TrendingUp size={14} className="text-green-500" />
@@ -211,7 +211,7 @@ export default function AdminReportsPage() {
                 </AdminCard>
 
                 <AdminCard className="group" title="Order Volume">
-                    <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-2 italic">Total Orders</p>
+                    <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-2">Total Orders</p>
                     <h3 className="text-4xl font-black tracking-tighter text-black group-hover:translate-x-1 transition-transform duration-500">{paidOrders.length.toLocaleString()}</h3>
                     <div className="mt-8 flex items-center gap-3 text-zinc-400 text-[10px] font-black uppercase tracking-widest">
                         <Calendar size={14} className="text-black" />
@@ -221,7 +221,7 @@ export default function AdminReportsPage() {
                 </AdminCard>
 
                 <AdminCard className="group" title="Average Sale">
-                    <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-2 italic">Average Order Value</p>
+                    <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-2">Average Order Value</p>
                     <h3 className="text-4xl font-black tracking-tighter text-black group-hover:translate-x-1 transition-transform duration-500">₹{Math.round(averageOrderValue).toLocaleString()}</h3>
                     <div className="mt-8 flex items-center gap-3 text-zinc-400 text-[10px] font-black uppercase tracking-widest">
                         <Target size={14} className="text-black" />
@@ -244,7 +244,7 @@ export default function AdminReportsPage() {
                             {Object.entries(chartData).map(([label, amount], idx) => (
                                 <div key={label} className="space-y-3 group/row">
                                     <div className="flex justify-between items-end">
-                                        <span className="text-[10px] font-black text-black uppercase tracking-[0.2em] italic">{label}</span>
+                                        <span className="text-[10px] font-black text-black uppercase tracking-[0.2em]">{label}</span>
                                         <span className="text-sm font-black tracking-tight">₹{amount.toLocaleString()}</span>
                                     </div>
                                     <div className="h-4 w-full bg-zinc-50 rounded-full overflow-hidden p-1 border border-zinc-100 shadow-inner">
@@ -258,7 +258,7 @@ export default function AdminReportsPage() {
                             {orders.length === 0 && (
                                 <div className="py-24 text-center">
                                     <Zap className="mx-auto text-zinc-50 mb-6" size={64} />
-                                    <p className="text-[10px] text-zinc-300 font-black uppercase tracking-[0.4em] italic leading-loose">
+                                    <p className="text-[10px] text-zinc-300 font-black uppercase tracking-[0.4em] leading-loose">
                                         No sales data available yet.
                                     </p>
                                 </div>
@@ -299,7 +299,7 @@ export default function AdminReportsPage() {
                             )}
                             <div className="mt-8 pt-8 border-t border-zinc-50 text-center">
                                 <Activity size={32} className="mx-auto text-zinc-100 mb-4 animate-pulse" />
-                                <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] italic leading-loose px-4">
+                                <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] leading-loose px-4">
                                     Product specific data loading...
                                 </p>
                             </div>

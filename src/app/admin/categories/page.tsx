@@ -237,7 +237,7 @@ export default function AdminCategoriesPage() {
                         <form onSubmit={handleSubmit} noValidate className="space-y-6">
                             <div className="space-y-4">
                                 <label className="block">
-                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-2 block italic">Category Name</span>
+                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-2 block">Category Name</span>
                                     <div className="relative">
                                         <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={18} />
                                         <input
@@ -255,7 +255,7 @@ export default function AdminCategoriesPage() {
                                         />
                                     </div>
                                     {formError && (
-                                        <p className="mt-2 text-[10px] text-red-500 font-bold italic flex items-center gap-1">
+                                        <p className="mt-2 text-[10px] text-red-500 font-bold flex items-center gap-1">
                                             <AlertCircle size={12} /> {formError}
                                         </p>
                                     )}
@@ -263,7 +263,7 @@ export default function AdminCategoriesPage() {
 
                                 <div className="space-y-4 pt-4 border-t border-zinc-50">
                                     <div className="flex items-center justify-between mb-2">
-                                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 block italic">Category Image</span>
+                                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 block">Category Image</span>
                                     </div>
                                     <div className="flex items-start gap-4">
                                         <div className="relative w-24 h-32 bg-zinc-50 rounded-2xl flex items-center justify-center border-2 border-dashed border-zinc-200 overflow-hidden group">
@@ -286,7 +286,7 @@ export default function AdminCategoriesPage() {
                                             )}
                                         </div>
                                         <div className="flex-1 space-y-2">
-                                            <p className="text-[10px] text-zinc-400 font-medium italic">Upload a high-quality vertical image (4:5 ratio) representing this category.</p>
+                                            <p className="text-[10px] text-zinc-400 font-medium">Upload a high-quality vertical image (4:5 ratio) representing this category.</p>
                                             {newImageUrl && (
                                                 <button
                                                     type="button"
@@ -301,7 +301,7 @@ export default function AdminCategoriesPage() {
                                 </div>
 
                                 <div className="space-y-4 pt-4 border-t border-zinc-50">
-                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 block italic">Measurement Fields</span>
+                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 block">Measurement Fields</span>
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
@@ -410,7 +410,7 @@ export default function AdminCategoriesPage() {
                                                         </span>
                                                     ))}
                                                     {(!cat.size_config || cat.size_config.length === 0) && (
-                                                        <span className="text-[8px] font-bold text-zinc-300 uppercase tracking-widest italic">No sizes set</span>
+                                                        <span className="text-[8px] font-bold text-zinc-300 uppercase tracking-widest">No sizes set</span>
                                                     )}
                                                 </div>
                                             </div>
@@ -452,7 +452,7 @@ export default function AdminCategoriesPage() {
                             <AdminCard className="py-20 text-center">
                                 <Tag className="mx-auto text-zinc-50 mb-6 opacity-50" size={64} />
                                 <h4 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-2">No Categories</h4>
-                                <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest italic leading-loose px-10">
+                                <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest leading-loose px-10">
                                     No categories found. Add one using the form.
                                 </p>
                             </AdminCard>
@@ -537,7 +537,7 @@ function CategoryProductsModal({ isOpen, onClose, category }: { isOpen: boolean,
                             ))}
                         </div>
                     ) : (
-                        <div className="h-64 flex flex-col items-center justify-center text-zinc-400 gap-3 italic">
+                        <div className="h-64 flex flex-col items-center justify-center text-zinc-400 gap-3">
                             <Tag size={40} className="text-zinc-100" />
                             <p className="text-sm font-bold uppercase tracking-widest text-zinc-200">Empty Category</p>
                         </div>

@@ -128,11 +128,11 @@ export default function AdminOrdersPage() {
                                         </h3>
 
                                         <div className="flex items-center gap-5 text-zinc-400">
-                                            <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.2em] opacity-80 italic">
+                                            <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.2em] opacity-80">
                                                 <Calendar size={12} strokeWidth={2.5} />
                                                 {new Date(order.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                                             </div>
-                                            <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.2em] opacity-80 italic">
+                                            <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.2em] opacity-80">
                                                 <Clock size={12} strokeWidth={2.5} />
                                                 {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </div>
@@ -158,7 +158,7 @@ export default function AdminOrdersPage() {
                         <div className="bg-white p-32 rounded-[3.5rem] border border-zinc-100 text-center shadow-inner relative overflow-hidden">
                             <ShoppingBag className="mx-auto text-zinc-100 mb-8 opacity-50" size={80} />
                             <h4 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-2">No Results</h4>
-                            <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest italic">No orders found.</p>
+                            <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest">No orders found.</p>
                             <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.02] pointer-events-none"></div>
                         </div>
                     )}

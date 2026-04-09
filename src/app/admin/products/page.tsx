@@ -263,7 +263,7 @@ export default function AdminProductsPage() {
                                             <div className="p-4 sm:p-8 flex-1 flex flex-col justify-between">
                                                 <div className="mb-3 sm:mb-6">
                                                     <div className="flex items-start justify-between gap-2 sm:gap-4">
-                                                        <h3 className="font-black text-xs sm:text-lg text-black tracking-tight line-clamp-1 group-hover:text-zinc-600 transition-colors uppercase italic">{product.name}</h3>
+                                                        <h3 className="font-black text-xs sm:text-lg text-black tracking-tight line-clamp-1 group-hover:text-zinc-600 transition-colors uppercase">{product.name}</h3>
                                                         <div className={cn(
                                                             "w-2 h-2 sm:w-auto sm:px-2 sm:py-0.5 rounded-full text-[7px] font-black uppercase tracking-tighter shrink-0",
                                                             (product as Product & { visibility_status: string }).visibility_status === 'active' ? "bg-green-500 sm:bg-green-50 sm:text-green-500" : "bg-amber-500 sm:bg-amber-50 sm:text-amber-500"
@@ -272,7 +272,7 @@ export default function AdminProductsPage() {
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-2 mt-1">
-                                                        <p className="text-[7px] sm:text-[9px] font-black text-zinc-300 uppercase tracking-widest italic">{product.id.slice(0, 8)}</p>
+                                                        <p className="text-[7px] sm:text-[9px] font-black text-zinc-300 uppercase tracking-widest">{product.id.slice(0, 8)}</p>
                                                     </div>
                                                 </div>
 
@@ -316,7 +316,7 @@ export default function AdminProductsPage() {
                                                 
                                                 <div className="flex flex-col gap-0.5 sm:gap-1">
                                                     <div className="flex items-center gap-2 sm:gap-3">
-                                                        <h3 className="font-black text-sm sm:text-lg text-black tracking-tight uppercase italic">{product.name}</h3>
+                                                        <h3 className="font-black text-sm sm:text-lg text-black tracking-tight uppercase">{product.name}</h3>
                                                         <div className={cn(
                                                             "px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-tighter",
                                                             (product as Product & { visibility_status: string }).visibility_status === 'active' ? "bg-green-50 text-green-500" : "bg-amber-50 text-amber-500"
@@ -327,7 +327,7 @@ export default function AdminProductsPage() {
                                                     <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                                                         <span className="text-[8px] sm:text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{product.categories?.name || "Uncategorized"}</span>
                                                         <span className="hidden sm:inline text-zinc-200">•</span>
-                                                        <span className="text-[8px] sm:text-[10px] font-bold text-zinc-300 uppercase tracking-widest italic">ID: {product.id.slice(0, 8)}</span>
+                                                        <span className="text-[8px] sm:text-[10px] font-bold text-zinc-300 uppercase tracking-widest">ID: {product.id.slice(0, 8)}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -373,7 +373,7 @@ export default function AdminProductsPage() {
                             <AdminCard className="py-32 text-center">
                                 <Box className="mx-auto text-zinc-50 mb-8 opacity-50" size={80} />
                                 <h4 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-2">No Products Found</h4>
-                                <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest italic leading-loose px-10">
+                                <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest leading-loose px-10">
                                     No products found. Try a different search or add a new product.
                                 </p>
                             </AdminCard>

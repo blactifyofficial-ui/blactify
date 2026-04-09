@@ -312,7 +312,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                                             <div className="flex items-center gap-3">
                                                 <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 bg-white px-3 py-1 rounded-full border border-zinc-50">QTY: {item.quantity}</span>
                                                 {item.size && (
-                                                    <span className="text-[9px] font-black uppercase tracking-widest text-zinc-900 bg-black/5 px-3 py-1 rounded-full italic">SIZE: {item.size}</span>
+                                                    <span className="text-[9px] font-black uppercase tracking-widest text-zinc-900 bg-black/5 px-3 py-1 rounded-full">SIZE: {item.size}</span>
                                                 )}
                                             </div>
                                             {item.size && itemMeasurements[`${item.id}-${item.size}`] && (
@@ -329,7 +329,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                                     </div>
                                     <div className="text-right">
                                         <p className="font-black text-xl tracking-tighter">₹{((item.price || item.price_offer || item.price_base || 0) * item.quantity).toLocaleString()}</p>
-                                        <p className="text-[9px] text-zinc-300 font-black uppercase tracking-widest italic">₹{(item.price || item.price_offer || item.price_base || 0).toLocaleString()} / UNIT</p>
+                                        <p className="text-[9px] text-zinc-300 font-black uppercase tracking-widest">₹{(item.price || item.price_offer || item.price_base || 0).toLocaleString()} / UNIT</p>
                                     </div>
                                 </div>
                             ))}
@@ -365,7 +365,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                                 <div className="p-6 bg-zinc-50 rounded-[2rem] border border-zinc-100 relative overflow-hidden group">
                                     <div className="relative z-10 space-y-4">
                                         <div className="pb-4 border-b border-zinc-100 mb-2">
-                                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-red-600 mb-2 italic">Shipping Address</p>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-red-600 mb-2">Shipping Address</p>
                                             <p className="text-xl font-black tracking-tight text-black">{order.customer_details?.name}</p>
                                         </div>
                                         
@@ -375,7 +375,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                                                 <p className="text-[12px] font-black tracking-tight text-zinc-900">
                                                     {order.shipping_address?.address || (order.shipping_address as { address?: string; line1?: string }).line1}
                                                     {(order.shipping_address?.apartment || (order.shipping_address as { apartment?: string; line2?: string }).line2) && (
-                                                        <span className="italic">, {order.shipping_address.apartment || (order.shipping_address as { apartment?: string; line2?: string }).line2}</span>
+                                                        <span className=" ">, {order.shipping_address.apartment || (order.shipping_address as { apartment?: string; line2?: string }).line2}</span>
                                                     )}
                                                 </p>
                                             </div>
@@ -413,7 +413,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                         <AdminCard title="Shipment Tracking" icon={<Activity size={18} />}>
                             <div className="space-y-6">
                                 <div className="space-y-3">
-                                    <label className="text-[9px] text-zinc-400 font-black uppercase tracking-[0.3em] italic mb-1.5 block">
+                                    <label className="text-[9px] text-zinc-400 font-black uppercase tracking-[0.3em] mb-1.5 block">
                                         Tracking Number
                                     </label>
                                     <div className="flex gap-2">
@@ -545,7 +545,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                         <div className="space-y-6">
                             <div className="space-y-2">
                                 <p className="text-[8px] text-zinc-400 font-black uppercase tracking-[0.3em]">Transaction ID</p>
-                                <p className="text-[10px] font-mono font-black break-all bg-zinc-50 p-4 rounded-2xl border border-zinc-100 shadow-inner italic">
+                                <p className="text-[10px] font-mono font-black break-all bg-zinc-50 p-4 rounded-2xl border border-zinc-100 shadow-inner">
                                     {order.payment_id || "UNPAID"}
                                 </p>
                             </div>

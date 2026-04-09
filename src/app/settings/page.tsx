@@ -162,7 +162,7 @@ export default function SettingsPage() {
                                         Verified
                                     </span>
                                 </div>
-                                <p className="text-[10px] text-zinc-400 italic mt-2">Email cannot be changed for security reasons.</p>
+                                <p className="text-[10px] text-zinc-400 mt-2">Email cannot be changed for security reasons.</p>
                             </div>
 
                             {status && (

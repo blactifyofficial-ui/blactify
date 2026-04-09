@@ -159,7 +159,7 @@ export default function AdminDropsPage() {
                         <form onSubmit={handleSubmit} noValidate className="space-y-6">
                             <div className="space-y-4">
                                 <label className="block">
-                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-2 block italic">Drop Name</span>
+                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-2 block">Drop Name</span>
                                     <div className="relative">
                                         <Zap className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={18} />
                                         <input
@@ -179,7 +179,7 @@ export default function AdminDropsPage() {
                                 </label>
 
                                 <label className="block">
-                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-2 block italic">Publish Date & Time</span>
+                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-2 block">Publish Date & Time</span>
                                     <div className="relative">
                                         <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={18} />
                                         <input
@@ -198,7 +198,7 @@ export default function AdminDropsPage() {
                                 </label>
 
                                 {formError && (
-                                    <p className="text-[10px] text-red-500 font-bold italic flex items-center gap-1">
+                                    <p className="text-[10px] text-red-500 font-bold flex items-center gap-1">
                                         <AlertCircle size={12} /> {formError}
                                     </p>
                                 )}
@@ -250,7 +250,7 @@ export default function AdminDropsPage() {
                                                     {drop.createdAt && (
                                                         <>
                                                             <span className="text-[10px] text-zinc-200 px-1">•</span>
-                                                            <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest leading-none pt-0.5 italic">
+                                                            <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest leading-none pt-0.5">
                                                                 Updated {formatDistanceToNow(new Date(drop.createdAt), { addSuffix: true })}
                                                             </span>
                                                         </>
@@ -260,7 +260,7 @@ export default function AdminDropsPage() {
                                         </div>
                                         <div className="flex items-center gap-2">
                                             {new Date(drop.publishDate) < new Date() ? (
-                                                <div className="flex items-center gap-1.5 px-3 py-2 bg-zinc-50 rounded-xl text-[9px] font-black text-zinc-400 uppercase tracking-widest border border-zinc-100 italic">
+                                                <div className="flex items-center gap-1.5 px-3 py-2 bg-zinc-50 rounded-xl text-[9px] font-black text-zinc-400 uppercase tracking-widest border border-zinc-100">
                                                     <Lock size={12} /> Published
                                                 </div>
                                             ) : (
@@ -297,7 +297,7 @@ export default function AdminDropsPage() {
                             <AdminCard className="py-20 text-center">
                                 <Zap className="mx-auto text-zinc-50 mb-6 opacity-50" size={64} />
                                 <h4 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-2">No Drops</h4>
-                                <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest italic leading-loose px-10">
+                                <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest leading-loose px-10">
                                     No drops found. Create one using the form.
                                 </p>
                             </AdminCard>

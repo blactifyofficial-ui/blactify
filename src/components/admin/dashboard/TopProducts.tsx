@@ -40,7 +40,7 @@ export function TopProducts({ products }: TopProductsProps) {
                     ))
                 ) : (
                     <div className="py-20 text-center">
-                        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest italic">No Data</p>
+                        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">No Data</p>
                     </div>
                 )}
             </div>

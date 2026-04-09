@@ -118,9 +118,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     <div key={item.href} className="space-y-1">
                                         <div
                                             className={cn(
-                                                "flex items-center justify-between px-6 py-4 rounded-2xl transition-all duration-200 cursor-pointer group",
+                                                "flex items-center justify-between px-6 py-4 rounded-md transition-all duration-200 cursor-pointer group",
                                                 isActive
-                                                    ? "bg-black text-white"
+                                                    ? "text-black font-bold bg-zinc-50"
                                                     : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900"
                                             )}
                                         >
@@ -136,7 +136,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                                     e.stopPropagation();
                                                     setIsStoreExpanded(!isStoreExpanded);
                                                 }}
-                                                className="p-1 hover:bg-white/10 rounded-lg transition-transform"
+                                                className="p-1 hover:bg-black/5 rounded-lg transition-transform"
                                             >
                                                 <ChevronDown
                                                     size={16}
@@ -181,9 +181,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     href={item.href}
                                     onClick={onClose}
                                     className={cn(
-                                        "flex items-center justify-between px-6 py-4 rounded-2xl transition-all duration-200 group",
+                                        "flex items-center justify-between px-6 py-4 rounded-md transition-all duration-200 group",
                                         isActive
-                                            ? "bg-black text-white"
+                                            ? "text-black font-bold bg-zinc-50"
                                             : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900"
                                     )}
                                 >
@@ -208,8 +208,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     href="/profile"
                                     onClick={onClose}
                                     className={cn(
-                                        "flex items-center justify-between px-6 py-5 rounded-2xl transition-all duration-200 group",
-                                        pathname === "/profile" ? "bg-black text-white" : "bg-zinc-50 hover:bg-zinc-100 text-zinc-900"
+                                        "flex items-center justify-between px-6 py-5 rounded-md transition-all duration-200 group",
+                                        pathname === "/profile" ? "bg-zinc-50 text-black font-bold" : "bg-zinc-50 hover:bg-zinc-100 text-zinc-900"
                                     )}
                                 >
                                     <div className="flex flex-col overflow-hidden flex-1">
@@ -225,7 +225,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
                                 <button
                                     onClick={() => setShowLogoutModal(true)}
-                                    className="w-full flex items-center justify-between px-6 py-4 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all duration-200"
+                                    className="w-full flex items-center justify-between px-6 py-4 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all duration-200"
                                 >
                                     <span className="font-empire text-[11px] tracking-wide">Sign Out</span>
                                 </button>
@@ -234,7 +234,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                             <Link
                                 href="/profile"
                                 onClick={onClose}
-                                className="w-full flex items-center justify-center px-4 py-6 bg-black text-white rounded-2xl font-empire text-[11px] tracking-wide active:scale-[0.98] transition-all"
+                                className="w-full flex items-center justify-center px-4 py-5 bg-white border border-zinc-200 text-black rounded-md font-empire text-[11px] tracking-wide active:scale-[0.98] transition-all hover:bg-zinc-50"
                             >
                                 Sign In / Register
                             </Link>

@@ -44,7 +44,7 @@ export default function ShippingPolicyPage() {
                                 </tbody>
                             </table>
                         </div>
-                        <p className="text-[10px] text-zinc-400 italic mt-2">* Delivery timelines are estimates and may vary based on location and unforeseen circumstances.</p>
+                        <p className="text-[10px] text-zinc-400 mt-2">* Delivery timelines are estimates and may vary based on location and unforeseen circumstances.</p>
                     </section>
 
                     <section className="space-y-4">

@@ -51,7 +51,7 @@ export function RecentActivity({ orders }: RecentActivityProps) {
                             </div>
                             <div className="text-right">
                                 <p className="text-lg font-black tracking-tight text-black">₹{order.amount.toLocaleString()}</p>
-                                <p className="text-[9px] text-zinc-300 font-black uppercase tracking-widest italic">{new Date(order.created_at).toLocaleDateString()}</p>
+                                <p className="text-[9px] text-zinc-300 font-black uppercase tracking-widest">{new Date(order.created_at).toLocaleDateString()}</p>
                             </div>
                         </Link>
                     ))
@@ -59,7 +59,7 @@ export function RecentActivity({ orders }: RecentActivityProps) {
                     <div className="py-24 text-center">
                         <ShoppingBag className="mx-auto text-zinc-50 mb-6 opacity-50" size={64} />
                         <h4 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-2">No Activity</h4>
-                        <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest italic leading-loose px-10">
+                        <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest leading-loose px-10">
                             There is no recent activity to show.
                         </p>
                     </div>

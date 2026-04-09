@@ -44,7 +44,7 @@ export default function ImageCropper({ image, onCrop, onCancel, aspectRatio = 1 
                 <div className="px-8 py-6 border-b border-zinc-100 flex items-center justify-between">
                     <div>
                         <h3 className="text-xl font-bold">Crop Image</h3>
-                        <p className="text-xs text-zinc-400 font-medium italic">Adjust your image for the perfect fit.</p>
+                        <p className="text-xs text-zinc-400 font-medium">Adjust your image for the perfect fit.</p>
                     </div>
                     <button
                         onClick={onCancel}

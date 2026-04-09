@@ -814,12 +814,12 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                                 )}
                                             </div>
                                             {stockErrors[item.cartId] && (
-                                                <p className="text-[10px] text-red-500 font-bold mt-1 uppercase italic">
+                                                <p className="text-[10px] text-red-500 font-bold mt-1 uppercase">
                                                     {stockErrors[item.cartId]}
                                                 </p>
                                             )}
                                             {priceErrors[item.cartId] && (
-                                                <p className="text-[10px] text-orange-600 font-bold mt-1 uppercase italic">
+                                                <p className="text-[10px] text-orange-600 font-bold mt-1 uppercase">
                                                     {priceErrors[item.cartId]}
                                                 </p>
                                             )}
@@ -1097,7 +1097,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                             )}
                             {Object.keys(priceErrors).length > 0 && (
                                 <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg">
-                                    <p className="text-xs text-blue-600 font-medium italic">
+                                    <p className="text-xs text-blue-600 font-medium">
                                         Note: Some product prices were updated to match current store values.
                                     </p>
                                 </div>
@@ -1196,12 +1196,12 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                                     )}
                                 </div>
                                 {stockErrors[item.cartId] && (
-                                    <p className="text-[10px] text-red-500 font-bold mt-1 uppercase italic">
+                                    <p className="text-[10px] text-red-500 font-bold mt-1 uppercase">
                                         {stockErrors[item.cartId]}
                                     </p>
                                 )}
                                 {priceErrors[item.cartId] && (
-                                    <p className="text-[10px] text-orange-600 font-bold mt-1 uppercase italic">
+                                    <p className="text-[10px] text-orange-600 font-bold mt-1 uppercase">
                                         {priceErrors[item.cartId]}
                                     </p>
                                 )}

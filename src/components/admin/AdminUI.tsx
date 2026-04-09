@@ -7,7 +7,7 @@ export function AdminLoading({ message = "Loading..." }: { message?: string }) {
                 <div className="w-16 h-16 border-4 border-zinc-100 rounded-full"></div>
                 <div className="w-16 h-16 border-4 border-black border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
             </div>
-            <p className="mt-6 text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400 italic animate-pulse">
+            <p className="mt-6 text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400 animate-pulse">
                 {message}
             </p>
         </div>
@@ -28,7 +28,7 @@ export function AdminPageHeader({
             <div className="space-y-1">
                 <h2 className="text-2xl sm:text-3xl font-heading tracking-tight text-black uppercase">{title}</h2>
                 {subtitle && (
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-zinc-500 italic">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-zinc-500">
                         {subtitle}
                     </p>
                 )}
@@ -62,7 +62,7 @@ export function AdminCard({
                             {icon}
                             {title}
                         </h3>}
-                        {subtitle && <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-1 italic">{subtitle}</p>}
+                        {subtitle && <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-1">{subtitle}</p>}
                     </div>
                 </div>
             )}

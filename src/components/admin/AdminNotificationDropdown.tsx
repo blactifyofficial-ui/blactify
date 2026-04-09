@@ -245,7 +245,7 @@ export function AdminNotificationDropdown() {
                                                     )}
                                                     
                                                     {notif.is_read && notif.read_at && (
-                                                        <span className="text-[8px] font-black text-red-600/30 uppercase italic tracking-widest">
+                                                        <span className="text-[8px] font-black text-red-600/30 uppercase tracking-widest">
                                                             Deletes in 24h
                                                         </span>
                                                     )}

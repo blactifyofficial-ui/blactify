@@ -505,7 +505,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                     </button>
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight text-black">{isEditing ? "Edit Product" : "New Product"}</h2>
-                        <p className="text-xs text-zinc-600 font-medium italic">Enter the product details below.</p>
+                        <p className="text-xs text-zinc-600 font-medium">Enter the product details below.</p>
                     </div>
                 </div>
             </div>
@@ -519,7 +519,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                     </h3>
                     <label className="block">
                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 block italic">Category</span>
+                            <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 block">Category</span>
                             <button
                                 type="button"
                                 onClick={() => setShowQuickAdd(!showQuickAdd)}
@@ -566,7 +566,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                     ))}
                                 </select>
                                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-300 pointer-events-none" size={16} />
-                                {errors.category_id && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.category_id}</p>}
+                                {errors.category_id && <p className="text-[10px] text-red-500 mt-1 font-bold ml-2">{errors.category_id}</p>}
                             </div>
                         )}
                     </label>
@@ -580,7 +580,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                         Product Drop
                     </h3>
                     <label className="block">
-                        <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block italic">Select Drop (Optional)</span>
+                        <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block">Select Drop (Optional)</span>
                         <div className="relative">
                             <Zap className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={16} />
                             <select
@@ -597,7 +597,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                             </select>
                             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-300 pointer-events-none" size={16} />
                         </div>
-                        <p className="text-[9px] text-zinc-400 mt-2 italic">Select a drop to schedule this product&apos;s launch.</p>
+                        <p className="text-[9px] text-zinc-400 mt-2">Select a drop to schedule this product&apos;s launch.</p>
                     </label>
                 </div>
 
@@ -610,7 +610,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <label className="block sm:col-span-2">
-                            <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block italic">Product Name</span>
+                            <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block">Product Name</span>
                             <div className="relative">
                                 <AlignLeft className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={16} />
                                 <input
@@ -624,13 +624,13 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                     }}
                                     className={`w-full pl-12 pr-6 py-4 bg-zinc-50 border ${errors.name ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-normal placeholder:text-zinc-400`}
                                 />
-                                {errors.name && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.name}</p>}
+                                {errors.name && <p className="text-[10px] text-red-500 mt-1 font-bold ml-2">{errors.name}</p>}
                             </div>
                         </label>
 
                         {!isEditing && (
                             <label className="block">
-                                <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block italic">Product ID (Unique)</span>
+                                <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block">Product ID (Unique)</span>
                                 <div className="flex gap-2">
                                     <div className="relative flex-1">
                                         <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={16} />
@@ -647,12 +647,12 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                         />
                                     </div>
                                 </div>
-                                {errors.id && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.id}</p>}
+                                {errors.id && <p className="text-[10px] text-red-500 mt-1 font-bold ml-2">{errors.id}</p>}
                             </label>
                         )}
 
                         <label className="block">
-                            <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block italic">Base Price (INR)</span>
+                            <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block">Base Price (INR)</span>
                             <div className="relative">
                                 <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={16} />
                                 <input
@@ -667,12 +667,12 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                     }}
                                     className={`w-full pl-12 pr-6 py-4 bg-zinc-50 border ${errors.price_base ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-bold placeholder:text-zinc-400`}
                                 />
-                                {errors.price_base && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.price_base}</p>}
+                                {errors.price_base && <p className="text-[10px] text-red-500 mt-1 font-bold ml-2">{errors.price_base}</p>}
                             </div>
                         </label>
 
                         <label className="block">
-                            <span className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2 block italic">Offer Price (Optional)</span>
+                            <span className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2 block">Offer Price (Optional)</span>
                             <div className="relative">
                                 <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={16} />
                                 <input
@@ -686,12 +686,12 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                     }}
                                     className={`w-full pl-12 pr-6 py-4 bg-zinc-50 border ${errors.price_offer ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-bold text-green-600 placeholder:text-zinc-400`}
                                 />
-                                {errors.price_offer && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.price_offer}</p>}
+                                {errors.price_offer && <p className="text-[10px] text-red-500 mt-1 font-bold ml-2">{errors.price_offer}</p>}
                             </div>
                         </label>
 
                         <label className="block">
-                            <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block italic">SEO Handle</span>
+                            <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block">SEO Handle</span>
                             <input
                                 type="text"
                                 placeholder="my-cool-product"
@@ -702,12 +702,12 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                 }}
                                 className={`w-full px-6 py-4 bg-zinc-50 border ${errors.handle ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-normal placeholder:text-zinc-400`}
                             />
-                            {errors.handle && <p className="text-[10px] text-red-500 mt-1 font-bold italic ml-2">{errors.handle}</p>}
+                            {errors.handle && <p className="text-[10px] text-red-500 mt-1 font-bold ml-2">{errors.handle}</p>}
                         </label>
                     </div>
 
                     <label className="block">
-                        <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block italic">Description</span>
+                        <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block">Description</span>
                         <textarea
                             rows={4}
                             placeholder="Enter short description..."
@@ -784,7 +784,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                             </div>
                         ) : (
                             <div className="text-center py-8 bg-zinc-50 rounded-xl border border-dashed border-zinc-200">
-                                <p className="text-zinc-400 text-sm italic">No variants added yet.</p>
+                                <p className="text-zinc-400 text-sm">No variants added yet.</p>
                             </div>
                         )}
 

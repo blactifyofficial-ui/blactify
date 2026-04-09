@@ -152,7 +152,7 @@ export default function OrderCard({ order }: OrderCardProps) {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="flex items-center gap-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100 italic">
+                                    <div className="flex items-center gap-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
                                         <div className="flex-1">
                                             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-0.5">Tracking Information</p>
                                             <p className="text-[11px] font-bold tracking-widest text-zinc-500 uppercase">Tracking ID not provided yet</p>
@@ -174,7 +174,7 @@ export default function OrderCard({ order }: OrderCardProps) {
                                                 <p className="text-sm font-black tracking-tight text-black">
                                                     {order.shipping_address.address || order.shipping_address.line1}
                                                     {(order.shipping_address.apartment || order.shipping_address.line2) && (
-                                                        <span className="text-zinc-400 italic">, {order.shipping_address.apartment || order.shipping_address.line2}</span>
+                                                        <span className="text-zinc-400">, {order.shipping_address.apartment || order.shipping_address.line2}</span>
                                                     )}
                                                 </p>
                                                 <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">
@@ -185,7 +185,7 @@ export default function OrderCard({ order }: OrderCardProps) {
                                                 </p>
                                                 
                                                 <div className="pt-4 mt-4 border-t border-zinc-100/50">
-                                                    <p className="text-[8px] font-black text-zinc-300 uppercase tracking-[0.2em] italic">Standardized Format: [STREET], [AREA], [CITY], [STATE] - [PINCODE]</p>
+                                                    <p className="text-[8px] font-black text-zinc-300 uppercase tracking-[0.2em]">Standardized Format: [STREET], [AREA], [CITY], [STATE] - [PINCODE]</p>
                                                 </div>
                                             </div>
                                         </div>

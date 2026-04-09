@@ -81,7 +81,7 @@ export default async function ShopPage({
                             </>
                         ) : (
                             <div className="flex flex-col items-center justify-center py-20 text-center">
-                                <p className="text-zinc-500 italic">No items found matching your filter.</p>
+                                <p className="text-zinc-500">No items found matching your filter.</p>
                             </div>
                         )}
                     </div>

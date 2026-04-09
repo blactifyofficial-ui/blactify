@@ -22,7 +22,7 @@ export function SalesGrowthChart({ revenueByMonth }: SalesGrowthChartProps) {
                     </h3>
                     <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.4em]">LIVE</span>
                 </div>
-                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest italic mb-12">Monthly revenue overview</p>
+                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-12">Monthly revenue overview</p>
             </div>
 
             <div className="h-72 flex items-end justify-between gap-4 relative z-10 px-2 mb-8">
