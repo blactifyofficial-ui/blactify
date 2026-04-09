@@ -1,10 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { Hero } from "@/components/ui/Hero";
-import type { Product } from "@/components/ui/ProductCard";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -15,13 +12,12 @@ interface CategoryWithImage {
 }
 
 interface HomeClientProps {
-    initialProducts: Product[];
+    initialProducts: any[]; // Kept for prop compatibility but unused
     initialCategories: CategoryWithImage[];
 }
 
-export default function HomeClient({ initialProducts, initialCategories }: HomeClientProps) {
+export default function HomeClient({ initialCategories }: HomeClientProps) {
     const router = useRouter();
-    const [products, setProducts] = useState<Product[]>(initialProducts);
 
 
     // Swipe detection states
@@ -51,27 +47,6 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
         setTouchEnd(null);
     };
 
-    useEffect(() => {
-        if (initialProducts.length === 0) {
-            async function fetchProducts() {
-                try {
-                    const { data, error } = await supabase
-                        .from("products")
-                        .select("*, product_images(*), product_variants(*)")
-                        .not("home_order", "is", null)
-                        .limit(6)
-                        .order("home_order", { ascending: true });
-
-                    if (error) throw error;
-                    setProducts(data || []);
-                } catch {
-                    // Silent fail
-                }
-            }
-            fetchProducts();
-        }
-    }, [initialProducts]);
-
 
 
     return (
@@ -81,18 +56,10 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
         >
-            <Hero
-                images={products.map(p => p.product_images?.[0]?.url || p.main_image || "/placeholder-product.jpg")}
-            />
-
-            {/* Discover By Category - Above Best Sellers */}
+            {/* Discover By Category - Direct Landing */}
             {initialCategories.length > 0 && (
-                <section className="px-6 py-12 md:py-24 pb-32 bg-white/40 backdrop-blur-md">
-                    <div className="mx-auto max-w-7xl">
-                        <div className="text-center mb-16">
-                            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400 mb-2">Discovery</h2>
-                        </div>
-
+                <section className="px-6 pt-24 pb-4 md:pt-32 md:pb-8 bg-white/40 backdrop-blur-md">
+                    <div className="mx-auto max-w-7xl w-full">
                         <div className="flex flex-wrap justify-center gap-x-8 gap-y-16 md:gap-x-12 lg:gap-x-16">
                             {initialCategories.map((cat) => (
                                 <Link
