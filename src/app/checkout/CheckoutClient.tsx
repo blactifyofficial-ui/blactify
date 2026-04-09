@@ -760,8 +760,8 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
                 <div className="w-full max-w-[580px] md:pr-14 lg:pr-20 space-y-8">
                     {/* Header Logo */}
                     <div className="flex items-center justify-between">
-                        <Link href="/" className="font-bold text-2xl tracking-tight text-zinc-900">Blactify</Link>
-                        <Link href="/shop?openCart=true" className="md:hidden text-blue-600 text-sm">Bag</Link>
+                        <Link href="/" className="font-yapari text-xl tracking-tighter uppercase transition-all duration-500">Blactify</Link>
+                        <Link href="/shop?openCart=true" className="md:hidden text-zinc-400 font-bold uppercase tracking-widest text-[10px]">Bag</Link>
                     </div>
 
                     {/* Breadcrumbs */}
