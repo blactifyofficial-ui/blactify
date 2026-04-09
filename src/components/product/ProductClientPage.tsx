@@ -163,17 +163,22 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
     }, [selectedSize, currentStock, product]);
 
     const minQuantity = useMemo(() => {
-        if (activeStock <= 0) return 0;
+        return activeStock > 0 ? 1 : 0;
+    }, [activeStock]);
+
+    const maxQuantity = useMemo(() => {
         return Math.min(5, activeStock);
     }, [activeStock]);
 
     useEffect(() => {
-        if (activeStock > 0 && quantity < minQuantity) {
-            setQuantity(minQuantity);
-        } else if (activeStock > 0 && quantity > activeStock) {
-            setQuantity(activeStock);
+        if (activeStock > 0) {
+            if (quantity < minQuantity) {
+                setQuantity(minQuantity);
+            } else if (quantity > maxQuantity) {
+                setQuantity(maxQuantity);
+            }
         }
-    }, [minQuantity, activeStock, quantity]);
+    }, [minQuantity, maxQuantity, activeStock, quantity]);
 
     const handleDirectBuy = useCallback(() => {
         if (!user) {
@@ -477,8 +482,8 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                         </div>
                                         <button 
                                             type="button"
-                                            onClick={() => setQuantity(prev => Math.min(activeStock, prev + 1))}
-                                            disabled={quantity >= activeStock}
+                                            onClick={() => setQuantity(prev => Math.min(maxQuantity, prev + 1))}
+                                            disabled={quantity >= maxQuantity}
                                             className="w-10 h-full flex items-center justify-center text-lg font-light hover:bg-zinc-50 transition-colors border-l border-zinc-100 disabled:opacity-20"
                                         >
                                             +
