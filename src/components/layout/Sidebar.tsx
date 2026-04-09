@@ -104,7 +104,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         </span>
                         <button
                             onClick={onClose}
-                            className="p-2 hover:bg-zinc-50 rounded-full transition-colors"
+                            className="p-1 text-black hover:opacity-50 transition-all active:scale-95"
                             aria-label="Close menu"
                         >
                             <X size={24} />

@@ -196,10 +196,10 @@ export function SearchDrawer({ isOpen, onClose }: SearchDrawerProps) {
                         </span>
                         <button
                             onClick={onClose}
-                            className="p-1 border border-black hover:bg-zinc-50 transition-colors text-black"
+                            className="p-1 text-black hover:opacity-50 transition-opacity"
                             aria-label="Close search"
                         >
-                            <X size={16} />
+                            <X size={20} />
                         </button>
                     </div>
 

@@ -11,7 +11,7 @@ export function Footer() {
                     <div className="space-y-6 flex-1">
                         <Link href="/" className="inline-block group">
                             <span className="text-2xl md:text-3xl font-yapari uppercase tracking-tighter transition-all duration-500 group-hover:opacity-70">
-                                Blactify
+                                BLACTIFY
                             </span>
                         </Link>
                         <div className="space-y-4 pt-4">
@@ -31,9 +31,9 @@ export function Footer() {
                             <h3 className="text-sm font-bold text-black tracking-tight">Connect</h3>
                             <ul className="space-y-4 text-xs font-medium text-zinc-900">
                                 <li>
-                                    <Link href="/support" className="hover:text-zinc-500 transition-colors">
+                                    <a href="tel:+919207965510" className="hover:text-zinc-500 transition-colors">
                                         Contact
-                                    </Link>
+                                    </a>
                                 </li>
                                 <li>
                                     <a href="https://instagram.com/blactify" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-500 transition-colors">
@@ -41,7 +41,12 @@ export function Footer() {
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="mailto:blactifyofficial@gmail.com" className="hover:text-zinc-500 transition-colors">
+                                    <a href="https://wa.me/919207965510" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-500 transition-colors">
+                                        WhatsApp
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="mailto:blactifyofficial@gmail.com?subject=Support%20Request%20-%20BLACTIFY" className="hover:text-zinc-500 transition-colors">
                                         Email
                                     </a>
                                 </li>

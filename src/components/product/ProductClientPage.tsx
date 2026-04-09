@@ -693,7 +693,10 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                         <div className="fixed inset-x-0 bottom-0 z-[110] mx-auto w-full max-w-md bg-white rounded-t-lg p-10 shadow-2xl animate-in slide-in-from-bottom duration-500">
                             <div className="flex items-center justify-between mb-8">
                                 <h2 className="text-2xl font-medium uppercase text-black">Write Review</h2>
-                                <button onClick={() => setIsReviewModalOpen(false)} className="p-2 hover:bg-zinc-100 rounded-md transition-colors">
+                                <button 
+                                    onClick={() => setIsReviewModalOpen(false)} 
+                                    className="p-1 text-black hover:opacity-50 transition-all active:scale-95"
+                                >
                                     <X size={20} />
                                 </button>
                             </div>
@@ -761,7 +764,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                 </div>
                                 <button
                                     onClick={() => setIsSizeGuideOpen(false)}
-                                    className="w-14 h-14 flex items-center justify-center hover:bg-black hover:text-white rounded-md transition-all duration-500 border border-zinc-100 group"
+                                    className="p-1 text-black hover:opacity-50 transition-all active:scale-95 group"
                                 >
                                     <X size={24} className="group-hover:rotate-90 transition-transform duration-500" />
                                 </button>

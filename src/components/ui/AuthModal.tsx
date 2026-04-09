@@ -129,7 +129,11 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                         <span className="font-yapari text-xl tracking-tighter uppercase transition-opacity duration-500">
                             BLACTIFY
                         </span>
-                        <button aria-label="Close" onClick={onClose} className="p-2 hover:bg-zinc-100 rounded-md transition-colors">
+                        <button 
+                            aria-label="Close" 
+                            onClick={onClose} 
+                            className="p-1 text-black hover:opacity-50 transition-all active:scale-95"
+                        >
                             <X size={20} />
                         </button>
                     </div>
