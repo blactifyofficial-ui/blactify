@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
+import localFont from "next/font/local";
 import { AppLayout } from "@/components/layout/AppLayout";
 import "./globals.css";
 
@@ -10,6 +11,12 @@ export const preferredRegion = "sin1";
 const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const yapari = localFont({
+  src: "../../public/fonts/YapariTrial-BoldExtended.ttf",
+  variable: "--font-yapari",
   display: "swap",
 });
 
@@ -110,7 +117,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://cdn.shopify.com" />
 
       </head>
-      <body className={`${outfit.variable} font-sans antialiased text-black`}>
+      <body className={`${outfit.variable} ${yapari.variable} font-sans antialiased text-black`}>
         <script dangerouslySetInnerHTML={{ __html: `
           if ('serviceWorker' in navigator) {
             const isInternal = 

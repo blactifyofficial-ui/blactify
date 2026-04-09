@@ -10,7 +10,7 @@ export function Footer() {
                     {/* Left Section: Branding & Copyright */}
                     <div className="space-y-6 flex-1">
                         <Link href="/" className="inline-block group">
-                            <span className="text-2xl md:text-3xl font-black uppercase tracking-tighter transition-all duration-500 group-hover:opacity-70">
+                            <span className="text-2xl md:text-3xl font-yapari uppercase tracking-tighter transition-all duration-500 group-hover:opacity-70">
                                 Blactify
                             </span>
                         </Link>

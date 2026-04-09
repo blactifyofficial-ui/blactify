@@ -15,6 +15,7 @@
   --font-aesthetic: var(--font-outfit), ui-sans-serif, system-ui;
   --font-heading: var(--font-outfit);
   --font-inter: var(--font-outfit), ui-sans-serif, system-ui;
+  --font-yapari: var(--font-yapari);
 
   --animate-in: in 1s ease-out;
   --animate-fade-in: fade-in 1s ease-out forwards;
