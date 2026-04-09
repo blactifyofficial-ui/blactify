@@ -401,7 +401,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                                 onClick={() => !isOutOfStock && setSelectedSize(size)}
                                                 disabled={isOutOfStock}
                                                 className={cn(
-                                                    "relative overflow-hidden h-16 w-16 rounded-2xl flex items-center justify-center text-xs font-bold transition-all duration-300",
+                                                    "relative overflow-hidden h-16 w-16 rounded-md flex items-center justify-center text-xs font-bold transition-all duration-300",
                                                     selectedSize === size
                                                         ? "bg-black text-white shadow-xl scale-105"
                                                         : "bg-white text-black border border-zinc-100",
@@ -450,7 +450,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                         }}
                                         disabled={currentStock <= 0}
                                         className={cn(
-                                            "w-full h-16 rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all",
+                                            "w-full h-16 rounded-md text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all",
                                             currentStock <= 0
                                                 ? "bg-zinc-100 text-zinc-400 cursor-not-allowed"
                                                 : "bg-black text-white shadow-2xl shadow-black/10"
@@ -464,7 +464,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                         onClick={handleDirectBuy}
                                         disabled={currentStock <= 0}
                                         className={cn(
-                                            "w-full h-16 rounded-full text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all",
+                                            "w-full h-16 rounded-md text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 active:scale-[0.98] transition-all",
                                             currentStock <= 0
                                                 ? "hidden"
                                                 : "bg-white text-black border border-zinc-200"
@@ -475,7 +475,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                     </button>
                                 </>
                             ) : (
-                                <div className="w-full h-16 rounded-full bg-zinc-100 flex flex-col items-center justify-center text-center px-4">
+                                <div className="w-full h-16 rounded-md bg-zinc-100 flex flex-col items-center justify-center text-center px-4">
                                     <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-2">
                                         <ShieldCheck size={14} />
                                         Store is currently paused
@@ -487,7 +487,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                         {/* Features Grid - Inside details for desktop layout if preferred, or outside below */}
                         <div className="mt-16 grid grid-cols-1 gap-8 py-10 border-t border-zinc-50">
                             <div className="flex items-start gap-5">
-                                <div className="p-3.5 bg-zinc-50 rounded-2xl text-black">
+                                <div className="p-3.5 bg-zinc-50 rounded-md text-black">
                                     <Truck size={20} />
                                 </div>
                                 <div>
@@ -496,7 +496,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                 </div>
                             </div>
                             <div className="flex items-start gap-5">
-                                <div className="p-3.5 bg-zinc-50 rounded-2xl text-black">
+                                <div className="p-3.5 bg-zinc-50 rounded-md text-black">
                                     <X size={20} />
                                 </div>
                                 <div>
@@ -505,7 +505,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                 </div>
                             </div>
                             <div className="flex items-start gap-5">
-                                <div className="p-3.5 bg-zinc-50 rounded-2xl text-black">
+                                <div className="p-3.5 bg-zinc-50 rounded-md text-black">
                                     <ShieldCheck size={20} />
                                 </div>
                                 <div>
