@@ -55,8 +55,8 @@ export function SearchDrawer({ isOpen, onClose }: SearchDrawerProps) {
             >
                 <div className="flex h-full flex-col">
                     {/* Header */}
-                    <div className="flex items-center justify-between border-b border-zinc-100 px-8 py-6">
-                        <span className="font-yapari text-2xl tracking-tighter uppercase transition-opacity duration-500">
+                    <div className="flex items-center justify-between border-b border-zinc-100 px-8 py-4">
+                        <span className="font-yapari text-xl tracking-tighter uppercase transition-opacity duration-500">
                             Blactify
                         </span>
                         <button

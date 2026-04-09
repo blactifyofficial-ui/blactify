@@ -98,8 +98,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             >
                 <div className="flex flex-col h-full">
                     {/* Header */}
-                    <div className="flex items-center justify-between px-6 py-6 border-b border-zinc-100">
-                        <span className="font-yapari text-2xl tracking-tighter transition-all duration-500">
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
+                        <span className="font-yapari text-xl tracking-tighter transition-all duration-500">
                             Blactify
                         </span>
                         <button

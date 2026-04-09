@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { useCartStore } from "@/store/useCartStore";
-import { ChevronRight, ChevronLeft, Star, ShoppingBag, ShieldCheck, Truck, Send, X, ArrowRight } from "lucide-react";
+import { ChevronRight, ChevronLeft, Star, ShieldCheck, Truck, Send, X } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/store/AuthContext";
 import { fetchReviews, postReview } from "@/lib/review-sync";
@@ -148,6 +148,33 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
         return (sum / reviews.length).toFixed(1);
     }, [reviews]);
 
+    const currentStock = product
+        ? (product.product_variants && product.product_variants.length > 0
+            ? product.product_variants.reduce((acc: number, v) => acc + v.stock, 0)
+            : (product.stock ?? 0))
+        : 0;
+
+    const activeStock = useMemo(() => {
+        if (!product) return 0;
+        if (!selectedSize) return currentStock;
+        const variants = product.product_variants || [];
+        const variant = variants.find(v => v.size === selectedSize);
+        return variant ? variant.stock : 0;
+    }, [selectedSize, currentStock, product]);
+
+    const minQuantity = useMemo(() => {
+        if (activeStock <= 0) return 0;
+        return Math.min(5, activeStock);
+    }, [activeStock]);
+
+    useEffect(() => {
+        if (activeStock > 0 && quantity < minQuantity) {
+            setQuantity(minQuantity);
+        } else if (activeStock > 0 && quantity > activeStock) {
+            setQuantity(activeStock);
+        }
+    }, [minQuantity, activeStock, quantity]);
+
     const handleDirectBuy = useCallback(() => {
         if (!user) {
             window.dispatchEvent(new CustomEvent("open-auth-modal"));
@@ -198,28 +225,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
 
     const displayPrice = product.price_offer || product.price_base;
     const hasDiscount = product.price_offer && product.price_offer < product.price_base;
-    const currentStock = productVariants.length > 0
-        ? productVariants.reduce((acc: number, v) => acc + v.stock, 0)
-        : (product.stock ?? 0);
 
-    const activeStock = useMemo(() => {
-        if (!selectedSize) return currentStock;
-        const variant = productVariants.find(v => v.size === selectedSize);
-        return variant ? variant.stock : 0;
-    }, [selectedSize, currentStock, productVariants]);
-
-    const minQuantity = useMemo(() => {
-        if (activeStock <= 0) return 0;
-        return Math.min(5, activeStock);
-    }, [activeStock]);
-
-    useEffect(() => {
-        if (activeStock > 0 && quantity < minQuantity) {
-            setQuantity(minQuantity);
-        } else if (activeStock > 0 && quantity > activeStock) {
-            setQuantity(activeStock);
-        }
-    }, [minQuantity, activeStock, quantity]);
 
     return (
         <main className="min-h-screen bg-white text-black pb-24 overflow-x-hidden w-full relative">

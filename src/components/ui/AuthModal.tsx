@@ -124,9 +124,9 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                     isOpen ? "translate-y-0" : "translate-y-full"
                 )}
             >
-                <div className="p-8">
-                    <div className="flex items-center justify-between mb-8">
-                        <span className="font-yapari text-2xl tracking-tighter uppercase transition-opacity duration-500">
+                <div className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <span className="font-yapari text-xl tracking-tighter uppercase transition-opacity duration-500">
                             Blactify
                         </span>
                         <button aria-label="Close" onClick={onClose} className="p-2 hover:bg-zinc-100 rounded-md transition-colors">

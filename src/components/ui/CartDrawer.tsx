@@ -105,8 +105,8 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                 )}
             >
                 <div className="flex h-full flex-col">
-                    <div className="flex items-center justify-between border-b border-zinc-200/50 px-6 py-6">
-                        <span className="font-yapari text-2xl tracking-tighter uppercase transition-opacity duration-500">
+                    <div className="flex items-center justify-between border-b border-zinc-200/50 px-6 py-4">
+                        <span className="font-yapari text-xl tracking-tighter uppercase transition-opacity duration-500">
                             Blactify
                         </span>
                         <button aria-label="Close" onClick={onClose} className="p-2 hover:bg-zinc-100 rounded-md transition-colors">
@@ -179,10 +179,10 @@ export function CartDrawer({ isOpen, onClose, onAuthRequired }: {
                             </div>
                                 <button
                                     onClick={handleCheckout}
-                                    disabled={items.length === 0}
+                                    disabled={items.length === 0 || isCheckingOut}
                                     className="w-full rounded-md bg-black py-4 text-xs font-bold uppercase tracking-widest text-white active:scale-[0.98] transition-all disabled:opacity-50"
                                 >
-                                    Proceed to Checkout
+                                    {isCheckingOut ? "Processing..." : "Proceed to Checkout"}
                                 </button>
                         </div>
                     )}
