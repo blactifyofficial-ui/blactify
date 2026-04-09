@@ -19,7 +19,7 @@
   --color-black: #333639;
   --font-sans: var(--font-outfit), var(--font-inter), ui-sans-serif, system-ui;
   --font-aesthetic: var(--font-space-grotesk), ui-serif, serif;
-  --font-heading: "Druk Wide Bold", sans-serif;
+  --font-heading: var(--font-outfit); /* Unified with Discovery */
 
   --animate-in: in 1s ease-out;
   --animate-fade-in: fade-in 1s ease-out forwards;
@@ -156,9 +156,10 @@
 }
 
 h1 {
-  font-family: var(--font-heading);
+  font-family: var(--font-sans);
+  font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.1em;
   font-size: clamp(2.5rem, 8vw, 4rem);
   line-height: 1;
 }
@@ -195,9 +196,9 @@ body {
 
 @layer utilities {
   .font-empire {
-    font-family: var(--font-heading);
+    font-family: var(--font-sans);
     text-transform: uppercase;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.1em;
   }
 
   .text-aesthetic {

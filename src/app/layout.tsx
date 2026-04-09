@@ -116,13 +116,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         <link rel="preconnect" href="https://cdn.shopify.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://cdn.shopify.com" />
-        <link
-          rel="preload"
-          href="/fonts/DrukWideBold.woff"
-          as="font"
-          type="font/woff"
-          crossOrigin="anonymous"
-        />
+
       </head>
       <body className={`${inter.variable} ${outfit.variable} ${spaceGrotesk.variable} font-sans antialiased text-black`}>
         <script dangerouslySetInnerHTML={{ __html: `

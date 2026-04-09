@@ -132,16 +132,16 @@ export default function InvoicePage() {
                 {/* Header */}
                 <div className="flex justify-between items-start mb-16 border-b border-zinc-100 pb-8 break-inside-avoid">
                     <div className="flex flex-col items-start gap-4">
-                        <div className="relative w-16 h-16">
+                        <Link href="/">
                             <Image
-                                src="/welcome-eye.png"
-                                alt="Blactify Logo"
-                                fill
-                                className="object-contain"
+                                src="/logo-v1.png"
+                                alt="Blactify"
+                                width={120}
+                                height={30}
+                                className="h-6 w-auto object-contain"
                             />
-                        </div>
+                        </Link>
                         <div>
-                            <h1 className="text-2xl font-heading font-bold uppercase tracking-tight">Blactify</h1>
                             <p className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] font-medium">Keep it blactify</p>
                         </div>
                     </div>
@@ -296,7 +296,7 @@ export default function InvoicePage() {
                     <p className="font-heading text-lg font-bold uppercase tracking-tight mb-2">Thank you for your business</p>
                     <p className="text-[10px] text-zinc-400 uppercase tracking-[0.3em]">Keep it blactify</p>
 
-                    <div className="mt-12 text-[10px] text-zinc-300 flex justify-center gap-8 uppercase tracking-widest">
+                    <div className="mt-12 text-[10px] text-zinc-300 flex justify-center gap-8 uppercase tracking-widest border-t border-zinc-50 pt-8">
                         <span>blactify.com</span>
                         <span>support@blactify.com</span>
                     </div>

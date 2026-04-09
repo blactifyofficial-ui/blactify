@@ -6,6 +6,7 @@ import { useEffect, useState, Suspense } from "react";
 import { auth, googleProvider } from "@/lib/firebase";
 import { signInWithPopup } from "firebase/auth";
 import { LogIn } from "lucide-react";
+import Image from "next/image";
 
 function AdminLoginContent() {
     const { user, isAdmin, loading } = useAuth();
@@ -77,8 +78,15 @@ function AdminLoginContent() {
                 {/* Visual Flair */}
                 <div className="absolute top-0 left-0 w-full h-1 bg-black"></div>
 
-                <div className="mb-10">
-                    <h2 className="text-2xl font-heading text-black uppercase leading-none tracking-tight mb-3">BLACTIFY</h2>
+                <div className="mb-10 flex flex-col items-center">
+                    <Image
+                        src="/logo-v1.png"
+                        alt="Blactify"
+                        width={180}
+                        height={45}
+                        className="h-8 md:h-10 w-auto object-contain mb-4"
+                        priority
+                    />
                     <div className="flex items-center justify-center gap-2">
                         <div className="h-px w-4 bg-zinc-200"></div>
                         <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em]">Admin Access</p>

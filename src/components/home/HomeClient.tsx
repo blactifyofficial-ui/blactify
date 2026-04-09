@@ -7,14 +7,7 @@ import { Hero } from "@/components/ui/Hero";
 import { ProductCard, type Product } from "@/components/ui/ProductCard";
 import Link from "next/link";
 import Image from "next/image";
-import { useRef } from "react";
-import { gsap } from "gsap";
-import { useGSAP } from "@gsap/react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-if (typeof window !== "undefined") {
-    gsap.registerPlugin(ScrollTrigger);
-}
 
 interface CategoryWithImage {
     name: string;
@@ -30,9 +23,7 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
     const router = useRouter();
     const [products, setProducts] = useState<Product[]>(initialProducts);
     const [loading, setLoading] = useState(false);
-    const containerRef = useRef<HTMLDivElement>(null);
-    const discoveryRef = useRef<HTMLDivElement>(null);
-    const bestSellersRef = useRef<HTMLDivElement>(null);
+
 
     // Swipe detection states
     const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -85,70 +76,10 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
         }
     }, [initialProducts]);
 
-    useGSAP(() => {
-        if (window.innerWidth < 768) return;
 
-        // Discovery Section Mask Reveal
-        if (discoveryRef.current) {
-            const items = discoveryRef.current.querySelectorAll('.discovery-item');
-            items.forEach((item) => {
-                const img = item.querySelector('img');
-                gsap.fromTo(item, 
-                    { 
-                        clipPath: 'inset(100% 0 0 0)',
-                        y: 30,
-                        opacity: 0 
-                    },
-                    {
-                        clipPath: 'inset(0% 0 0 0)',
-                        y: 0,
-                        opacity: 1,
-                        duration: 1.2,
-                        ease: "power3.out",
-                        scrollTrigger: {
-                            trigger: item,
-                            start: "top bottom-=50px",
-                            toggleActions: "play none none none"
-                        }
-                    }
-                );
-                
-                if (img) {
-                    gsap.fromTo(img,
-                        { scale: 1.2 },
-                        { 
-                            scale: 1, 
-                            duration: 1.8, 
-                            ease: "power2.out",
-                            scrollTrigger: {
-                                trigger: item,
-                                start: "top bottom-=50px"
-                            }
-                        }
-                    );
-                }
-            });
-        }
-
-        // Best Sellers Title Animation
-        if (bestSellersRef.current) {
-            gsap.from(bestSellersRef.current.querySelector('h2'), {
-                x: -30,
-                opacity: 0,
-                duration: 0.8,
-                ease: "power2.out",
-                scrollTrigger: {
-                    trigger: bestSellersRef.current,
-                    start: "top bottom-=100px",
-                    toggleActions: "play none none none"
-                }
-            });
-        }
-    }, { scope: containerRef });
 
     return (
         <main 
-            ref={containerRef}
             className="flex flex-col min-h-screen"
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
@@ -160,7 +91,7 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
 
             {/* Discover By Category - Above Best Sellers */}
             {initialCategories.length > 0 && (
-                <section ref={discoveryRef} className="px-6 py-12 md:py-24 pb-32 border-t border-zinc-50 bg-[#FAFAFA]/50">
+                <section className="px-6 py-12 md:py-24 pb-32 border-t border-zinc-100 bg-white/40 backdrop-blur-md">
                     <div className="mx-auto max-w-7xl">
                         <div className="text-center mb-16">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400 mb-2">Discovery</h2>
@@ -193,7 +124,7 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
             )}
 
             {/* Best Sellers */}
-            <section ref={bestSellersRef} className="px-6 py-20 bg-white">
+            <section className="px-6 py-20 bg-white">
                 <div className="mb-12 flex items-end justify-between">
                     <h2 className="text-3xl font-medium tracking-tight text-black">Best Sellers</h2>
                     <Link href="/shop" className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-300 hover:text-black transition-colors">

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 export function Footer() {
     return (
@@ -9,7 +10,15 @@ export function Footer() {
                 <div className="flex flex-col md:flex-row justify-between gap-12 md:gap-24">
                     {/* Left Section: Branding & Copyright */}
                     <div className="space-y-6 flex-1">
-                        <h2 className="font-heading text-5xl md:text-[72px] tracking-[-0.05em] text-black leading-[0.8] uppercase font-bold">BLACTIFY</h2>
+                        <Link href="/" className="inline-block group">
+                            <Image
+                                src="/logo-v1.png"
+                                alt="Blactify"
+                                width={240}
+                                height={60}
+                                className="h-10 md:h-14 w-auto object-contain transition-all duration-500 group-hover:opacity-70"
+                            />
+                        </Link>
                         <div className="space-y-4 pt-4">
                             <p className="text-[11px] font-medium leading-relaxed text-zinc-400">
                                 ©2025 Blactify Clothing. All Rights Reserved.

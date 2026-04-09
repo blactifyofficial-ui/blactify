@@ -9,6 +9,7 @@ import { auth } from "@/lib/firebase";
 import { useState } from "react";
 import { LogoutModal } from "@/components/ui/LogoutModal";
 import { useNotificationStore } from "@/store/useNotificationStore";
+import Image from "next/image";
 
 const NAV_ITEMS = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -63,12 +64,16 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             >
                 {/* Desktop Logo & Close Button (Mobile Only) */}
                 <div className="p-8 pt-16 md:pt-10 pb-6 border-b border-zinc-900/50 flex items-center justify-between shrink-0">
-                    <div className="flex flex-col gap-1">
-                        <span className="text-2xl font-heading text-white uppercase leading-none tracking-tighter">
-                            BLACTIFY
-                        </span>
+                    <Link href="/admin" className="flex flex-col gap-1 group">
+                        <Image
+                            src="/logo-v1.png"
+                            alt="Blactify"
+                            width={120}
+                            height={30}
+                            className="h-6 w-auto object-contain invert brightness-0 transition-opacity duration-300 group-hover:opacity-70"
+                        />
                         <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500">Admin Panel</p>
-                    </div>
+                    </Link>
                     <div className="flex items-center gap-3">
                         <button
                             onClick={onClose}

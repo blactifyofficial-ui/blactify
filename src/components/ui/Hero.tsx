@@ -1,22 +1,18 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { gsap } from "gsap";
-import { useGSAP } from "@gsap/react";
+
 
 interface HeroProps {
     images: string[];
 }
 
 export function Hero({ images }: HeroProps) {
-    const container = useRef<HTMLDivElement>(null);
-    const ctaRef = useRef<HTMLDivElement>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isClicked, setIsClicked] = useState(false);
-    const [showIntroEye, setShowIntroEye] = useState(false);
     const router = useRouter();
 
     const handleClick = (e: React.MouseEvent) => {
@@ -43,42 +39,12 @@ export function Hero({ images }: HeroProps) {
         return () => clearInterval(interval);
     }, [images.length]);
 
-    // Intro "Peek" animation for the eye logo
-    useEffect(() => {
-        // Wait for the main button animation to start (0.5s)
-        const startTimer = setTimeout(() => setShowIntroEye(true), 1200);
-        const endTimer = setTimeout(() => setShowIntroEye(false), 2400);
 
-        return () => {
-            clearTimeout(startTimer);
-            clearTimeout(endTimer);
-        };
-    }, []);
 
-    // Animations
-    useGSAP(() => {
-        if (window.innerWidth < 768) return; // Skip heavy animations on mobile
 
-        // Entry animation for CTA
-        gsap.fromTo(ctaRef.current,
-            { y: 20, opacity: 0 },
-            { y: 0, opacity: 1, duration: 1.2, delay: 0.5 }
-        );
-
-        // Subtle slow Ken Burns on the first visible image
-        gsap.to(".hero-bg-image:first-child", {
-            scale: 1.08,
-            duration: 20,
-            repeat: -1,
-            yoyo: true,
-            ease: "sine.inOut"
-        });
-
-    }, { scope: container });
 
     return (
         <section
-            ref={container}
             className="relative h-[55vh] md:h-[85vh] w-full bg-white z-10 overflow-hidden"
         >
             {/* Background Images Wrapper (Clips the images) */}
@@ -119,7 +85,7 @@ export function Hero({ images }: HeroProps) {
             {/* Content */}
             <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 text-center">
                 {/* CTA ONLY */}
-                <div ref={ctaRef}>
+                <div>
                     <Link
                         href="/shop"
                         onClick={handleClick}
@@ -131,7 +97,7 @@ export function Hero({ images }: HeroProps) {
                         {/* Logo Animation */}
                         <div className={cn(
                             "relative flex items-center max-w-0 opacity-0 -translate-x-3 transition-all duration-700 cubic-bezier(0.34, 1.56, 0.64, 1) group-hover:max-w-[40px] group-hover:opacity-100 group-hover:translate-x-0",
-                            (isClicked || showIntroEye) && "max-w-[40px] opacity-100 translate-x-0"
+                            isClicked && "max-w-[40px] opacity-100 translate-x-0"
                         )}>
                             <Image
                                 src="/welcome-eye.png"
