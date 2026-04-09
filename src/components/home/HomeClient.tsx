@@ -6,13 +6,15 @@ import Link from "next/link";
 import Image from "next/image";
 
 
+import type { Product } from "@/components/ui/ProductCard";
+
 interface CategoryWithImage {
     name: string;
     image: string;
 }
 
 interface HomeClientProps {
-    initialProducts: any[]; // Kept for prop compatibility but unused
+    initialProducts: Product[]; // Properly typed even if unused
     initialCategories: CategoryWithImage[];
 }
 
