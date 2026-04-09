@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Hero } from "@/components/ui/Hero";
-import { ProductCard, type Product } from "@/components/ui/ProductCard";
+import type { Product } from "@/components/ui/ProductCard";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -22,7 +22,6 @@ interface HomeClientProps {
 export default function HomeClient({ initialProducts, initialCategories }: HomeClientProps) {
     const router = useRouter();
     const [products, setProducts] = useState<Product[]>(initialProducts);
-    const [loading, setLoading] = useState(false);
 
 
     // Swipe detection states
@@ -54,7 +53,6 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
 
     useEffect(() => {
         if (initialProducts.length === 0) {
-            setLoading(true);
             async function fetchProducts() {
                 try {
                     const { data, error } = await supabase
@@ -68,8 +66,6 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
                     setProducts(data || []);
                 } catch {
                     // Silent fail
-                } finally {
-                    setLoading(false);
                 }
             }
             fetchProducts();
@@ -91,7 +87,7 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
 
             {/* Discover By Category - Above Best Sellers */}
             {initialCategories.length > 0 && (
-                <section className="px-6 py-12 md:py-24 pb-32 border-t border-zinc-100 bg-white/40 backdrop-blur-md">
+                <section className="px-6 py-12 md:py-24 pb-32 bg-white/40 backdrop-blur-md">
                     <div className="mx-auto max-w-7xl">
                         <div className="text-center mb-16">
                             <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400 mb-2">Discovery</h2>
@@ -122,37 +118,6 @@ export default function HomeClient({ initialProducts, initialCategories }: HomeC
                     </div>
                 </section>
             )}
-
-            {/* Best Sellers */}
-            <section className="px-6 py-20 bg-white">
-                <div className="mb-12 flex items-end justify-between">
-                    <h2 className="text-3xl font-medium tracking-tight text-black">Best Sellers</h2>
-                    <Link href="/shop" className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-300 hover:text-black transition-colors">
-                        View All
-                    </Link>
-                </div>
-
-                <div className="grid grid-cols-2 gap-x-4 gap-y-12 md:grid-cols-4 lg:grid-cols-6">
-                    {loading ? (
-                        [...Array(6)].map((_, i) => (
-                            <div key={i} className="flex flex-col gap-4">
-                                <div className="aspect-[4/5] bg-zinc-100 rounded-3xl animate-pulse"></div>
-                                <div className="h-4 bg-zinc-100 rounded-full w-3/4 animate-pulse"></div>
-                                <div className="h-3 bg-zinc-100 rounded-full w-1/2 animate-pulse"></div>
-                            </div>
-                        ))
-                    ) : (
-                        products.map((product, index) => (
-                            <ProductCard 
-                                key={product.id} 
-                                product={product} 
-                                hidePrice 
-                                priority={index < 2} 
-                            />
-                        ))
-                    )}
-                </div>
-            </section>
         </main>
     );
 }
