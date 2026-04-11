@@ -75,9 +75,9 @@ export function AdminNotificationDropdown() {
         if (!user || notifications.length === 0) return;
         try {
             const idToken = await user.getIdToken();
-            if (unreadCount > 0) {
+            if (notifications.length > 0) {
                 await fetch("/api/admin/notifications", {
-                    method: "PATCH",
+                    method: "DELETE",
                     headers: { "Authorization": `Bearer ${idToken}` }
                 });
             }

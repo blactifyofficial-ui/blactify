@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { X, LogOut, LayoutDashboard, ShoppingBag, Box, Tag, BarChart3, MessageSquare, Zap, Settings } from "lucide-react";
+import { X, LogOut, LayoutDashboard, Bell, ShoppingBag, Box, Tag, BarChart3, MessageSquare, Zap, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";

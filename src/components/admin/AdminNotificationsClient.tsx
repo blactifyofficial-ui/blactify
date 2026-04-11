@@ -82,7 +82,7 @@ export function AdminNotificationsClient() {
         try {
             const idToken = await user.getIdToken();
             const response = await fetch("/api/admin/notifications", {
-                method: "PATCH", // API handles bulk mark-as-read
+                method: "DELETE",
                 headers: { "Authorization": `Bearer ${idToken}` }
             });
             
