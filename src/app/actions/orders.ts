@@ -246,7 +246,6 @@ export async function registerAdminOrderShipping(id: string, token?: string) {
                         shipping: {
                             awb: shippingResult.awb,
                             tracking_link: shippingResult.tracking_link,
-                            label_url: shippingResult.label_url,
                             status: "registered",
                             registered_at: new Date().toISOString()
                         }
