@@ -14,7 +14,7 @@
 /test-results
 
 # next.js
-/.next/
+/.next/ 
 /out/
 
 # production
