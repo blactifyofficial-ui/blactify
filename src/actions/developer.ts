@@ -3,6 +3,8 @@
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { headers } from "next/headers";
 import { authAdmin } from "@/lib/firebase-admin";
+import { sendMulticastAdminNotification } from "@/lib/notifications-server";
+import { logAction } from "@/lib/logger";
 
 const ALLOWED_EMAIL = "bro.nithin07@gmail.com";
 
@@ -202,5 +204,43 @@ export async function getNotificationLogs(token?: string) {
         return { success: true, logs: formattedLogs };
     } catch (err: unknown) {
         return { success: false, error: err instanceof Error ? err.message : "Fetch Failed" };
+    }
+}
+
+export async function broadcastDeveloperMessage(title: string, body: string, token?: string) {
+    try {
+        const { uid } = await verifyDeveloper(token);
+        
+        // 1. Send the notification (Persists to 'notifications' table + FCM Push)
+        await sendMulticastAdminNotification(title, body, { 
+            type: 'developer_broadcast',
+            sender_uid: uid 
+        });
+
+        // 2. Log exactly who sent it and what they said
+        try {
+            const decodedToken = await authAdmin.getUser(uid);
+            await logAction({
+                action_type: "notification_sent",
+                severity: "info",
+                details: { 
+                    type: "developer_broadcast", 
+                    title, 
+                    body: body.length > 100 ? body.slice(0, 100) + "..." : body,
+                    is_broadcast: true 
+                },
+                user_email: decodedToken.email || "Unknown Developer"
+            });
+        } catch (logErr) {
+            console.error("Broadcast: Logging failed but notification sent:", logErr);
+        }
+
+        return { success: true };
+    } catch (err: unknown) {
+        console.error("Broadcast: Action failed:", err);
+        return { 
+            success: false, 
+            error: err instanceof Error ? err.message : "Broadcast failed" 
+        };
     }
 }

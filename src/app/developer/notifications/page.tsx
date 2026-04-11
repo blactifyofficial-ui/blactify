@@ -16,15 +16,16 @@ import {
     Copy,
     Check,
     Flame,
+    Megaphone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { auth } from "@/lib/firebase";
 import { sendTestNotification, generateStressTestOrdersAction } from "@/actions/notifications-dev";
-import { getNotificationLogs } from "@/actions/developer";
+import { getNotificationLogs, broadcastDeveloperMessage } from "@/actions/developer";
 import { useEffect, useCallback } from "react";
 
-type NotificationType = "email" | "telegram" | "push";
+type NotificationType = "email" | "telegram" | "push" | "broadcast";
 type Environment = "sandbox" | "production";
 
 interface DeliveryLog {
@@ -53,6 +54,11 @@ const TEMPLATES: Record<NotificationType, { subject: string; body: string; to: s
         subject: "New Order Alert 🔔",
         body: '{"title": "New Order!", "body": "Order #BLK-001 • ₹1,999", "icon": "/icon.png", "click_action": "/admin/orders"}',
         to: "All FCM subscribed devices",
+    },
+    broadcast: {
+        subject: "Broadcast Message",
+        body: "Write a message to all administrators here...",
+        to: "All Administrators",
     },
 };
 
@@ -98,6 +104,30 @@ export default function NotificationsPage() {
         const startTime = Date.now();
 
         try {
+            if (activeType === "broadcast") {
+                const token = await auth.currentUser?.getIdToken();
+                const result = await broadcastDeveloperMessage(subject, body, token);
+
+                if (result.success) {
+                    toast.success("Broadcast sent to all admins!");
+                    const successLog: DeliveryLog = {
+                        id: `bc-${Date.now()}`,
+                        type: "broadcast",
+                        env: "production",
+                        status: "delivered",
+                        to: "All Admins",
+                        subject: subject,
+                        timestamp: new Date().toISOString(),
+                        latencyMs: Date.now() - startTime,
+                    };
+                    setDeliveryLogs([successLog, ...deliveryLogs]);
+                    fetchLogs();
+                } else {
+                    toast.error(`Broadcast failed: ${result.error}`);
+                }
+                return;
+            }
+
             if (environment === "production") {
                 const token = await auth.currentUser?.getIdToken();
                 const result = await sendTestNotification(
@@ -171,7 +201,7 @@ export default function NotificationsPage() {
 
     const handleStressTest = async () => {
         if (!confirm("This will trigger 10-20 production-grade order notifications to identify delivery bottlenecks. Continue?")) return;
-        
+
         setIsGeneratingStress(true);
         try {
             const token = await auth.currentUser?.getIdToken();
@@ -234,6 +264,7 @@ export default function NotificationsPage() {
                     { type: "email" as const, icon: Mail, label: "Email" },
                     { type: "telegram" as const, icon: MessageCircle, label: "Telegram" },
                     { type: "push" as const, icon: Flame, label: "Firebase Push" },
+                    { type: "broadcast" as const, icon: Megaphone, label: "Admin Broadcast" },
                 ]).map((ch) => (
                     <button
                         key={ch.type}
@@ -415,6 +446,7 @@ export default function NotificationsPage() {
                                             {log.type === "email" && <Mail size={13} className="text-[var(--dev-text-muted)]" />}
                                             {log.type === "telegram" && <MessageCircle size={13} className="text-[#2AABEE]" />}
                                             {log.type === "push" && <Flame size={13} className="text-amber-500" />}
+                                            {log.type === "broadcast" && <Megaphone size={13} className="text-emerald-500" />}
                                             <span className="text-[12px] text-[var(--dev-text-secondary)] font-medium capitalize">{log.type === "push" ? "FCM Push" : log.type}</span>
                                         </div>
                                     </td>

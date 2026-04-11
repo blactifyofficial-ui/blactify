@@ -12,6 +12,7 @@ import { useNotificationStore } from "@/store/useNotificationStore";
 
 const NAV_ITEMS = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { name: "Notifications", href: "/admin/notifications", icon: Bell, showBadge: true },
     { name: "Orders", href: "/admin/orders", icon: ShoppingBag, showBadge: true },
     { name: "Products", href: "/admin/products", icon: Box },
     { name: "Drops", href: "/admin/drops", icon: Zap },

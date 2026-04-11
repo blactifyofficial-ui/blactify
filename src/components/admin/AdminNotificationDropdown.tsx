@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Bell, Check, Clock, Package, MessageSquare, AlertCircle, X, Info } from "lucide-react";
+import Link from "next/link";
+import { Bell, Check, Clock, Package, MessageSquare, AlertCircle, X, Info, ExternalLink } from "lucide-react";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import { useAuth } from "@/store/AuthContext";
 import { cn } from "@/lib/utils";
@@ -258,8 +259,16 @@ export function AdminNotificationDropdown() {
                         )}
                     </div>
                     
-                    <div className="p-6 bg-white border-t border-zinc-50 text-center flex items-center justify-center gap-3">
-                         <div className="flex items-center gap-2 text-[9px] font-semibold uppercase text-zinc-400 tracking-wide">
+                    <div className="p-6 bg-white border-t border-zinc-50 flex flex-col gap-4">
+                        <Link 
+                            href="/admin/notifications"
+                            onClick={() => setIsOpen(false)}
+                            className="w-full py-4 rounded-2xl bg-zinc-900 hover:bg-black text-white text-[11px] font-semibold uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-lg shadow-black/5"
+                        >
+                            <ExternalLink size={14} />
+                            View All Notifications
+                        </Link>
+                        <div className="flex items-center justify-center gap-2 text-[9px] font-semibold uppercase text-zinc-400 tracking-wide">
                              <Clock size={12} className="text-red-600/50" />
                              Acknowledged history clears daily
                          </div>
