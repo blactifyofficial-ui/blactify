@@ -151,7 +151,7 @@ export default function AdminProductsPage() {
                                     setSelectedCategoryId(e.target.value);
                                     setPage(1);
                                 }}
-                                className="pl-8 pr-4 py-2.5 bg-white border border-zinc-100 rounded-2xl text-[9px] font-black uppercase tracking-widest focus:outline-none focus:ring-4 focus:ring-black/5 transition-all appearance-none cursor-pointer shadow-sm min-w-[100px]"
+                                className="pl-8 pr-4 py-2.5 bg-white border border-zinc-100 rounded-2xl text-[9px] font-semibold uppercase tracking-wide focus:outline-none focus:ring-4 focus:ring-black/5 transition-all appearance-none cursor-pointer shadow-sm min-w-[100px]"
                             >
                                 <option value="all">Categories</option>
                                 {categories.map(cat => (
@@ -169,7 +169,7 @@ export default function AdminProductsPage() {
                                     setSelectedStatus(e.target.value as 'all' | 'active' | 'hidden');
                                     setPage(1);
                                 }}
-                                className="pl-8 pr-4 py-2.5 bg-white border border-zinc-100 rounded-2xl text-[9px] font-black uppercase tracking-widest focus:outline-none focus:ring-4 focus:ring-black/5 transition-all appearance-none cursor-pointer shadow-sm min-w-[90px]"
+                                className="pl-8 pr-4 py-2.5 bg-white border border-zinc-100 rounded-2xl text-[9px] font-semibold uppercase tracking-wide focus:outline-none focus:ring-4 focus:ring-black/5 transition-all appearance-none cursor-pointer shadow-sm min-w-[90px]"
                             >
                                 <option value="all">Status</option>
                                 <option value="active">Active</option>
@@ -186,7 +186,7 @@ export default function AdminProductsPage() {
                                     setSelectedStockStatus(e.target.value as 'all' | 'in_stock' | 'low_stock' | 'out_of_stock');
                                     setPage(1);
                                 }}
-                                className="pl-8 pr-4 py-2.5 bg-white border border-zinc-100 rounded-2xl text-[9px] font-black uppercase tracking-widest focus:outline-none focus:ring-4 focus:ring-black/5 transition-all appearance-none cursor-pointer shadow-sm min-w-[90px]"
+                                className="pl-8 pr-4 py-2.5 bg-white border border-zinc-100 rounded-2xl text-[9px] font-semibold uppercase tracking-wide focus:outline-none focus:ring-4 focus:ring-black/5 transition-all appearance-none cursor-pointer shadow-sm min-w-[90px]"
                             >
                                 <option value="all">Stock</option>
                                 <option value="in_stock">In Stock</option>
@@ -198,7 +198,7 @@ export default function AdminProductsPage() {
                         {/* Add Button - Compact */}
                         <Link
                             href="/admin/products/new"
-                            className="flex items-center justify-center gap-1.5 bg-black text-white px-5 py-2.5 rounded-2xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-lg shadow-black/10 shrink-0 ml-auto"
+                            className="flex items-center justify-center gap-1.5 bg-black text-white px-5 py-2.5 rounded-2xl text-[9px] font-semibold uppercase tracking-wide active:scale-95 transition-all shadow-lg shadow-black/10 shrink-0 ml-auto"
                         >
                             <Plus size={14} strokeWidth={3} />
                             <span>Add Product</span>
@@ -252,7 +252,7 @@ export default function AdminProductsPage() {
                                                 </div>
 
                                                 <div className="absolute bottom-3 sm:bottom-5 left-3 sm:left-5 z-20">
-                                                    <span className="bg-black/80 backdrop-blur-md text-white px-2 sm:px-4 py-1 sm:py-2 rounded-full text-[7px] sm:text-[9px] font-black uppercase tracking-[0.2em] shadow-2xl border border-white/10 truncate max-w-[100px] block">
+                                                    <span className="bg-black/80 backdrop-blur-md text-white px-2 sm:px-4 py-1 sm:py-2 rounded-full text-[7px] sm:text-[9px] font-semibold uppercase tracking-wide shadow-2xl border border-white/10 truncate max-w-[100px] block">
                                                         {product.categories?.name || "Uncat"}
                                                     </span>
                                                 </div>
@@ -263,29 +263,29 @@ export default function AdminProductsPage() {
                                             <div className="p-4 sm:p-8 flex-1 flex flex-col justify-between">
                                                 <div className="mb-3 sm:mb-6">
                                                     <div className="flex items-start justify-between gap-2 sm:gap-4">
-                                                        <h3 className="font-black text-xs sm:text-lg text-black tracking-tight line-clamp-1 group-hover:text-zinc-600 transition-colors uppercase">{product.name}</h3>
+                                                        <h3 className="font-semibold text-xs sm:text-lg text-black tracking-tight line-clamp-1 group-hover:text-zinc-600 transition-colors uppercase">{product.name}</h3>
                                                         <div className={cn(
-                                                            "w-2 h-2 sm:w-auto sm:px-2 sm:py-0.5 rounded-full text-[7px] font-black uppercase tracking-tighter shrink-0",
+                                                            "w-2 h-2 sm:w-auto sm:px-2 sm:py-0.5 rounded-full text-[7px] font-semibold uppercase tracking-tighter shrink-0",
                                                             (product as Product & { visibility_status: string }).visibility_status === 'active' ? "bg-green-500 sm:bg-green-50 sm:text-green-500" : "bg-amber-500 sm:bg-amber-50 sm:text-amber-500"
                                                         )}>
                                                             <span className="hidden sm:inline">{(product as Product & { visibility_status: string }).visibility_status === 'active' ? "Active" : "Hidden"}</span>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-2 mt-1">
-                                                        <p className="text-[7px] sm:text-[9px] font-black text-zinc-300 uppercase tracking-widest">{product.id.slice(0, 8)}</p>
+                                                        <p className="text-[7px] sm:text-[9px] font-semibold text-zinc-300 uppercase tracking-wide">{product.id.slice(0, 8)}</p>
                                                     </div>
                                                 </div>
 
                                                 <div className="flex items-center justify-between pt-3 sm:pt-6 border-t border-zinc-50">
                                                     <div>
-                                                        <p className="text-[7px] sm:text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] mb-0.5 sm:mb-1">PRICE</p>
-                                                        <p className="text-sm sm:text-xl font-black tracking-tighter text-black">
+                                                        <p className="text-[7px] sm:text-[9px] text-zinc-300 font-semibold uppercase tracking-wide mb-0.5 sm:mb-1">PRICE</p>
+                                                        <p className="text-sm sm:text-xl font-semibold tracking-tighter text-black">
                                                             ₹{(product.price_offer || product.price_base).toLocaleString()}
                                                         </p>
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="text-[7px] sm:text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] mb-0.5 sm:mb-1">STOCK</p>
-                                                        <p className="text-sm sm:text-xl font-black tracking-tighter text-black">
+                                                        <p className="text-[7px] sm:text-[9px] text-zinc-300 font-semibold uppercase tracking-wide mb-0.5 sm:mb-1">STOCK</p>
+                                                        <p className="text-sm sm:text-xl font-semibold tracking-tighter text-black">
                                                             {product.stock || 0}
                                                         </p>
                                                     </div>
@@ -316,32 +316,32 @@ export default function AdminProductsPage() {
                                                 
                                                 <div className="flex flex-col gap-0.5 sm:gap-1">
                                                     <div className="flex items-center gap-2 sm:gap-3">
-                                                        <h3 className="font-black text-sm sm:text-lg text-black tracking-tight uppercase">{product.name}</h3>
+                                                        <h3 className="font-semibold text-sm sm:text-lg text-black tracking-tight uppercase">{product.name}</h3>
                                                         <div className={cn(
-                                                            "px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-tighter",
+                                                            "px-2 py-0.5 rounded-full text-[7px] font-semibold uppercase tracking-tighter",
                                                             (product as Product & { visibility_status: string }).visibility_status === 'active' ? "bg-green-50 text-green-500" : "bg-amber-50 text-amber-500"
                                                         )}>
                                                             {(product as Product & { visibility_status: string }).visibility_status === 'active' ? "Active" : "Hidden"}
                                                         </div>
                                                     </div>
                                                     <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-                                                        <span className="text-[8px] sm:text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{product.categories?.name || "Uncategorized"}</span>
+                                                        <span className="text-[8px] sm:text-[10px] font-bold text-zinc-400 uppercase tracking-wide">{product.categories?.name || "Uncategorized"}</span>
                                                         <span className="hidden sm:inline text-zinc-200">•</span>
-                                                        <span className="text-[8px] sm:text-[10px] font-bold text-zinc-300 uppercase tracking-widest">ID: {product.id.slice(0, 8)}</span>
+                                                        <span className="text-[8px] sm:text-[10px] font-bold text-zinc-300 uppercase tracking-wide">ID: {product.id.slice(0, 8)}</span>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <div className="flex items-center justify-between sm:justify-end gap-6 sm:gap-12">
                                                 <div className="sm:text-right">
-                                                    <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] mb-1">PRICE</p>
-                                                    <p className="text-md sm:text-xl font-black tracking-tighter text-black">
+                                                    <p className="text-[9px] text-zinc-300 font-semibold uppercase tracking-wide mb-1">PRICE</p>
+                                                    <p className="text-md sm:text-xl font-semibold tracking-tighter text-black">
                                                         ₹{(product.price_offer || product.price_base).toLocaleString()}
                                                     </p>
                                                 </div>
                                                 <div className="sm:text-right">
-                                                    <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] mb-1">STOCK</p>
-                                                    <p className="text-md sm:text-xl font-black tracking-tighter text-black">
+                                                    <p className="text-[9px] text-zinc-300 font-semibold uppercase tracking-wide mb-1">STOCK</p>
+                                                    <p className="text-md sm:text-xl font-semibold tracking-tighter text-black">
                                                         {product.stock || 0}
                                                     </p>
                                                 </div>
@@ -372,8 +372,8 @@ export default function AdminProductsPage() {
                         <div className="col-span-full">
                             <AdminCard className="py-32 text-center">
                                 <Box className="mx-auto text-zinc-50 mb-8 opacity-50" size={80} />
-                                <h4 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-2">No Products Found</h4>
-                                <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest leading-loose px-10">
+                                <h4 className="text-zinc-900 font-semibold uppercase tracking-wide text-sm mb-2">No Products Found</h4>
+                                <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-wide leading-loose px-10">
                                     No products found. Try a different search or add a new product.
                                 </p>
                             </AdminCard>

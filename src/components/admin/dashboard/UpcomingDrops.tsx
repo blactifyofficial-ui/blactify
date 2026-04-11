@@ -23,7 +23,7 @@ export function UpcomingDrops({ drops, fetchDrops }: UpcomingDropsProps) {
                                     <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none flex flex-col items-center gap-1 opacity-20 group-hover/slider:opacity-100 transition-opacity">
                                         {idx < drops.length - 1 && (
                                             <div className="flex flex-col items-center gap-1">
-                                                <span className="text-[7px] font-black uppercase tracking-widest text-zinc-400 rotate-90">Next</span>
+                                                <span className="text-[7px] font-semibold uppercase tracking-wide text-zinc-400 rotate-90">Next</span>
                                                 <ArrowUpRight size={10} className="text-zinc-400 rotate-45" />
                                             </div>
                                         )}
@@ -47,16 +47,16 @@ export function UpcomingDrops({ drops, fetchDrops }: UpcomingDropsProps) {
                         <div className="space-y-1">
                             <div className="flex items-center gap-2">
                                 <Zap className="text-zinc-200" size={14} />
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Next Scheduled Drop</span>
+                                <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Next Scheduled Drop</span>
                             </div>
-                            <h4 className="text-2xl font-black text-zinc-200 tracking-tighter leading-none pt-1">
+                            <h4 className="text-2xl font-semibold text-zinc-200 tracking-tighter leading-none pt-1">
                                 None Scheduled
                             </h4>
                         </div>
                     </div>
                     <Link 
                         href="/admin/drops" 
-                        className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-black transition-colors"
+                        className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wide text-zinc-400 hover:text-black transition-colors"
                     >
                         Schedule Drop <Plus size={14} />
                     </Link>

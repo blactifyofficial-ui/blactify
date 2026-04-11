@@ -159,7 +159,7 @@ export default function AdminDropsPage() {
                         <form onSubmit={handleSubmit} noValidate className="space-y-6">
                             <div className="space-y-4">
                                 <label className="block">
-                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-2 block">Drop Name</span>
+                                    <span className="text-[9px] font-semibold uppercase tracking-wide text-zinc-400 mb-2 block">Drop Name</span>
                                     <div className="relative">
                                         <Zap className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={18} />
                                         <input
@@ -179,7 +179,7 @@ export default function AdminDropsPage() {
                                 </label>
 
                                 <label className="block">
-                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-2 block">Publish Date & Time</span>
+                                    <span className="text-[9px] font-semibold uppercase tracking-wide text-zinc-400 mb-2 block">Publish Date & Time</span>
                                     <div className="relative">
                                         <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={18} />
                                         <input
@@ -209,7 +209,7 @@ export default function AdminDropsPage() {
                                     <button
                                         type="button"
                                         onClick={resetForm}
-                                        className="flex-1 py-4 border border-zinc-100 text-zinc-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-50 transition-all"
+                                        className="flex-1 py-4 border border-zinc-100 text-zinc-400 rounded-2xl text-[10px] font-semibold uppercase tracking-wide hover:bg-zinc-50 transition-all"
                                     >
                                         Cancel
                                     </button>
@@ -217,7 +217,7 @@ export default function AdminDropsPage() {
                                 <button
                                     type="submit"
                                     disabled={saving || !name || !publishDate}
-                                    className="flex-[2] py-4 bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-zinc-800 transition-all disabled:opacity-50 shadow-xl shadow-black/10"
+                                    className="flex-[2] py-4 bg-black text-white rounded-2xl text-[10px] font-semibold uppercase tracking-wide flex items-center justify-center gap-2 hover:bg-zinc-800 transition-all disabled:opacity-50 shadow-xl shadow-black/10"
                                 >
                                     {saving ? <Loader2 className="animate-spin" size={16} /> : (editingId ? <Check size={18} /> : <Plus size={18} />)}
                                     {editingId ? 'Update Drop' : 'Create Drop'}
@@ -241,16 +241,16 @@ export default function AdminDropsPage() {
                                                 <Zap size={20} />
                                             </div>
                                             <div>
-                                                <p className="font-black text-lg text-black tracking-tight group-hover:translate-x-1 transition-transform duration-500">{drop.name}</p>
+                                                <p className="font-semibold text-lg text-black tracking-tight group-hover:translate-x-1 transition-transform duration-500">{drop.name}</p>
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <Calendar size={12} className="text-zinc-400" />
-                                                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-none pt-0.5">
+                                                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide leading-none pt-0.5">
                                                         {format(new Date(drop.publishDate), "MMM dd, yyyy • hh:mm a")}
                                                     </span>
                                                     {drop.createdAt && (
                                                         <>
                                                             <span className="text-[10px] text-zinc-200 px-1">•</span>
-                                                            <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest leading-none pt-0.5">
+                                                            <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-wide leading-none pt-0.5">
                                                                 Updated {formatDistanceToNow(new Date(drop.createdAt), { addSuffix: true })}
                                                             </span>
                                                         </>
@@ -260,7 +260,7 @@ export default function AdminDropsPage() {
                                         </div>
                                         <div className="flex items-center gap-2">
                                             {new Date(drop.publishDate) < new Date() ? (
-                                                <div className="flex items-center gap-1.5 px-3 py-2 bg-zinc-50 rounded-xl text-[9px] font-black text-zinc-400 uppercase tracking-widest border border-zinc-100">
+                                                <div className="flex items-center gap-1.5 px-3 py-2 bg-zinc-50 rounded-xl text-[9px] font-semibold text-zinc-400 uppercase tracking-wide border border-zinc-100">
                                                     <Lock size={12} /> Published
                                                 </div>
                                             ) : (
@@ -296,8 +296,8 @@ export default function AdminDropsPage() {
                         ) : (
                             <AdminCard className="py-20 text-center">
                                 <Zap className="mx-auto text-zinc-50 mb-6 opacity-50" size={64} />
-                                <h4 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-2">No Drops</h4>
-                                <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest leading-loose px-10">
+                                <h4 className="text-zinc-900 font-semibold uppercase tracking-wide text-sm mb-2">No Drops</h4>
+                                <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-wide leading-loose px-10">
                                     No drops found. Create one using the form.
                                 </p>
                             </AdminCard>

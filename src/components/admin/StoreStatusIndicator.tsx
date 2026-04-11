@@ -59,7 +59,7 @@ export function StoreStatusIndicator() {
                 )}
             </div>
 
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] whitespace-nowrap">
+            <span className="text-[10px] font-black uppercase tracking-wide whitespace-nowrap">
                 {isOnline ? "Store Online" : "Store Offline"}
             </span>
         </div>

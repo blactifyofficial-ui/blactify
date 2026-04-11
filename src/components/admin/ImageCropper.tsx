@@ -104,13 +104,13 @@ export default function ImageCropper({ image, onCrop, onCancel, aspectRatio = 1 
                 <div className="px-8 py-6 border-t border-zinc-100 flex gap-4">
                     <button
                         onClick={onCancel}
-                        className="flex-1 py-4 px-6 border border-zinc-100 rounded-2xl text-zinc-400 font-bold uppercase tracking-widest text-xs hover:bg-zinc-50 transition-all"
+                        className="flex-1 py-4 px-6 border border-zinc-100 rounded-2xl text-zinc-400 font-bold uppercase tracking-wide text-xs hover:bg-zinc-50 transition-all"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleCrop}
-                        className="flex-1 py-4 px-6 bg-black text-white rounded-2xl font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-zinc-800 transition-all shadow-xl shadow-black/10"
+                        className="flex-1 py-4 px-6 bg-black text-white rounded-2xl font-bold uppercase tracking-wide text-xs flex items-center justify-center gap-2 hover:bg-zinc-800 transition-all shadow-xl shadow-black/10"
                     >
                         <Check size={18} />
                         Apply Crop

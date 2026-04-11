@@ -57,7 +57,7 @@ export function DisablePurchaseModal({
                     <div className="flex gap-3">
                         <button
                             onClick={onClose}
-                            className="flex-1 px-4 py-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 rounded-xl text-xs font-bold uppercase tracking-widest transition-colors"
+                            className="flex-1 px-4 py-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 rounded-xl text-xs font-bold uppercase tracking-wide transition-colors"
                         >
                             Cancel
                         </button>
@@ -65,7 +65,7 @@ export function DisablePurchaseModal({
                             disabled={confirmationText !== "STOP BUYING" || isUpdating}
                             onClick={onConfirm}
                             className={cn(
-                                "flex-1 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2",
+                                "flex-1 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wide transition-all flex items-center justify-center gap-2",
                                 confirmationText === "STOP BUYING"
                                     ? "bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-500/20"
                                     : "bg-zinc-100 text-zinc-400 cursor-not-allowed"

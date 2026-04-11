@@ -237,7 +237,7 @@ export default function AdminCategoriesPage() {
                         <form onSubmit={handleSubmit} noValidate className="space-y-6">
                             <div className="space-y-4">
                                 <label className="block">
-                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-2 block">Category Name</span>
+                                    <span className="text-[9px] font-semibold uppercase tracking-wide text-zinc-400 mb-2 block">Category Name</span>
                                     <div className="relative">
                                         <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={18} />
                                         <input
@@ -263,7 +263,7 @@ export default function AdminCategoriesPage() {
 
                                 <div className="space-y-4 pt-4 border-t border-zinc-50">
                                     <div className="flex items-center justify-between mb-2">
-                                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 block">Category Image</span>
+                                        <span className="text-[9px] font-semibold uppercase tracking-wide text-zinc-400 block">Category Image</span>
                                     </div>
                                     <div className="flex items-start gap-4">
                                         <div className="relative w-24 h-32 bg-zinc-50 rounded-2xl flex items-center justify-center border-2 border-dashed border-zinc-200 overflow-hidden group">
@@ -280,7 +280,7 @@ export default function AdminCategoriesPage() {
                                             ) : (
                                                 <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer text-zinc-400 hover:text-black transition-colors">
                                                     {uploadingImage ? <Loader2 className="animate-spin mb-2" size={20} /> : <ImageIcon className="mb-2 opacity-50" size={24} />}
-                                                    <span className="text-[8px] font-bold uppercase tracking-widest">{uploadingImage ? 'Uploading...' : 'Upload'}</span>
+                                                    <span className="text-[8px] font-bold uppercase tracking-wide">{uploadingImage ? 'Uploading...' : 'Upload'}</span>
                                                     <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} disabled={uploadingImage} />
                                                 </label>
                                             )}
@@ -291,7 +291,7 @@ export default function AdminCategoriesPage() {
                                                 <button
                                                     type="button"
                                                     onClick={() => setNewImageUrl("")}
-                                                    className="text-[9px] font-bold text-red-500 uppercase tracking-widest hover:text-red-600 transition-colors"
+                                                    className="text-[9px] font-bold text-red-500 uppercase tracking-wide hover:text-red-600 transition-colors"
                                                 >
                                                     Remove Image
                                                 </button>
@@ -301,7 +301,7 @@ export default function AdminCategoriesPage() {
                                 </div>
 
                                 <div className="space-y-4 pt-4 border-t border-zinc-50">
-                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 block">Measurement Fields</span>
+                                    <span className="text-[9px] font-semibold uppercase tracking-wide text-zinc-400 block">Measurement Fields</span>
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
@@ -327,7 +327,7 @@ export default function AdminCategoriesPage() {
                                                     setCurrentField("");
                                                 }
                                             }}
-                                            className="px-4 bg-zinc-100 text-zinc-500 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-zinc-200 transition-colors"
+                                            className="px-4 bg-zinc-100 text-zinc-500 rounded-xl text-[9px] font-semibold uppercase tracking-wide hover:bg-zinc-200 transition-colors"
                                         >
                                             Add
                                         </button>
@@ -335,7 +335,7 @@ export default function AdminCategoriesPage() {
 
                                     <div className="flex flex-wrap gap-2 min-h-[40px]">
                                         {newSizeFields.map((field, idx) => (
-                                            <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-black text-white rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-black/10 animate-in zoom-in-50">
+                                            <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-black text-white rounded-full text-[9px] font-semibold uppercase tracking-wide shadow-lg shadow-black/10 animate-in zoom-in-50">
                                                 {field}
                                                 <button
                                                     type="button"
@@ -355,7 +355,7 @@ export default function AdminCategoriesPage() {
                                     <button
                                         type="button"
                                         onClick={resetForm}
-                                        className="flex-1 py-4 border border-zinc-100 text-zinc-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-50 transition-all"
+                                        className="flex-1 py-4 border border-zinc-100 text-zinc-400 rounded-2xl text-[10px] font-semibold uppercase tracking-wide hover:bg-zinc-50 transition-all"
                                     >
                                         Cancel
                                     </button>
@@ -363,7 +363,7 @@ export default function AdminCategoriesPage() {
                                 <button
                                     type="submit"
                                     disabled={adding || !newCategoryName}
-                                    className="flex-[2] py-4 bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-zinc-800 transition-all disabled:opacity-50 shadow-xl shadow-black/10"
+                                    className="flex-[2] py-4 bg-black text-white rounded-2xl text-[10px] font-semibold uppercase tracking-wide flex items-center justify-center gap-2 hover:bg-zinc-800 transition-all disabled:opacity-50 shadow-xl shadow-black/10"
                                 >
                                     {adding ? <Loader2 className="animate-spin" size={16} /> : (editingId ? <Check size={18} /> : <Plus size={18} />)}
                                     {editingId ? 'Update Category' : 'Save Category'}
@@ -398,19 +398,19 @@ export default function AdminCategoriesPage() {
                                             )}
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-3 group-hover:translate-x-1 transition-transform duration-500">
-                                                    <p className="font-black text-lg text-black tracking-tight">{cat.name}</p>
-                                                    <span className="bg-zinc-100 text-zinc-400 group-hover:bg-black group-hover:text-white transition-all duration-700 text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">
+                                                    <p className="font-semibold text-lg text-black tracking-tight">{cat.name}</p>
+                                                    <span className="bg-zinc-100 text-zinc-400 group-hover:bg-black group-hover:text-white transition-all duration-700 text-[9px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-tighter">
                                                         {cat.product_count || 0} {cat.product_count === cat.total_product_count ? "Products" : "Active"}
                                                     </span>
                                                 </div>
                                                 <div className="flex gap-2 mt-1">
                                                     {cat.size_config?.map((s: string) => (
-                                                        <span key={s} className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest border border-zinc-100 px-2 py-0.5 rounded-full">
+                                                        <span key={s} className="text-[8px] font-bold text-zinc-400 uppercase tracking-wide border border-zinc-100 px-2 py-0.5 rounded-full">
                                                             {s}
                                                         </span>
                                                     ))}
                                                     {(!cat.size_config || cat.size_config.length === 0) && (
-                                                        <span className="text-[8px] font-bold text-zinc-300 uppercase tracking-widest">No sizes set</span>
+                                                        <span className="text-[8px] font-bold text-zinc-300 uppercase tracking-wide">No sizes set</span>
                                                     )}
                                                 </div>
                                             </div>
@@ -451,8 +451,8 @@ export default function AdminCategoriesPage() {
                         ) : (
                             <AdminCard className="py-20 text-center">
                                 <Tag className="mx-auto text-zinc-50 mb-6 opacity-50" size={64} />
-                                <h4 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-2">No Categories</h4>
-                                <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest leading-loose px-10">
+                                <h4 className="text-zinc-900 font-semibold uppercase tracking-wide text-sm mb-2">No Categories</h4>
+                                <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-wide leading-loose px-10">
                                     No categories found. Add one using the form.
                                 </p>
                             </AdminCard>
@@ -490,8 +490,8 @@ function CategoryProductsModal({ isOpen, onClose, category }: { isOpen: boolean,
                 {/* Header */}
                 <div className="px-8 py-7 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50 sticky top-0 z-10 backdrop-blur-md">
                     <div>
-                        <h2 className="text-xl font-black text-black tracking-tight leading-none mb-1">{category.name}</h2>
-                        <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">
+                        <h2 className="text-xl font-semibold text-black tracking-tight leading-none mb-1">{category.name}</h2>
+                        <span className="text-[9px] font-semibold uppercase tracking-wide text-zinc-400">
                             {category.total_product_count || 0} Products in database • {category.product_count || 0} Active
                         </span>
                     </div>
@@ -521,14 +521,14 @@ function CategoryProductsModal({ isOpen, onClose, category }: { isOpen: boolean,
                                     <div className="flex-1 overflow-hidden">
                                         <p className="font-bold text-xs text-black truncate">{prod.name}</p>
                                         <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-xs font-black text-black">₹{prod.price_offer || prod.price_base}</span>
+                                            <span className="text-xs font-semibold text-black">₹{prod.price_offer || prod.price_base}</span>
                                             {prod.price_offer && prod.price_base > prod.price_offer && (
                                                 <span className="text-[9px] font-bold text-zinc-400 line-through">₹{prod.price_base}</span>
                                             )}
                                         </div>
                                     </div>
                                     <div className={cn(
-                                        "px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter self-start",
+                                        "px-2 py-0.5 rounded-full text-[8px] font-semibold uppercase tracking-tighter self-start",
                                         prod.is_hidden ? "bg-amber-50 text-amber-500" : (prod.out_of_stock_at ? "bg-red-50 text-red-500" : "bg-green-50 text-green-500")
                                     )}>
                                         {prod.is_hidden ? "Scheduled" : (prod.out_of_stock_at ? "Hidden / OOS" : "Active")}
@@ -539,7 +539,7 @@ function CategoryProductsModal({ isOpen, onClose, category }: { isOpen: boolean,
                     ) : (
                         <div className="h-64 flex flex-col items-center justify-center text-zinc-400 gap-3">
                             <Tag size={40} className="text-zinc-100" />
-                            <p className="text-sm font-bold uppercase tracking-widest text-zinc-200">Empty Category</p>
+                            <p className="text-sm font-bold uppercase tracking-wide text-zinc-200">Empty Category</p>
                         </div>
                     )}
                 </div>

@@ -22,9 +22,9 @@ export function StoreControls({
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <Store className="text-[#000000]" size={14} />
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">System Infrastructure</span>
+                            <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-600">System Infrastructure</span>
                         </div>
-                        <h4 className="text-2xl font-black text-[#000000] tracking-tighter leading-none pt-1">Store Purchases</h4>
+                        <h4 className="text-2xl font-semibold text-[#000000] tracking-tighter leading-none pt-1">Store Purchases</h4>
                     </div>
                     <div className={cn(
                         "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
@@ -42,7 +42,7 @@ export function StoreControls({
                         onClick={onTogglePurchases}
                         disabled={isUpdatingPurchases}
                         className={cn(
-                            "px-5 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-sm",
+                            "px-5 py-3 rounded-xl text-[9px] font-semibold uppercase tracking-wide transition-all flex items-center gap-2 shadow-sm",
                             purchasesEnabled
                                 ? "bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-100"
                                 : "bg-green-50 text-green-600 hover:bg-green-600 hover:text-white border border-green-100",

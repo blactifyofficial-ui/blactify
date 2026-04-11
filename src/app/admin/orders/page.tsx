@@ -71,7 +71,7 @@ export default function AdminOrdersPage() {
                         
                         <Link
                             href="/admin/orders/create"
-                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-black text-white rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-all active:scale-[0.98] shadow-lg shadow-black/5 whitespace-nowrap"
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-black text-white rounded-2xl text-xs font-bold uppercase tracking-wide hover:bg-zinc-800 transition-all active:scale-[0.98] shadow-lg shadow-black/5 whitespace-nowrap"
                         >
                             <Plus size={16} />
                             Create Order
@@ -97,11 +97,11 @@ export default function AdminOrdersPage() {
                                     </div>
                                     <div className="flex-1 space-y-2">
                                         <div className="flex items-center gap-3">
-                                            <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400 bg-zinc-50 px-3 py-1 rounded-full border border-zinc-100">
+                                            <span className="font-mono text-[9px] font-bold uppercase tracking-wide text-zinc-400 bg-zinc-50 px-3 py-1 rounded-full border border-zinc-100">
                                                 ID: {order.id.slice(0, 12)}
                                             </span>
                                             {order.tracking_id && (
-                                                <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
+                                                <span className="font-mono text-[9px] font-bold uppercase tracking-wide text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
                                                     AWB: {order.tracking_id}
                                                 </span>
                                             )}
@@ -114,7 +114,7 @@ export default function AdminOrdersPage() {
                                             {order.status?.toLowerCase() === 'paid' && !order.tracking_id && (
                                                 <div className="flex items-center gap-2 px-2.5 py-1 bg-blue-600/5 rounded-full border border-blue-600/10 animate-pulse">
                                                     <span className="w-2 h-2 bg-blue-600 rounded-full shadow-[0_0_8px_rgba(37,99,235,0.6)]" />
-                                                    <span className="text-[7px] font-black uppercase tracking-widest text-blue-600">New order</span>
+                                                    <span className="text-[7px] font-black uppercase tracking-wide text-blue-600">New order</span>
                                                 </div>
                                             )}
                                             {order.status === 'pending' && (new Date().getTime() - new Date(order.created_at).getTime() > 30 * 60 * 1000) && (
@@ -128,11 +128,11 @@ export default function AdminOrdersPage() {
                                         </h3>
 
                                         <div className="flex items-center gap-5 text-zinc-400">
-                                            <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.2em] opacity-80">
+                                            <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wide opacity-80">
                                                 <Calendar size={12} strokeWidth={2.5} />
                                                 {new Date(order.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                                             </div>
-                                            <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.2em] opacity-80">
+                                            <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wide opacity-80">
                                                 <Clock size={12} strokeWidth={2.5} />
                                                 {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </div>
@@ -142,7 +142,7 @@ export default function AdminOrdersPage() {
 
                                 <div className="flex items-center justify-between sm:justify-end gap-10 mt-6 sm:mt-0 pt-6 sm:pt-0 border-t sm:border-t-0 border-zinc-50 relative z-10">
                                     <div className="text-left sm:text-right">
-                                        <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] mb-1">TOTAL</p>
+                                        <p className="text-[9px] text-zinc-300 font-black uppercase tracking-wide mb-1">TOTAL</p>
                                         <p className="text-2xl font-black tracking-tighter text-black">₹{order.amount.toLocaleString()}</p>
                                     </div>
                                     <div className="w-14 h-14 rounded-full bg-zinc-50 flex items-center justify-center text-zinc-300 group-hover:bg-black group-hover:text-white group-hover:scale-110 transition-all duration-700 border border-zinc-100 shadow-sm">
@@ -157,8 +157,8 @@ export default function AdminOrdersPage() {
                     ) : (
                         <div className="bg-white p-32 rounded-[3.5rem] border border-zinc-100 text-center shadow-inner relative overflow-hidden">
                             <ShoppingBag className="mx-auto text-zinc-100 mb-8 opacity-50" size={80} />
-                            <h4 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-2">No Results</h4>
-                            <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest">No orders found.</p>
+                            <h4 className="text-zinc-900 font-black uppercase tracking-wide text-sm mb-2">No Results</h4>
+                            <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-wide">No orders found.</p>
                             <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.02] pointer-events-none"></div>
                         </div>
                     )}

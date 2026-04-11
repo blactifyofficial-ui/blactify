@@ -53,7 +53,7 @@ export default function AdminSettingsPage() {
                 <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="flex items-center gap-3 px-8 py-3 bg-black text-white hover:bg-zinc-800 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all disabled:opacity-50"
+                    className="flex items-center gap-3 px-8 py-3 bg-black text-white hover:bg-zinc-800 rounded-2xl text-[10px] font-semibold uppercase tracking-wide transition-all disabled:opacity-50"
                 >
                     <Save size={16} />
                     {saving ? "Saving..." : "Save Changes"}
@@ -69,22 +69,22 @@ export default function AdminSettingsPage() {
                         className="sticky top-10"
                     >
                         <div className="flex flex-col items-center text-center space-y-6">
-                            <div className="w-24 h-24 rounded-[2rem] bg-zinc-100 border border-zinc-200 flex items-center justify-center text-2xl font-black text-zinc-400">
+                            <div className="w-24 h-24 rounded-[2rem] bg-zinc-100 border border-zinc-200 flex items-center justify-center text-2xl font-semibold text-zinc-400">
                                 {adminData.name.charAt(0)}
                             </div>
                             <div className="space-y-1">
                                 <h3 className="text-xl font-heading text-black uppercase">{adminData.name}</h3>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-[#2AABEE]">{adminData.role}</p>
+                                <p className="text-[10px] font-semibold uppercase tracking-wide text-[#2AABEE]">{adminData.role}</p>
                             </div>
                             
                             <div className="w-full pt-6 border-t border-zinc-50 space-y-4">
                                 <div className="flex justify-between items-center text-[11px]">
-                                    <span className="text-zinc-400 font-bold uppercase tracking-widest">Status</span>
-                                    <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full font-black uppercase tracking-[0.1em]">Active</span>
+                                    <span className="text-zinc-400 font-bold uppercase tracking-wide">Status</span>
+                                    <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full font-semibold uppercase tracking-[0.1em]">Active</span>
                                 </div>
                                 <div className="flex justify-between items-center text-[11px]">
-                                    <span className="text-zinc-400 font-bold uppercase tracking-widest">Member Since</span>
-                                    <span className="text-zinc-900 font-black">{adminData.joinedDate}</span>
+                                    <span className="text-zinc-400 font-bold uppercase tracking-wide">Member Since</span>
+                                    <span className="text-zinc-900 font-semibold">{adminData.joinedDate}</span>
                                 </div>
                             </div>
                         </div>
@@ -96,7 +96,7 @@ export default function AdminSettingsPage() {
                     <AdminCard title="Core Information">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2">
+                                <label className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 flex items-center gap-2">
                                     <User size={12} /> Full Name
                                 </label>
                                 <input 
@@ -107,7 +107,7 @@ export default function AdminSettingsPage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2">
+                                <label className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 flex items-center gap-2">
                                     <Building size={12} /> Company Name
                                 </label>
                                 <input 
@@ -118,7 +118,7 @@ export default function AdminSettingsPage() {
                                 />
                             </div>
                             <div className="space-y-2 md:col-span-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2">
+                                <label className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 flex items-center gap-2">
                                     <Mail size={12} /> Email Address
                                 </label>
                                 <input 
@@ -134,7 +134,7 @@ export default function AdminSettingsPage() {
                     <AdminCard title="Security & Contact" subtitle="Used for alerts and high-level notifications">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2">
+                                <label className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 flex items-center gap-2">
                                     <Phone size={12} /> Contact Phone
                                 </label>
                                 <input 
@@ -145,7 +145,7 @@ export default function AdminSettingsPage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2">
+                                <label className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500 flex items-center gap-2">
                                     <MapPin size={12} /> Business Address
                                 </label>
                                 <textarea 
@@ -164,11 +164,11 @@ export default function AdminSettingsPage() {
                                 <ShieldCheck size={24} />
                             </div>
                             <div>
-                                <h4 className="text-[11px] font-black uppercase tracking-widest">Two-Factor Authentication</h4>
-                                <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Managed via Firebase Console</p>
+                                <h4 className="text-[11px] font-semibold uppercase tracking-wide">Two-Factor Authentication</h4>
+                                <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wide mt-1">Managed via Firebase Console</p>
                             </div>
                         </div>
-                        <span className="px-4 py-2 bg-zinc-900 text-white rounded-xl text-[9px] font-black uppercase tracking-[0.2em] opacity-30 group-hover:opacity-100 transition-opacity cursor-pointer">
+                        <span className="px-4 py-2 bg-zinc-900 text-white rounded-xl text-[9px] font-semibold uppercase tracking-wide opacity-30 group-hover:opacity-100 transition-opacity cursor-pointer">
                             Settings
                         </span>
                     </div>

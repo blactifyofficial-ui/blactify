@@ -148,7 +148,7 @@ export default function AdminReportsPage() {
                                 key={type}
                                 onClick={() => setFilterType(type)}
                                 className={cn(
-                                    "px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500",
+                                    "px-5 py-2.5 rounded-xl text-[10px] font-semibold uppercase tracking-wide transition-all duration-500",
                                     filterType === type ? "bg-black text-white shadow-xl shadow-black/10" : "text-zinc-400 hover:text-black hover:bg-zinc-50"
                                 )}
                             >
@@ -172,7 +172,7 @@ export default function AdminReportsPage() {
                             } catch { /* ignore */ }
                             downloadCSV();
                         }}
-                        className="flex items-center justify-center gap-3 bg-black text-white px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:blur-[0.5px] transition-all shadow-2xl shadow-black/20"
+                        className="flex items-center justify-center gap-3 bg-black text-white px-6 py-3.5 rounded-2xl text-[10px] font-semibold uppercase tracking-wide hover:blur-[0.5px] transition-all shadow-2xl shadow-black/20"
                     >
                         <Download size={14} />
                         Export Report
@@ -189,7 +189,7 @@ export default function AdminReportsPage() {
                                 toast.error("Failed to add test entry: " + result.error);
                             }
                         }}
-                        className="flex items-center justify-center gap-3 bg-zinc-100 text-black px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-200 transition-all border border-zinc-200"
+                        className="flex items-center justify-center gap-3 bg-zinc-100 text-black px-6 py-3.5 rounded-2xl text-[10px] font-semibold uppercase tracking-wide hover:bg-zinc-200 transition-all border border-zinc-200"
                     >
                         <Zap size={14} />
                         Test Sheet Sync
@@ -201,19 +201,19 @@ export default function AdminReportsPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <AdminCard className="group relative overflow-hidden">
                     <div className="relative z-10">
-                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-3">Gross Revenue</p>
-                        <h3 className="text-4xl font-black tracking-tighter text-black group-hover:translate-x-1 transition-transform duration-500">₹{totalRevenue.toLocaleString()}</h3>
+                        <p className="text-[9px] font-semibold uppercase tracking-wide text-zinc-400 mb-3">Gross Revenue</p>
+                        <h3 className="text-4xl font-semibold tracking-tighter text-black group-hover:translate-x-1 transition-transform duration-500">₹{totalRevenue.toLocaleString()}</h3>
                         <div className="mt-8 flex items-center gap-3 bg-zinc-50 w-fit px-4 py-2 rounded-full border border-zinc-100 shadow-sm">
                             <TrendingUp size={14} className="text-green-500" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600">+24.8% Growth</span>
+                            <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-600">+24.8% Growth</span>
                         </div>
                     </div>
                 </AdminCard>
 
                 <AdminCard className="group" title="Order Volume">
-                    <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-2">Total Orders</p>
-                    <h3 className="text-4xl font-black tracking-tighter text-black group-hover:translate-x-1 transition-transform duration-500">{paidOrders.length.toLocaleString()}</h3>
-                    <div className="mt-8 flex items-center gap-3 text-zinc-400 text-[10px] font-black uppercase tracking-widest">
+                    <p className="text-[9px] font-semibold uppercase tracking-wide text-zinc-400 mb-2">Total Orders</p>
+                    <h3 className="text-4xl font-semibold tracking-tighter text-black group-hover:translate-x-1 transition-transform duration-500">{paidOrders.length.toLocaleString()}</h3>
+                    <div className="mt-8 flex items-center gap-3 text-zinc-400 text-[10px] font-semibold uppercase tracking-wide">
                         <Calendar size={14} className="text-black" />
                         <span>Sales Continuity</span>
                     </div>
@@ -221,9 +221,9 @@ export default function AdminReportsPage() {
                 </AdminCard>
 
                 <AdminCard className="group" title="Average Sale">
-                    <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-2">Average Order Value</p>
-                    <h3 className="text-4xl font-black tracking-tighter text-black group-hover:translate-x-1 transition-transform duration-500">₹{Math.round(averageOrderValue).toLocaleString()}</h3>
-                    <div className="mt-8 flex items-center gap-3 text-zinc-400 text-[10px] font-black uppercase tracking-widest">
+                    <p className="text-[9px] font-semibold uppercase tracking-wide text-zinc-400 mb-2">Average Order Value</p>
+                    <h3 className="text-4xl font-semibold tracking-tighter text-black group-hover:translate-x-1 transition-transform duration-500">₹{Math.round(averageOrderValue).toLocaleString()}</h3>
+                    <div className="mt-8 flex items-center gap-3 text-zinc-400 text-[10px] font-semibold uppercase tracking-wide">
                         <Target size={14} className="text-black" />
                         <span>Target Goal</span>
                     </div>
@@ -244,8 +244,8 @@ export default function AdminReportsPage() {
                             {Object.entries(chartData).map(([label, amount], idx) => (
                                 <div key={label} className="space-y-3 group/row">
                                     <div className="flex justify-between items-end">
-                                        <span className="text-[10px] font-black text-black uppercase tracking-[0.2em]">{label}</span>
-                                        <span className="text-sm font-black tracking-tight">₹{amount.toLocaleString()}</span>
+                                        <span className="text-[10px] font-semibold text-black uppercase tracking-wide">{label}</span>
+                                        <span className="text-sm font-semibold tracking-tight">₹{amount.toLocaleString()}</span>
                                     </div>
                                     <div className="h-4 w-full bg-zinc-50 rounded-full overflow-hidden p-1 border border-zinc-100 shadow-inner">
                                         <div
@@ -258,7 +258,7 @@ export default function AdminReportsPage() {
                             {orders.length === 0 && (
                                 <div className="py-24 text-center">
                                     <Zap className="mx-auto text-zinc-50 mb-6" size={64} />
-                                    <p className="text-[10px] text-zinc-300 font-black uppercase tracking-[0.4em] leading-loose">
+                                    <p className="text-[10px] text-zinc-300 font-semibold uppercase tracking-wide leading-loose">
                                         No sales data available yet.
                                     </p>
                                 </div>
@@ -275,16 +275,16 @@ export default function AdminReportsPage() {
                                 topPerformingProducts.map((product, i) => (
                                     <div key={i} className="flex items-center justify-between p-5 bg-zinc-50 border border-zinc-100 rounded-2xl hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all duration-500 group/item">
                                         <div className="flex items-center gap-5">
-                                            <div className="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center text-xs font-black shadow-lg">
+                                            <div className="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center text-xs font-semibold shadow-lg">
                                                 {i + 1}
                                             </div>
                                             <div className="space-y-0.5">
-                                                <p className="text-[11px] font-black uppercase tracking-widest text-black group-hover/item:translate-x-1 transition-transform">{product.name}</p>
-                                                <p className="text-[9px] text-zinc-400 font-black uppercase tracking-widest">{product.sales} Sales</p>
+                                                <p className="text-[11px] font-semibold uppercase tracking-wide text-black group-hover/item:translate-x-1 transition-transform">{product.name}</p>
+                                                <p className="text-[9px] text-zinc-400 font-semibold uppercase tracking-wide">{product.sales} Sales</p>
                                             </div>
                                         </div>
                                         <div className={cn(
-                                            "text-[9px] font-black px-2.5 py-1 rounded-full border shadow-sm",
+                                            "text-[9px] font-semibold px-2.5 py-1 rounded-full border shadow-sm",
                                             getTrend().startsWith("+") ? "bg-green-50 text-green-700 border-green-100" : "bg-red-50 text-red-700 border-red-100"
                                         )}>
                                             {getTrend()}
@@ -294,12 +294,12 @@ export default function AdminReportsPage() {
                             ) : (
                                 <div className="py-12 text-center">
                                     <Activity className="mx-auto text-zinc-100 mb-4 animate-pulse" size={48} />
-                                    <p className="text-[9px] text-zinc-300 font-black uppercase tracking-widest">No sales data available yet.</p>
+                                    <p className="text-[9px] text-zinc-300 font-semibold uppercase tracking-wide">No sales data available yet.</p>
                                 </div>
                             )}
                             <div className="mt-8 pt-8 border-t border-zinc-50 text-center">
                                 <Activity size={32} className="mx-auto text-zinc-100 mb-4 animate-pulse" />
-                                <p className="text-[9px] text-zinc-300 font-black uppercase tracking-[0.3em] leading-loose px-4">
+                                <p className="text-[9px] text-zinc-300 font-semibold uppercase tracking-wide leading-loose px-4">
                                     Product specific data loading...
                                 </p>
                             </div>

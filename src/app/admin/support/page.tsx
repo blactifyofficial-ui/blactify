@@ -49,7 +49,7 @@ export default function AdminSupportPage() {
                 <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
                         <h2 className="font-empire text-5xl mb-2">Support</h2>
-                        <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em]">Manage customer inquiries and tickets</p>
+                        <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-wide">Manage customer inquiries and tickets</p>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -66,7 +66,7 @@ export default function AdminSupportPage() {
                         <select
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
-                            className="px-6 py-3 bg-white border border-zinc-200 rounded-2xl text-xs font-bold uppercase tracking-widest outline-none focus:border-black transition-all"
+                            className="px-6 py-3 bg-white border border-zinc-200 rounded-2xl text-xs font-bold uppercase tracking-wide outline-none focus:border-black transition-all"
                         >
                             <option value="all">All Status</option>
                             <option value="open">Open</option>
@@ -98,18 +98,18 @@ export default function AdminSupportPage() {
                             >
                                 <div className="flex justify-between items-start mb-6">
                                     <div className={cn(
-                                        "px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest",
+                                        "px-4 py-1.5 rounded-full text-[9px] font-semibold uppercase tracking-wide",
                                         ticket.status === 'open' ? "bg-amber-100 text-amber-600" : "bg-emerald-100 text-emerald-600"
                                     )}>
                                         {ticket.status}
                                     </div>
-                                    <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest">
+                                    <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-wide">
                                         {format(new Date(ticket.created_at), 'MMM dd, HH:mm')}
                                     </span>
                                 </div>
 
                                 <div className="mb-6">
-                                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-2 truncate">
+                                    <h3 className="text-[10px] font-bold uppercase tracking-wide text-zinc-400 mb-2 truncate">
                                         {(ticket.category || "").replace('_', ' ')}
                                     </h3>
                                     <p className="text-sm font-medium leading-relaxed line-clamp-3 text-zinc-600">

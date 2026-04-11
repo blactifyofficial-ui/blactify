@@ -63,7 +63,7 @@ export function StatsGrid({ stats }: StatsGridProps) {
                             {stat.change}
                         </span>
                     </div>
-                    <p className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.3em] mb-1 group-hover:text-zinc-600 transition-colors">{stat.name}</p>
+                    <p className="text-[9px] font-black text-zinc-400 uppercase tracking-wide mb-1 group-hover:text-zinc-600 transition-colors">{stat.name}</p>
                     <h3 className="text-2xl font-black tracking-tight text-black group-hover:translate-x-1 transition-transform duration-500">{stat.value}</h3>
 
                     {/* Interactive aesthetic background element */}

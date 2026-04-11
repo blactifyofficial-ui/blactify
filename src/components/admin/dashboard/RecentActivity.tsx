@@ -33,15 +33,15 @@ export function RecentActivity({ orders }: RecentActivityProps) {
                             className="flex items-center justify-between p-5 bg-white border border-zinc-50 rounded-[2.5rem] hover:border-black/5 hover:bg-zinc-50/50 hover:shadow-xl hover:shadow-black/5 transition-all duration-500 group/item"
                         >
                             <div className="flex items-center gap-6">
-                                <div className="w-14 h-14 bg-black text-white rounded-2xl flex items-center justify-center text-sm font-black shadow-xl group-hover/item:scale-105 transition-transform duration-500">
+                                <div className="w-14 h-14 bg-black text-white rounded-2xl flex items-center justify-center text-sm font-semibold shadow-xl group-hover/item:scale-105 transition-transform duration-500">
                                     {order.customer_details?.name?.[0]?.toUpperCase() || "#"}
                                 </div>
                                 <div className="space-y-1.5">
-                                    <p className="text-sm font-black text-black group-hover/item:translate-x-1 transition-transform duration-500">{order.customer_details?.name || "Guest"}</p>
+                                    <p className="text-sm font-semibold text-black group-hover/item:translate-x-1 transition-transform duration-500">{order.customer_details?.name || "Guest"}</p>
                                     <div className="flex items-center gap-3">
-                                        <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest bg-zinc-100 px-2 py-0.5 rounded-full">#{order.id.slice(0, 8)}</span>
+                                        <span className="text-[8px] font-semibold text-zinc-400 uppercase tracking-wide bg-zinc-100 px-2 py-0.5 rounded-full">#{order.id.slice(0, 8)}</span>
                                         <span className={cn(
-                                            "text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border shadow-sm",
+                                            "text-[8px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full border shadow-sm",
                                             order.status === 'paid' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-zinc-100 text-zinc-500 border-zinc-200'
                                         )}>
                                             {order.status}
@@ -50,16 +50,16 @@ export function RecentActivity({ orders }: RecentActivityProps) {
                                 </div>
                             </div>
                             <div className="text-right">
-                                <p className="text-lg font-black tracking-tight text-black">₹{order.amount.toLocaleString()}</p>
-                                <p className="text-[9px] text-zinc-300 font-black uppercase tracking-widest">{new Date(order.created_at).toLocaleDateString()}</p>
+                                <p className="text-lg font-semibold tracking-tight text-black">₹{order.amount.toLocaleString()}</p>
+                                <p className="text-[9px] text-zinc-300 font-semibold uppercase tracking-wide">{new Date(order.created_at).toLocaleDateString()}</p>
                             </div>
                         </Link>
                     ))
                 ) : (
                     <div className="py-24 text-center">
                         <ShoppingBag className="mx-auto text-zinc-50 mb-6 opacity-50" size={64} />
-                        <h4 className="text-zinc-900 font-black uppercase tracking-[0.4em] text-sm mb-2">No Activity</h4>
-                        <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest leading-loose px-10">
+                        <h4 className="text-zinc-900 font-semibold uppercase tracking-wide text-sm mb-2">No Activity</h4>
+                        <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-wide leading-loose px-10">
                             There is no recent activity to show.
                         </p>
                     </div>

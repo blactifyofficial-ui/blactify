@@ -78,31 +78,31 @@ function AdminLoginContent() {
                 <div className="absolute top-0 left-0 w-full h-1 bg-black"></div>
 
                 <div className="mb-10 flex flex-col items-center">
-                    <span className="text-2xl md:text-3xl font-yapari uppercase tracking-tighter mb-4 animate-in fade-in slide-in-from-top-4 duration-1000">
+                    <span className="text-2xl md:text-3xl uppercase tracking-tighter mb-4 animate-in fade-in slide-in-from-top-4 duration-1000">
                         BLACTIFY
                     </span>
                     <div className="flex items-center justify-center gap-2">
                         <div className="h-px w-4 bg-zinc-200"></div>
-                        <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em]">Admin Access</p>
+                        <p className="text-zinc-500 text-[10px] font-semibold uppercase tracking-wide">Admin Access</p>
                         <div className="h-px w-4 bg-zinc-200"></div>
                     </div>
                 </div>
 
                 {user && !isAdmin && !redirectPath ? (
-                    <div className="mb-8 p-4 bg-red-50 text-red-600 rounded-2xl text-[11px] font-black uppercase tracking-widest border border-red-100 animate-in fade-in zoom-in-95 duration-300">
+                    <div className="mb-8 p-4 bg-red-50 text-red-600 rounded-2xl text-[11px] font-semibold uppercase tracking-wide border border-red-100 animate-in fade-in zoom-in-95 duration-300">
                         Access Denied. Unauthorized Personnel.
                     </div>
                 ) : null}
 
                 {error && (
-                    <div className="mb-8 p-4 bg-red-50 text-red-600 rounded-2xl text-[11px] font-black uppercase tracking-widest border border-red-100 animate-in fade-in zoom-in-95 duration-300">
+                    <div className="mb-8 p-4 bg-red-50 text-red-600 rounded-2xl text-[11px] font-semibold uppercase tracking-wide border border-red-100 animate-in fade-in zoom-in-95 duration-300">
                         {error}
                     </div>
                 )}
 
                 <button
                     onClick={handleLogin}
-                    className="w-full bg-black text-white py-5 rounded-2xl flex items-center justify-center gap-4 hover:bg-zinc-900 transition-all font-black uppercase tracking-widest text-[11px] shadow-xl shadow-black/10 active:scale-[0.98] group"
+                    className="w-full bg-black text-white py-5 rounded-2xl flex items-center justify-center gap-4 hover:bg-zinc-900 transition-all font-semibold uppercase tracking-wide text-[11px] shadow-xl shadow-black/10 active:scale-[0.98] group"
                 >
                     <LogIn size={18} strokeWidth={2.5} className="group-hover:translate-x-1 transition-transform" />
                     Sign in as Administrator
@@ -112,7 +112,7 @@ function AdminLoginContent() {
                     <div className="w-8 h-8 rounded-full border border-zinc-100 flex items-center justify-center">
                         <div className="w-1.5 h-1.5 rounded-full bg-zinc-200 animate-pulse"></div>
                     </div>
-                    <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-[0.2em] max-w-[200px] leading-relaxed">
+                    <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-wide max-w-[200px] leading-relaxed">
                         Secure Environment <br /> Authorized Personnel Only
                     </p>
                 </div>

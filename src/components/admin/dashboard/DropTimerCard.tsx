@@ -38,9 +38,9 @@ export function DropTimerCard({ drop, onComplete }: { drop: Drop, onComplete: ()
                 <div className="space-y-1">
                     <div className="flex items-center gap-2">
                         <Zap className="text-[#000000] fill-yellow-500" size={14} />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">Next Scheduled Drop</span>
+                        <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-600">Next Scheduled Drop</span>
                     </div>
-                    <h4 className="text-2xl font-black text-[#000000] tracking-tighter leading-none pt-1">
+                    <h4 className="text-2xl font-semibold text-[#000000] tracking-tighter leading-none pt-1">
                         {drop.name}
                     </h4>
                 </div>
@@ -51,23 +51,23 @@ export function DropTimerCard({ drop, onComplete }: { drop: Drop, onComplete: ()
 
             <div className="flex gap-4 items-end">
                 <div className="flex flex-col">
-                    <span className="text-3xl font-black tracking-tighter tabular-nums leading-none text-[#000000]">{timeLeft.d.toString().padStart(2, '0')}</span>
-                    <span className="text-[7px] font-black uppercase tracking-widest text-zinc-500 mt-1">Days</span>
+                    <span className="text-3xl font-semibold tracking-tighter tabular-nums leading-none text-[#000000]">{timeLeft.d.toString().padStart(2, '0')}</span>
+                    <span className="text-[7px] font-semibold uppercase tracking-wide text-zinc-500 mt-1">Days</span>
                 </div>
-                <div className="text-2xl font-black text-zinc-300 mb-1">:</div>
+                <div className="text-2xl font-semibold text-zinc-300 mb-1">:</div>
                 <div className="flex flex-col">
-                    <span className="text-3xl font-black tracking-tighter tabular-nums leading-none text-[#000000]">{timeLeft.h.toString().padStart(2, '0')}</span>
-                    <span className="text-[7px] font-black uppercase tracking-widest text-zinc-500 mt-1">Hrs</span>
+                    <span className="text-3xl font-semibold tracking-tighter tabular-nums leading-none text-[#000000]">{timeLeft.h.toString().padStart(2, '0')}</span>
+                    <span className="text-[7px] font-semibold uppercase tracking-wide text-zinc-500 mt-1">Hrs</span>
                 </div>
-                <div className="text-2xl font-black text-zinc-300 mb-1">:</div>
+                <div className="text-2xl font-semibold text-zinc-300 mb-1">:</div>
                 <div className="flex flex-col">
-                    <span className="text-3xl font-black tracking-tighter tabular-nums leading-none text-[#000000]">{timeLeft.m.toString().padStart(2, '0')}</span>
-                    <span className="text-[7px] font-black uppercase tracking-widest text-zinc-600 mt-1">Mins</span>
+                    <span className="text-3xl font-semibold tracking-tighter tabular-nums leading-none text-[#000000]">{timeLeft.m.toString().padStart(2, '0')}</span>
+                    <span className="text-[7px] font-semibold uppercase tracking-wide text-zinc-600 mt-1">Mins</span>
                 </div>
-                <div className="text-2xl font-black text-zinc-300 mb-1">:</div>
+                <div className="text-2xl font-semibold text-zinc-300 mb-1">:</div>
                 <div className="flex flex-col">
-                    <span className="text-3xl font-black tracking-tighter tabular-nums text-yellow-600 leading-none">{timeLeft.s.toString().padStart(2, '0')}</span>
-                    <span className="text-[7px] font-black uppercase tracking-widest text-zinc-600 mt-1">Secs</span>
+                    <span className="text-3xl font-semibold tracking-tighter tabular-nums text-yellow-600 leading-none">{timeLeft.s.toString().padStart(2, '0')}</span>
+                    <span className="text-[7px] font-semibold uppercase tracking-wide text-zinc-600 mt-1">Secs</span>
                 </div>
             </div>
         </div>

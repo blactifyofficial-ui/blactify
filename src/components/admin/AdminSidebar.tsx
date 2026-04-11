@@ -63,10 +63,10 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                 {/* Desktop Logo & Close Button (Mobile Only) */}
                 <div className="p-8 pt-16 md:pt-10 pb-6 border-b border-zinc-900/50 flex items-center justify-between shrink-0">
                     <Link href="/admin" className="flex flex-col gap-1 group">
-                        <span className="text-xl font-yapari uppercase tracking-tighter transition-all duration-300 group-hover:opacity-70 text-white">
+                        <span className="text-xl uppercase tracking-tighter transition-all duration-300 group-hover:opacity-70 text-white">
                             BLACTIFY
                         </span>
-                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500">Admin Panel</p>
+                        <p className="text-[9px] font-semibold uppercase tracking-wide text-zinc-500">Admin Panel</p>
                     </Link>
                     <div className="flex items-center gap-3">
                         <button
@@ -91,7 +91,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                                 href={item.href}
                                 onClick={() => onClose?.()}
                                 className={cn(
-                                    "flex items-center gap-4 px-5 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 relative",
+                                    "flex items-center gap-4 px-5 py-4 rounded-2xl text-[11px] font-semibold uppercase tracking-wide transition-all duration-300 relative",
                                     isActive
                                         ? "bg-white text-black shadow-xl shadow-white/10"
                                         : "text-zinc-400 hover:text-white hover:bg-zinc-900/50"
@@ -112,11 +112,11 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
                 <div className="px-6 py-6 border-t border-zinc-900 shrink-0 space-y-4">
                     <div className="flex items-center gap-3 px-2">
-                        <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-[10px] font-black uppercase text-zinc-400 shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-[10px] font-semibold uppercase text-zinc-400 shrink-0">
                             {auth.currentUser?.email?.charAt(0) || "A"}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-[10px] font-black uppercase tracking-widest truncate text-white">
+                            <p className="text-[10px] font-semibold uppercase tracking-wide truncate text-white">
                                 {auth.currentUser?.email?.split('@')[0] || "Admin"}
                             </p>
                             <p className="text-[9px] font-bold text-zinc-500 truncate lowercase mt-0.5">
@@ -127,7 +127,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
                     <button
                         onClick={() => setIsLogoutModalOpen(true)}
-                        className="flex items-center justify-center gap-3 px-6 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/10 w-full transition-all duration-300 border border-transparent hover:border-red-500/20"
+                        className="flex items-center justify-center gap-3 px-6 py-4 rounded-2xl text-[11px] font-semibold uppercase tracking-wide text-red-500 hover:bg-red-500/10 w-full transition-all duration-300 border border-transparent hover:border-red-500/20"
                     >
                         <LogOut size={20} />
                         Logout

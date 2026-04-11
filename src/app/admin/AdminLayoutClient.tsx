@@ -11,6 +11,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { AdminNotificationDropdown } from "@/components/admin/AdminNotificationDropdown";
 import { StoreStatusIndicator } from "@/components/admin/StoreStatusIndicator";
+import { AdminBreadcrumbs } from "@/components/admin/AdminBreadcrumbs";
 
 export default function AdminLayoutClient({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -126,6 +127,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
 
                         {/* Main Content */}
                         <main className="flex-1 p-4 md:p-10 w-full max-w-7xl mx-auto pt-[72px] md:pt-10 pb-10 overflow-x-hidden">
+                            <AdminBreadcrumbs />
                             {children}
                         </main>
                     </div>

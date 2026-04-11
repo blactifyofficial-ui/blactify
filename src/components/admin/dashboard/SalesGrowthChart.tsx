@@ -20,9 +20,9 @@ export function SalesGrowthChart({ revenueByMonth }: SalesGrowthChartProps) {
                         <BarChart3 size={22} />
                         Sales Growth
                     </h3>
-                    <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.4em]">LIVE</span>
+                    <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wide">LIVE</span>
                 </div>
-                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-12">Monthly revenue overview</p>
+                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide mb-12">Monthly revenue overview</p>
             </div>
 
             <div className="h-72 flex items-end justify-between gap-4 relative z-10 px-2 mb-8">
@@ -47,11 +47,11 @@ export function SalesGrowthChart({ revenueByMonth }: SalesGrowthChartProps) {
             </div>
 
             <div className="flex justify-between items-center relative z-10 px-1 border-t border-white/5 pt-8 mt-6">
-                <span className="text-[9px] font-black text-zinc-700 uppercase tracking-[0.3em]">Start</span>
+                <span className="text-[9px] font-black text-zinc-700 uppercase tracking-wide">Start</span>
                 <div className="flex gap-1">
                     {[1, 2, 3].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-white/10"></div>)}
                 </div>
-                <span className="text-[9px] font-black text-zinc-700 uppercase tracking-[0.3em]">Current</span>
+                <span className="text-[9px] font-black text-zinc-700 uppercase tracking-wide">Current</span>
             </div>
 
             {/* Aesthetic Noise Overlay */}

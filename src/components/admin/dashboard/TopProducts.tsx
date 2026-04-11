@@ -25,22 +25,22 @@ export function TopProducts({ products }: TopProductsProps) {
                     products.map((product) => (
                         <div key={product.name} className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100/50 hover:bg-white hover:shadow-lg transition-all duration-300 group/item">
                             <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center text-[10px] font-black group-hover/item:scale-110 transition-transform">
+                                <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center text-[10px] font-semibold group-hover/item:scale-110 transition-transform">
                                     {product.name[0]}
                                 </div>
                                 <div>
-                                    <p className="text-xs font-black text-black leading-tight">{product.name}</p>
-                                    <p className="text-[8px] text-zinc-400 font-black uppercase tracking-widest">{product.sales} Sales</p>
+                                    <p className="text-xs font-semibold text-black leading-tight">{product.name}</p>
+                                    <p className="text-[8px] text-zinc-400 font-semibold uppercase tracking-wide">{product.sales} Sales</p>
                                 </div>
                             </div>
                             <div className="text-right">
-                                <p className="text-[10px] font-black text-black tracking-tight">₹{product.revenue.toLocaleString()}</p>
+                                <p className="text-[10px] font-semibold text-black tracking-tight">₹{product.revenue.toLocaleString()}</p>
                             </div>
                         </div>
                     ))
                 ) : (
                     <div className="py-20 text-center">
-                        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">No Data</p>
+                        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wide">No Data</p>
                     </div>
                 )}
             </div>

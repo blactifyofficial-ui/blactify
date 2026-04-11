@@ -123,7 +123,7 @@ export function AdminNotificationDropdown() {
                     )}
                 />
                 {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-600 border-2 border-white rounded-full text-[10px] font-black flex items-center justify-center text-white shadow-md animate-bounce">
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-600 border-2 border-white rounded-full text-[10px] font-semibold flex items-center justify-center text-white shadow-md animate-bounce">
                         {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                 )}
@@ -141,17 +141,17 @@ export function AdminNotificationDropdown() {
                     <div className="relative p-8 bg-white">
                         <div className="relative flex items-center justify-between">
                             <div className="flex flex-col gap-1">
-                                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-red-600">
+                                <span className="text-[10px] font-semibold uppercase tracking-wide text-red-600">
                                     Administration
                                 </span >
                                 <div className="flex items-center gap-3">
-                                    <h3 className="text-2xl font-black uppercase tracking-tight text-black">
+                                    <h3 className="text-2xl font-semibold uppercase tracking-tight text-black">
                                         Inbox
                                     </h3>
                                     {notifications.length > 0 && (
                                         <button 
                                             onClick={handleClearAll}
-                                            className="px-5 py-2 rounded-2xl bg-black text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-600 hover:shadow-xl hover:shadow-red-500/20 transition-all active:scale-95 shadow-lg border border-white/10"
+                                            className="px-5 py-2 rounded-2xl bg-black text-white text-[10px] font-semibold uppercase tracking-wide hover:bg-red-600 hover:shadow-xl hover:shadow-red-500/20 transition-all active:scale-95 shadow-lg border border-white/10"
                                         >
                                             Clear Inbox
                                         </button>
@@ -168,16 +168,16 @@ export function AdminNotificationDropdown() {
                     </div>
 
                     <div className="px-8 py-3 bg-zinc-50/50 border-y border-zinc-100 flex items-center justify-between">
-                         <span className="text-[9px] font-black uppercase text-zinc-400 tracking-wider">
+                         <span className="text-[9px] font-semibold uppercase text-zinc-400 tracking-wider">
                              Real-time alerts
                          </span>
                          <div className="flex gap-4">
                              <div className="flex items-center gap-1.5">
                                  <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
-                                 <span className="text-[9px] font-black uppercase text-zinc-900">{unreadCount} Pending</span>
+                                 <span className="text-[9px] font-semibold uppercase text-zinc-900">{unreadCount} Pending</span>
                              </div>
                              <div className="flex items-center gap-1.5">
-                                 <span className="text-[9px] font-black uppercase text-zinc-900">{notifications.length} Total</span>
+                                 <span className="text-[9px] font-semibold uppercase text-zinc-900">{notifications.length} Total</span>
                              </div>
                          </div>
                     </div>
@@ -188,8 +188,8 @@ export function AdminNotificationDropdown() {
                                 <div className="w-24 h-24 rounded-[2.5rem] bg-zinc-50 border border-zinc-100 flex items-center justify-center mb-8 relative">
                                     <Bell size={40} className="text-zinc-100" />
                                 </div>
-                                <h4 className="text-sm font-black uppercase text-zinc-900 mb-3 tracking-tight">Your tray is clear</h4>
-                                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-relaxed max-w-[200px]">
+                                <h4 className="text-sm font-semibold uppercase text-zinc-900 mb-3 tracking-tight">Your tray is clear</h4>
+                                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide leading-relaxed max-w-[200px]">
                                     No new notifications at the moment.
                                 </p>
                             </div>
@@ -216,7 +216,7 @@ export function AdminNotificationDropdown() {
                                                         {!notif.is_read && (
                                                             <div className="w-2 h-2 rounded-full bg-red-600 shrink-0 animate-pulse shadow-[0_0_8px_rgba(220,38,38,0.5)]" />
                                                         )}
-                                                        <h4 className="text-[14px] font-black uppercase text-zinc-900 truncate leading-none tracking-tight">
+                                                        <h4 className="text-[14px] font-semibold uppercase text-zinc-900 truncate leading-none tracking-tight">
                                                             {notif.title}
                                                         </h4>
                                                     </div>
@@ -232,20 +232,20 @@ export function AdminNotificationDropdown() {
                                                     {!notif.is_read ? (
                                                         <button 
                                                             onClick={(e) => handleAcknowledge(notif.id, e)}
-                                                            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-black text-white text-[10px] font-black uppercase tracking-tight hover:bg-red-600 transition-all active:scale-95 shadow-lg shadow-black/10"
+                                                            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-black text-white text-[10px] font-semibold uppercase tracking-tight hover:bg-red-600 transition-all active:scale-95 shadow-lg shadow-black/10"
                                                         >
                                                             <Check size={14} strokeWidth={3} />
                                                             Mark as Read
                                                         </button>
                                                     ) : (
-                                                        <div className="flex items-center gap-2 text-[9px] font-black text-zinc-400 uppercase">
+                                                        <div className="flex items-center gap-2 text-[9px] font-semibold text-zinc-400 uppercase">
                                                             <div className="w-1.5 h-1.5 rounded-full bg-zinc-200" />
                                                             Acknowledged
                                                         </div>
                                                     )}
                                                     
                                                     {notif.is_read && notif.read_at && (
-                                                        <span className="text-[8px] font-black text-red-600/30 uppercase tracking-widest">
+                                                        <span className="text-[8px] font-semibold text-red-600/30 uppercase tracking-wide">
                                                             Deletes in 24h
                                                         </span>
                                                     )}
@@ -259,7 +259,7 @@ export function AdminNotificationDropdown() {
                     </div>
                     
                     <div className="p-6 bg-white border-t border-zinc-50 text-center flex items-center justify-center gap-3">
-                         <div className="flex items-center gap-2 text-[9px] font-black uppercase text-zinc-400 tracking-[0.2em]">
+                         <div className="flex items-center gap-2 text-[9px] font-semibold uppercase text-zinc-400 tracking-wide">
                              <Clock size={12} className="text-red-600/50" />
                              Acknowledged history clears daily
                          </div>

@@ -253,14 +253,14 @@ export default function CreateOrderClient() {
                 <div className="flex gap-4">
                     <button
                         onClick={() => router.back()}
-                        className="px-6 py-3 bg-white border border-zinc-100 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-zinc-50 transition-all text-zinc-500 shadow-sm"
+                        className="px-6 py-3 bg-white border border-zinc-100 rounded-2xl text-xs font-bold uppercase tracking-wide hover:bg-zinc-50 transition-all text-zinc-500 shadow-sm"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleSubmit}
                         disabled={loading}
-                        className="px-8 py-3 bg-black text-white rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-all active:scale-[0.98] shadow-xl shadow-black/5 disabled:opacity-50 flex items-center gap-2"
+                        className="px-8 py-3 bg-black text-white rounded-2xl text-xs font-bold uppercase tracking-wide hover:bg-zinc-800 transition-all active:scale-[0.98] shadow-xl shadow-black/5 disabled:opacity-50 flex items-center gap-2"
                     >
                         {loading && <Loader2 className="animate-spin" size={14} />}
                         Create Order
@@ -321,7 +321,7 @@ export default function CreateOrderClient() {
                                             {selectedUser.full_name?.[0] || selectedUser.email?.[0]}
                                         </div>
                                         <div>
-                                            <p className="text-xs font-bold uppercase tracking-widest">{selectedUser.full_name}</p>
+                                            <p className="text-xs font-bold uppercase tracking-wide">{selectedUser.full_name}</p>
                                             <p className="text-[10px] opacity-60 tracking-wider">{selectedUser.email}</p>
                                         </div>
                                     </div>
@@ -330,7 +330,7 @@ export default function CreateOrderClient() {
                                             setSelectedUser(null);
                                             setCustomerDetails({ name: "", email: "", phone: "" });
                                         }}
-                                        className="text-[10px] uppercase font-bold tracking-widest border border-white/20 px-3 py-1 rounded-lg hover:bg-white/10 transition-colors"
+                                        className="text-[10px] uppercase font-bold tracking-wide border border-white/20 px-3 py-1 rounded-lg hover:bg-white/10 transition-colors"
                                     >
                                         Clear
                                     </button>
@@ -339,7 +339,7 @@ export default function CreateOrderClient() {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Full Name</label>
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide ml-1">Full Name</label>
                                     <input
                                         type="text"
                                         placeholder="Customer Name"
@@ -349,7 +349,7 @@ export default function CreateOrderClient() {
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Email Address</label>
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide ml-1">Email Address</label>
                                     <input
                                         type="email"
                                         placeholder="customer@example.com"
@@ -359,7 +359,7 @@ export default function CreateOrderClient() {
                                     />
                                 </div>
                                 <div className="space-y-1.5 md:col-span-2">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Phone Number</label>
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide ml-1">Phone Number</label>
                                     <input
                                         type="tel"
                                         placeholder="9876543210"
@@ -440,7 +440,7 @@ export default function CreateOrderClient() {
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-black text-black">{item.name}</p>
-                                                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">₹{item.price} • Size {item.size}</p>
+                                                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide mt-0.5">₹{item.price} • Size {item.size}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-8">
@@ -461,7 +461,7 @@ export default function CreateOrderClient() {
                                 ) : (
                                     <div className="py-20 text-center border-2 border-dashed border-zinc-50 rounded-[2.5rem]">
                                         <ShoppingBag className="mx-auto text-zinc-100 mb-4 opacity-50" size={48} />
-                                        <p className="text-xs font-black text-zinc-400 uppercase tracking-widest">No items added to order</p>
+                                        <p className="text-xs font-black text-zinc-400 uppercase tracking-wide">No items added to order</p>
                                     </div>
                                 )}
                             </div>
@@ -480,7 +480,7 @@ export default function CreateOrderClient() {
                     >
                         <div className="space-y-6">
                             <div className="space-y-1.5">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Full Address / Paste</label>
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide ml-1">Full Address / Paste</label>
                                 <textarea
                                     placeholder="Paste full address here..."
                                     rows={4}
@@ -491,7 +491,7 @@ export default function CreateOrderClient() {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">City</label>
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide ml-1">City</label>
                                     <input
                                         type="text"
                                         placeholder="Kochi"
@@ -501,7 +501,7 @@ export default function CreateOrderClient() {
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Pincode</label>
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide ml-1">Pincode</label>
                                     <input
                                         type="text"
                                         placeholder="682001"
@@ -511,7 +511,7 @@ export default function CreateOrderClient() {
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">District</label>
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide ml-1">District</label>
                                     <input
                                         type="text"
                                         placeholder="Ernakulam"
@@ -521,7 +521,7 @@ export default function CreateOrderClient() {
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">State</label>
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide ml-1">State</label>
                                     <select
                                         value={shippingAddress.state}
                                         onChange={(e) => setShippingAddress(prev => ({ ...prev, state: e.target.value }))}
@@ -583,14 +583,14 @@ export default function CreateOrderClient() {
                         <div className="space-y-6">
                             <div className="grid grid-cols-1 gap-5">
                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Payment Method</label>
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide ml-1">Payment Method</label>
                                     <div className="grid grid-cols-1 gap-3">
                                         {['razorpay'].map(method => (
                                             <button
                                                 key={method}
                                                 onClick={() => setPayment(prev => ({ ...prev, method }))}
                                                 className={cn(
-                                                    "px-4 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all",
+                                                    "px-4 py-3 rounded-2xl text-[10px] font-black uppercase tracking-wide border transition-all",
                                                     payment.method === method
                                                         ? "bg-black text-white border-black"
                                                         : "bg-white text-zinc-400 border-zinc-100 hover:border-zinc-300"
@@ -602,7 +602,7 @@ export default function CreateOrderClient() {
                                     </div>
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Transaction/Payment ID</label>
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide ml-1">Transaction/Payment ID</label>
                                     <input
                                         type="text"
                                         placeholder="pay_xyz or UPI ID"
@@ -612,7 +612,7 @@ export default function CreateOrderClient() {
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Order Status</label>
+                                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide ml-1">Order Status</label>
                                     <select
                                         value={payment.status}
                                         onChange={(e) => setPayment(prev => ({ ...prev, status: e.target.value }))}
@@ -631,23 +631,23 @@ export default function CreateOrderClient() {
                     {/* Order Summary */}
                     <AdminCard title="Order Summary">
                         <div className="space-y-4">
-                            <div className="flex justify-between items-center text-xs font-medium text-zinc-500 uppercase tracking-widest">
+                            <div className="flex justify-between items-center text-xs font-medium text-zinc-500 uppercase tracking-wide">
                                 <span>Subtotal</span>
                                 <span>₹{subtotal.toLocaleString()}</span>
                             </div>
-                            <div className="flex justify-between items-center text-xs font-medium text-zinc-500 uppercase tracking-widest">
+                            <div className="flex justify-between items-center text-xs font-medium text-zinc-500 uppercase tracking-wide">
                                 <span>Shipping</span>
                                 <span>₹{shipping.toLocaleString()}</span>
                             </div>
                             <div className="pt-4 border-t border-zinc-100 flex justify-between items-center">
-                                <span className="text-sm font-black text-black uppercase tracking-widest">Total</span>
+                                <span className="text-sm font-black text-black uppercase tracking-wide">Total</span>
                                 <span className="text-2xl font-black text-black">₹{total.toLocaleString()}</span>
                             </div>
 
                             <button
                                 onClick={handleSubmit}
                                 disabled={loading}
-                                className="w-full mt-6 py-5 bg-black text-white rounded-3xl text-sm font-bold uppercase tracking-[0.2em] hover:bg-zinc-800 transition-all active:scale-[0.98] shadow-2xl shadow-black/20 flex items-center justify-center gap-3"
+                                className="w-full mt-6 py-5 bg-black text-white rounded-3xl text-sm font-bold uppercase tracking-wide hover:bg-zinc-800 transition-all active:scale-[0.98] shadow-2xl shadow-black/20 flex items-center justify-center gap-3"
                             >
                                 {loading ? <Loader2 className="animate-spin" size={18} /> : <CheckCircle2 size={18} />}
                                 {loading ? "Creating..." : "Confirm & Create"}

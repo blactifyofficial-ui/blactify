@@ -513,17 +513,17 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
             <form onSubmit={handleSubmit} noValidate className="space-y-8">
                 {/* 1. Category Section */}
                 <div className="bg-white p-8 rounded-[2rem] border border-zinc-100 shadow-sm space-y-6">
-                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 flex items-center gap-2">
+                    <h3 className="text-[10px] font-bold uppercase tracking-wide text-zinc-900 flex items-center gap-2">
                         <Tag size={14} />
                         Product Category
                     </h3>
                     <label className="block">
                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 block">Category</span>
+                            <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500 block">Category</span>
                             <button
                                 type="button"
                                 onClick={() => setShowQuickAdd(!showQuickAdd)}
-                                className="text-[10px] font-bold uppercase tracking-widest text-black/40 hover:text-black transition-colors"
+                                className="text-[10px] font-bold uppercase tracking-wide text-black/40 hover:text-black transition-colors"
                             >
                                 {showQuickAdd ? "Cancel" : "Add New"}
                             </button>
@@ -542,7 +542,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                         type="button"
                                         disabled={addingCat || !newCatName.trim()}
                                         onClick={handleQuickAddCategory}
-                                        className="px-4 bg-black text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50 transition-all flex items-center justify-center min-w-[80px]"
+                                        className="px-4 bg-black text-white rounded-xl text-[10px] font-bold uppercase tracking-wide hover:bg-zinc-800 disabled:opacity-50 transition-all flex items-center justify-center min-w-[80px]"
                                     >
                                         {addingCat ? <Loader2 className="animate-spin" size={14} /> : "Save"}
                                     </button>
@@ -575,12 +575,12 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
 
                 {/* 1.5 Drop Section */}
                 <div className="bg-white p-8 rounded-[2rem] border border-zinc-100 shadow-sm space-y-6">
-                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 flex items-center gap-2">
+                    <h3 className="text-[10px] font-bold uppercase tracking-wide text-zinc-900 flex items-center gap-2">
                         <Zap size={14} />
                         Product Drop
                     </h3>
                     <label className="block">
-                        <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block">Select Drop (Optional)</span>
+                        <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-2 block">Select Drop (Optional)</span>
                         <div className="relative">
                             <Zap className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={16} />
                             <select
@@ -603,14 +603,14 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
 
                 {/* 2. Product Information */}
                 <div className="bg-white p-8 rounded-[2rem] border border-zinc-100 shadow-sm space-y-6">
-                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 flex items-center gap-2">
+                    <h3 className="text-[10px] font-bold uppercase tracking-wide text-zinc-900 flex items-center gap-2">
                         <Type size={14} />
                         Product Information
                     </h3>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <label className="block sm:col-span-2">
-                            <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block">Product Name</span>
+                            <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-2 block">Product Name</span>
                             <div className="relative">
                                 <AlignLeft className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={16} />
                                 <input
@@ -630,7 +630,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
 
                         {!isEditing && (
                             <label className="block">
-                                <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block">Product ID (Unique)</span>
+                                <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-2 block">Product ID (Unique)</span>
                                 <div className="flex gap-2">
                                     <div className="relative flex-1">
                                         <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={16} />
@@ -652,7 +652,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                         )}
 
                         <label className="block">
-                            <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block">Base Price (INR)</span>
+                            <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-2 block">Base Price (INR)</span>
                             <div className="relative">
                                 <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={16} />
                                 <input
@@ -672,7 +672,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                         </label>
 
                         <label className="block">
-                            <span className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2 block">Offer Price (Optional)</span>
+                            <span className="text-xs font-bold uppercase tracking-wide text-zinc-500 mb-2 block">Offer Price (Optional)</span>
                             <div className="relative">
                                 <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={16} />
                                 <input
@@ -691,7 +691,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                         </label>
 
                         <label className="block">
-                            <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block">SEO Handle</span>
+                            <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-2 block">SEO Handle</span>
                             <input
                                 type="text"
                                 placeholder="my-cool-product"
@@ -707,7 +707,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                     </div>
 
                     <label className="block">
-                        <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 block">Description</span>
+                        <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-2 block">Description</span>
                         <textarea
                             rows={4}
                             placeholder="Enter short description..."
@@ -720,7 +720,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
 
                 {/* 3. Variants & Stock */}
                 <div className={`bg-white p-8 rounded-[2rem] border ${errors.variants ? 'border-red-400' : 'border-zinc-100'} shadow-sm space-y-6`}>
-                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-900 flex items-center gap-2">
+                    <h3 className="text-[10px] font-bold uppercase tracking-wide text-zinc-900 flex items-center gap-2">
                         <Tag size={14} />
                         Variants & Stock
                     </h3>
@@ -792,7 +792,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                         <div className="flex flex-col gap-4 bg-zinc-50 p-6 rounded-xl border border-zinc-100 shadow-sm animate-in zoom-in-95 duration-300">
                             <div className="flex flex-wrap gap-4 items-end">
                                 <div className="space-y-1 flex-1 min-w-[120px]">
-                                    <span className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest pl-1">Size</span>
+                                    <span className="text-[10px] font-bold uppercase text-zinc-400 tracking-wide pl-1">Size</span>
                                     <input
                                         type="text"
                                         placeholder="e.g. XL, 32, OneSize"
@@ -803,7 +803,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                 </div>
 
                                 <div className="space-y-1 w-full sm:w-32">
-                                    <span className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest pl-1">Stock</span>
+                                    <span className="text-[10px] font-bold uppercase text-zinc-400 tracking-wide pl-1">Stock</span>
                                     <input
                                         type="number"
                                         min="0"
@@ -818,11 +818,11 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                             {/* Dynamic Measurement Inputs for New Variant */}
                             {((categories.find(c => String(c.id) === formData.category_id)?.category_measurements as Record<string, unknown>[]) || []).length > 0 && (
                                 <div className="pt-2">
-                                    <h4 className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest pl-1 mb-2">Measurements</h4>
+                                    <h4 className="text-[10px] font-bold uppercase text-zinc-400 tracking-wide pl-1 mb-2">Measurements</h4>
                                     <div className="flex flex-wrap gap-4">
                                         {((categories.find(c => String(c.id) === formData.category_id)?.category_measurements as Record<string, unknown>[]) || []).map((cm: Record<string, unknown>) => (
                                             <div key={(cm.measurement_types as Record<string, unknown>).id as string} className="space-y-1 w-full sm:w-32">
-                                                <span className="text-[10px] font-bold uppercase text-zinc-500 tracking-widest pl-1">{(cm.measurement_types as Record<string, unknown>).name as string}</span>
+                                                <span className="text-[10px] font-bold uppercase text-zinc-500 tracking-wide pl-1">{(cm.measurement_types as Record<string, unknown>).name as string}</span>
                                                 <input
                                                     type="text"
                                                     placeholder="Val"
@@ -840,7 +840,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                 type="button"
                                 onClick={addVariant}
                                 disabled={!newVariantSize}
-                                className="w-full px-6 py-4 bg-black text-white rounded-xl text-sm font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-lg shadow-black/5 mt-2"
+                                className="w-full px-6 py-4 bg-black text-white rounded-xl text-sm font-bold uppercase tracking-wide hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-lg shadow-black/5 mt-2"
                             >
                                 <Plus size={16} />
                                 Add Variant
@@ -851,7 +851,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
 
                 {/* 4. Visual Section */}
                 <div className="bg-white p-8 rounded-[2rem] border border-zinc-100 shadow-sm space-y-6">
-                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2">
+                    <h3 className="text-[10px] font-bold uppercase tracking-wide text-zinc-400 flex items-center gap-2">
                         <ImageIcon size={14} />
                         Visuals & Media
                     </h3>
@@ -892,7 +892,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                             <div className="w-full h-full flex items-center justify-center text-zinc-300 group-hover:text-black/40 transition-colors">
                                                 <div className="flex flex-col items-center gap-2">
                                                     <Upload size={20} />
-                                                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 group-hover:text-zinc-500">Upload</span>
+                                                    <span className="text-[10px] font-bold uppercase tracking-wide text-zinc-400 group-hover:text-zinc-500">Upload</span>
                                                 </div>
                                             </div>
                                         )}
@@ -943,7 +943,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                     <button
                         type="submit"
                         disabled={saving}
-                        className="flex-1 bg-black text-white py-5 rounded-2xl flex items-center justify-center gap-3 hover:bg-zinc-800 transition-all active:scale-[0.98] shadow-xl shadow-black/10 text-base font-bold uppercase tracking-widest"
+                        className="flex-1 bg-black text-white py-5 rounded-2xl flex items-center justify-center gap-3 hover:bg-zinc-800 transition-all active:scale-[0.98] shadow-xl shadow-black/10 text-base font-bold uppercase tracking-wide"
                     >
                         {saving ? (
                             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -957,7 +957,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                     <button
                         type="button"
                         onClick={() => router.back()}
-                        className="px-8 py-5 bg-white border border-zinc-100 text-zinc-500 rounded-2xl flex items-center justify-center hover:bg-zinc-50 transition-all font-bold text-base uppercase tracking-widest"
+                        className="px-8 py-5 bg-white border border-zinc-100 text-zinc-500 rounded-2xl flex items-center justify-center hover:bg-zinc-50 transition-all font-bold text-base uppercase tracking-wide"
                     >
                         Cancel
                     </button>
