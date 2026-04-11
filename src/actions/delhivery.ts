@@ -5,11 +5,10 @@ import {
     getShippingChargesInternal, 
     fetchWaybillInternal, 
     createShipmentInternal, 
-    generateLabelInternal, 
     requestPickupInternal, 
     trackShipmentInternal,
     processOrderShippingInternal
-} from "@/lib/delhivery-service";
+} from "@/lib/delhivery";
 import { Order } from "@/types/database";
 
 /**
@@ -33,9 +32,6 @@ export async function createShipment(shipmentData: Record<string, unknown>) {
     return await createShipmentInternal(shipmentData);
 }
 
-export async function generateLabel(waybills: string) {
-    return await generateLabelInternal(waybills);
-}
 
 export async function requestPickup(pickupData: Record<string, unknown>) {
     return await requestPickupInternal(pickupData);

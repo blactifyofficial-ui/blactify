@@ -4,7 +4,7 @@ import Razorpay from "razorpay";
 import { z } from "zod";
 import { verifyAuth } from "@/lib/auth-server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { getShippingChargesInternal } from "@/lib/delhivery-service";
+import { getShippingChargesInternal } from "@/lib/delhivery";
 
 const razorpay = new Razorpay({
     key_id: (process.env.RAZORPAY_KEY_ID || "dummy_key_id").trim(),
