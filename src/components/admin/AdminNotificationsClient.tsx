@@ -261,7 +261,7 @@ export function AdminNotificationsClient() {
                                                     )}
                                                 </div>
                                                 
-                                                {notif.type === "new_order" && notif.data?.orderId && (
+                                                {notif.type === "new_order" && typeof notif.data?.orderId === "string" && (
                                                     <Link 
                                                         href={`/admin/orders/${notif.data.orderId}`}
                                                         className="text-[10px] font-bold uppercase tracking-widest text-red-600 hover:underline"
