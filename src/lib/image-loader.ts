@@ -46,6 +46,6 @@ export default function imageLoader({ src, width, quality }: { src: string; widt
         return `${baseUrl}=w${width}-c`;
     }
 
-    // Default: return as is (unoptimized fallback)
-    return src;
+    // Default: return as is but append width to satisfy Next.js loader requirement
+    return `${src}${src.includes('?') ? '&' : '?'}w=${width}`;
 }

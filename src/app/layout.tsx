@@ -107,7 +107,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -117,24 +117,8 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://cdn.shopify.com" />
 
       </head>
-      <body className={`${outfit.variable} ${yapari.variable} font-sans antialiased text-black`}>
-        <script dangerouslySetInnerHTML={{ __html: `
-          if ('serviceWorker' in navigator) {
-            const isInternal = 
-              window.location.hostname.startsWith('admin.') || 
-              window.location.hostname.startsWith('dev.') ||
-              window.location.pathname.startsWith('/admin') ||
-              window.location.pathname.startsWith('/developer');
+      <body className={`${outfit.variable} ${yapari.variable} font-sans antialiased text-black`} suppressHydrationWarning>
 
-            if (!isInternal) {
-              navigator.serviceWorker.getRegistrations().then(registrations => {
-                for(let registration of registrations) {
-                  registration.unregister();
-                }
-              });
-            }
-          }
-        ` }} />
         <AppLayout>{children}</AppLayout>
       </body>
     </html>

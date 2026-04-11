@@ -33,6 +33,11 @@ const SearchDrawer = dynamic(() => import("@/components/ui/SearchDrawer").then(m
     ssr: false,
 });
 
+const Skeleton = dynamic(() => import("@/components/ui/Skeleton").then(mod => mod.Skeleton), {
+    ssr: false,
+});
+
+
 function AppLayoutContent({ children }: { children: React.ReactNode }) {
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -53,6 +58,33 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                 gsap.registerPlugin(ScrollTrigger);
             };
             initGSAP();
+        }
+    }, []);
+
+    // Service Worker Registration for Storefront
+    useEffect(() => {
+        if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+            const registerSW = async () => {
+                try {
+                    const host = window.location.hostname;
+                    const isInternal = host.startsWith('admin.') || host.startsWith('dev.');
+                    
+                    if (!isInternal) {
+                        await navigator.serviceWorker.register("/sw.js", {
+                            scope: "/",
+                        });
+                    }
+                } catch (err) {
+                    console.error("Storefront PWA: registration failed:", err);
+                }
+            };
+
+            if (document.readyState === "complete") {
+                registerSW();
+            } else {
+                window.addEventListener("load", registerSW);
+                return () => window.removeEventListener("load", registerSW);
+            }
         }
     }, []);
 
@@ -130,20 +162,22 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                         />
                     )}
                     {!isRestricted && (
-                        <Suspense fallback={null}>
+                        <Suspense fallback={<div className="fixed inset-0 z-[60] bg-white/50 backdrop-blur-sm" />}>
                             <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
                         </Suspense>
                     )}
+
 
                     <MaintenanceGuard>
                         <main className={cn(!isRestricted && pathname !== "/" && "pt-16 md:pt-20 pb-8")}>
                             {children}
                         </main>
                         {!isRestricted && (
-                            <Suspense fallback={null}>
+                            <Suspense fallback={<div className="h-64 w-full bg-zinc-50 animate-pulse mt-20" />}>
                                 <Footer />
                             </Suspense>
                         )}
+
 
 
                         <Suspense fallback={null}>
@@ -156,15 +190,18 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                                 }}
                             />
                         </Suspense>
+
                         <Suspense fallback={null}>
                             <SearchDrawer
                                 isOpen={isSearchOpen}
                                 onClose={() => setIsSearchOpen(false)}
                             />
                         </Suspense>
+
                         <Suspense fallback={null}>
                             <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
                         </Suspense>
+
                     </MaintenanceGuard>
                 </div>
             </AuthProvider>

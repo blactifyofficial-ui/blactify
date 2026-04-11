@@ -38,6 +38,7 @@ export function TopNavbar({ onMenuClick, onSearchClick, onCartClick }: {
                             height={32}
                             className="h-8 w-auto object-contain transition-transform duration-500 group-hover:scale-110"
                             priority
+                            unoptimized
                         />
                     </Link>
                 </div>

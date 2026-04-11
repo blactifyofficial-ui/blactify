@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { ShopTheLook } from "@/components/ui/ShopTheLook";
 
 
 import type { Product } from "@/components/ui/ProductCard";
@@ -76,6 +77,7 @@ export default function HomeClient({ initialCategories }: HomeClientProps) {
                                             fill
                                             sizes="(max-width: 768px) 33vw, 150px"
                                             className="object-contain transition-transform duration-700 cubic-bezier(0.34, 1.56, 0.64, 1) group-hover:scale-110"
+                                            priority={initialCategories.indexOf(cat) < 6}
                                         />
                                     </div>
                                     <span className="text-[11px] font-bold text-black uppercase tracking-widest opacity-80 group-hover:opacity-100 transition-opacity whitespace-nowrap overflow-hidden text-ellipsis w-full">
@@ -87,18 +89,19 @@ export default function HomeClient({ initialCategories }: HomeClientProps) {
                     </div>
                 </section>
             )}
-            {/* Promotional Image Section */}
+            {/* Promotional Image Section - Shop the Look */}
             <section className="px-6 py-12 md:py-20 bg-white">
                 <div className="mx-auto max-w-4xl">
-                    <Link href="/shop" className="block relative aspect-[3/4] md:aspect-[4/5] w-full group overflow-hidden cursor-pointer">
-                        <Image
-                            src="/2.jpeg"
-                            alt="Blactify Collection"
-                            fill
-                            className="object-contain transition-transform duration-1000 group-hover:scale-105"
-                            sizes="(max-width: 768px) 100vw, 80vw"
-                        />
-                    </Link>
+                    <ShopTheLook
+                        src="/2.jpeg"
+                        alt="Blactify Collection"
+                        className="aspect-[3/4] md:aspect-[4/5]"
+                        hotspots={[
+                            { category: "T-shirt", top: "35%", left: "50%", label: "Curated T-shirt" },
+                            { category: "Belt", top: "45.2%", left: "45.3%", label: "Classic Belt" },
+                            { category: "Denim", top: "72%", left: "55%", label: "Premium Denim" },
+                        ]}
+                    />
                 </div>
             </section>
         </main>
