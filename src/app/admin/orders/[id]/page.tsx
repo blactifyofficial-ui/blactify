@@ -21,7 +21,8 @@ import {
     CreditCard,
     Box,
     Activity,
-    RefreshCw
+    RefreshCw,
+    FileText
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -175,6 +176,41 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
             setOrder({ ...order, tracking_id: trackingId } as Order);
         } catch {
             toast.error("Process Failure");
+        } finally {
+            setStatusUpdating(false);
+        }
+    };
+
+    const handleDownloadLabel = async () => {
+        if (!order?.tracking_id) return;
+        setStatusUpdating(true);
+        try {
+            const token = await auth.currentUser?.getIdToken();
+            const response = await fetch(`/api/admin/shipping/label?awb=${order.tracking_id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || "Failed to download label");
+            }
+            
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `label-${order.tracking_id}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            toast.success("Label Downloaded", { description: "The shipping label is ready for printing (4x6)." });
+        } catch (err: any) {
+            console.error("Download Error:", err);
+            toast.error("Download Failed", { description: err.message || "Could not retrieve the label." });
         } finally {
             setStatusUpdating(false);
         }
@@ -461,6 +497,14 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                                                     <CheckCircle2 className="text-green-600" size={18} />
                                                     <span className="text-[10px] font-semibold text-green-700 uppercase tracking-wide">Shipment Registered</span>
                                                 </div>
+                                                <button
+                                                    onClick={handleDownloadLabel}
+                                                    disabled={statusUpdating}
+                                                    className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white text-black border border-zinc-100 text-[10px] font-semibold uppercase tracking-wide rounded-2xl hover:border-black/20 hover:shadow-lg transition-all disabled:opacity-50 shadow-sm"
+                                                >
+                                                    <FileText size={18} />
+                                                    Download Shipping Label
+                                                </button>
                                             </div>
                                         )}
                                     </div>
