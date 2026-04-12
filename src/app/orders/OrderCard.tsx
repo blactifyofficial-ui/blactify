@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronDown, Calendar, CreditCard, ExternalLink, MapPin } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { ChevronDown, Calendar, CreditCard, ExternalLink, MapPin, Truck, Copy, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -44,8 +44,87 @@ interface OrderCardProps {
     order: Order;
 }
 
+interface DelhiveryStatus {
+    status: string;
+    statusType: string;
+    location: string;
+    timestamp: string;
+    activity: string;
+}
+
+function parseDelhiveryStatus(data: Record<string, unknown>): DelhiveryStatus | null {
+    try {
+        const shipment = data?.Shipment as Record<string, unknown> | undefined;
+        const statusObj = shipment?.Status as Record<string, unknown> | undefined;
+        if (!statusObj) return null;
+        return {
+            status: String(statusObj.Status || "Unknown"),
+            statusType: String(statusObj.StatusType || ""),
+            location: String(statusObj.StatusLocation || ""),
+            timestamp: String(statusObj.StatusDateTime || ""),
+            activity: String(statusObj.Instructions || statusObj.Status || ""),
+        };
+    } catch {
+        return null;
+    }
+}
+
+function getStatusDisplay(ds: DelhiveryStatus | null, orderStatus: string) {
+    if (!ds) {
+        // Fallback to order status
+        const label = orderStatus === 'captured' || orderStatus === 'paid' ? 'Confirmed' :
+            orderStatus === 'processing' ? 'Processing' :
+            orderStatus === 'shipped' ? 'Shipped' :
+            orderStatus === 'delivered' ? 'Delivered' :
+            orderStatus || 'Pending';
+        return { label, color: 'bg-zinc-200 text-zinc-700' };
+    }
+
+    const s = ds.status.toLowerCase();
+    const st = ds.statusType.toUpperCase();
+
+    if (st === 'DL' || s.includes('delivered')) return { label: 'Delivered', color: 'bg-green-100 text-green-700' };
+    if (s.includes('out for delivery')) return { label: 'Out for Delivery', color: 'bg-blue-100 text-blue-700' };
+    if (s.includes('in transit')) return { label: 'In Transit', color: 'bg-black text-white' };
+    if (s.includes('picked up')) return { label: 'Picked Up', color: 'bg-indigo-100 text-indigo-700' };
+    if (s.includes('dispatched')) return { label: 'Dispatched', color: 'bg-black text-white' };
+    if (s.includes('manifest') || s.includes('registered') || s.includes('pickup')) return { label: 'Registered', color: 'bg-amber-100 text-amber-700' };
+    if (s.includes('rto') || s.includes('return')) return { label: 'Returned', color: 'bg-red-100 text-red-700' };
+    if (st === 'UD') return { label: 'In Transit', color: 'bg-black text-white' }; // Catch-all for most movement
+    if (s.includes('pending')) return { label: 'Pending', color: 'bg-zinc-200 text-zinc-700' };
+
+    return { label: ds.status, color: 'bg-zinc-200 text-zinc-700' };
+}
+
 export default function OrderCard({ order }: OrderCardProps) {
     const [isExpanded, setIsExpanded] = useState(false);
+    const [delhiveryStatus, setDelhiveryStatus] = useState<DelhiveryStatus | null>(null);
+    const [statusLoading, setStatusLoading] = useState(false);
+    const [statusFetched, setStatusFetched] = useState(false);
+
+    const fetchDelhiveryStatus = useCallback(async () => {
+        if (!order.tracking_id || statusFetched) return;
+        setStatusLoading(true);
+        try {
+            const res = await fetch(`/api/shipping/track/${order.tracking_id}`);
+            if (res.ok) {
+                const data = await res.json();
+                const parsed = parseDelhiveryStatus(data);
+                if (parsed) setDelhiveryStatus(parsed);
+            }
+        } catch {
+            // Silently fail — fallback to order status
+        } finally {
+            setStatusLoading(false);
+            setStatusFetched(true);
+        }
+    }, [order.tracking_id, statusFetched]);
+
+    useEffect(() => {
+        if (isExpanded && order.tracking_id && !statusFetched) {
+            fetchDelhiveryStatus();
+        }
+    }, [isExpanded, order.tracking_id, statusFetched, fetchDelhiveryStatus]);
 
     return (
         <div className="group overflow-hidden rounded-3xl border border-zinc-100 bg-white transition-all hover:shadow-xl hover:shadow-zinc-100">
@@ -142,14 +221,49 @@ export default function OrderCard({ order }: OrderCardProps) {
                                 </div>
 
                                 {order.tracking_id ? (
-                                    <div className="flex items-center gap-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
-                                        <div className="flex-1">
-                                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-0.5">Tracking ID</p>
-                                            <p className="text-sm font-mono font-bold tracking-tight">{order.tracking_id}</p>
+                                    <div className="flex flex-col gap-3 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex-1">
+                                                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-0.5">Tracking ID (AWB)</p>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        navigator.clipboard.writeText(order.tracking_id!);
+                                                    }}
+                                                    title="Copy AWB to clipboard"
+                                                    className="text-sm font-mono font-bold tracking-tight hover:text-zinc-500 transition-colors cursor-copy flex items-center gap-1.5"
+                                                >
+                                                    {order.tracking_id}
+                                                    <Copy size={12} className="text-zinc-300" />
+                                                </button>
+                                            </div>
+                                            {statusLoading ? (
+                                                <div className="px-3 py-1.5 bg-zinc-100 text-zinc-400 text-[10px] font-bold uppercase tracking-widest rounded-full flex items-center gap-1.5">
+                                                    <Loader2 size={12} className="animate-spin" />
+                                                    Checking
+                                                </div>
+                                            ) : (
+                                                <div className={cn(
+                                                    "px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-full",
+                                                    getStatusDisplay(delhiveryStatus, order.status).color
+                                                )}>
+                                                    {getStatusDisplay(delhiveryStatus, order.status).label}
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="px-3 py-1.5 bg-black text-white text-[10px] font-bold uppercase tracking-widest rounded-full">
-                                            In Transit
-                                        </div>
+
+
+                                        <a
+                                            href="https://www.delhivery.com/tracking"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="flex items-center justify-center gap-2 w-full py-3 bg-black text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-zinc-800 transition-all active:scale-[0.98]"
+                                        >
+                                            <Truck size={14} />
+                                            Track Shipment
+                                            <ExternalLink size={12} />
+                                        </a>
                                     </div>
                                 ) : (
                                     <div className="flex items-center gap-4 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">

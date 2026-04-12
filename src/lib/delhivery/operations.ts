@@ -46,7 +46,7 @@ export async function processOrderShippingInternal(order: Order) {
     const SHIPMENT_RESULT = await createShipmentInternal(shipmentData);
 
     if (SHIPMENT_RESULT.success) {
-        const trackingUrl = `https://track.delhivery.com/tracking/track?id=${awb}`;
+        const trackingUrl = `https://www.delhivery.com/tracking`;
 
         return { 
             success: true, 
