@@ -130,37 +130,8 @@ export async function POST(req: Request) {
                     }
                 }
 
-                // --- AUTOMATION: Trigger Delhivery Shipping if not already registered ---
-                // We check if tracking_id is missing to avoid double registration.
-                if (currentOrderData && (currentOrderData.status === "paid" || currentOrderData.status === "processing") && !currentOrderData.tracking_id) {
-                    try {
-                        console.log(`[Webhook] Registering Delhivery shipment for paid order ${order_id}`);
-                        const shippingResult = await processOrderShipping(currentOrderData);
-
-                        if (shippingResult.success) {
-                            await supabaseAdmin
-                                .from("orders")
-                                .update({
-                                    tracking_id: shippingResult.awb,
-                                    payment_details: {
-                                        ...((currentOrderData.payment_details as Record<string, unknown>) || {}),
-                                        shipping: {
-                                            awb: shippingResult.awb,
-                                            tracking_link: shippingResult.tracking_link,
-                                            status: "registered",
-                                            registered_at: new Date().toISOString()
-                                        }
-                                    }
-                                })
-                                .eq("id", order_id);
-                            console.log(`[Webhook] Delhivery shipment registered: ${shippingResult.awb}`);
-                        } else {
-                            console.warn("[Webhook] Delhivery registration failed:", shippingResult.message);
-                        }
-                    } catch (shippingErr) {
-                        console.error("[Webhook] Delhivery processing error:", shippingErr);
-                    }
-                }
+                // Shipping is now handled manually by the Admin via the Dashboard.
+                // The automatic background registration has been removed as requested.
             } else {
                 console.error(`🔴 CRITICAL: Order ${order_id} not found in database!`);
             }
