@@ -32,7 +32,7 @@ import {
     CategoryNameSchema
 } from "@/lib/validation";
 import { Drop } from "@/lib/drops-local";
-import { Category, Product } from "@/types/database";
+import { Category } from "@/types/database";
 
 interface ProductVariant {
     id?: string;
