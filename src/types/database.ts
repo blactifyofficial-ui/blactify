@@ -10,6 +10,7 @@ export interface Category {
     slug: string;
     image_url?: string;
     size_config?: string[]; // Deprecated, keep for type compatibility during migration if needed
+    image_size_toggle?: boolean;
     category_measurements?: {
         measurement_types: MeasurementType;
     }[];
@@ -68,6 +69,7 @@ export interface Product {
     updated_at?: string;
     categories?: {
         name: string;
+        image_size_toggle?: boolean;
     };
     category?: string; // Fallback
     tag?: string;

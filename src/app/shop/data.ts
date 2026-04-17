@@ -35,7 +35,7 @@ export const getAllCachedProducts = unstable_cache(
                 .from("products")
                 .select(`
                     *,
-                    categories(name),
+                    categories(name, image_size_toggle),
                     product_images(url),
                     product_variants(stock)
                 `)

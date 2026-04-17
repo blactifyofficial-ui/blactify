@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-import { processOrderShipping } from "@/actions/delhivery";
+// import { processOrderShipping } from "@/actions/delhivery";
 
 export async function POST(req: Request) {
     try {
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
             }
 
             if (existingOrder) {
-                let currentOrderData = existingOrder;
+                // let currentOrderData = existingOrder;
                 
                 if (existingOrder.status !== "paid") {
                     // ⚡ CRITICAL: Confirm order if not already paid
@@ -97,7 +97,7 @@ export async function POST(req: Request) {
                             .single();
                         
                         if (refreshedOrder) {
-                            currentOrderData = refreshedOrder;
+                            // currentOrderData = refreshedOrder;
                             // 1. Send Notifications
                             try {
                                 const { sendOrderNotifications } = await import("@/lib/notifications-emails");
@@ -126,7 +126,7 @@ export async function POST(req: Request) {
                         .eq("id", order_id)
                         .single();
                     if (latestOrder) {
-                        currentOrderData = latestOrder;
+                        // currentOrderData = latestOrder;
                     }
                 }
 

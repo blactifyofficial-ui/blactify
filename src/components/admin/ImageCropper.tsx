@@ -19,8 +19,8 @@ export default function ImageCropper({ image, onCrop, onCancel, aspectRatio = 1 
         const cropper = cropperRef.current?.cropper;
         if (cropper) {
             onCrop(cropper.getCroppedCanvas({
-                width: 1000, // Reasonable high-res limit
-                height: 1000,
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high',
             }).toDataURL("image/jpeg", 0.9));
         }
     };

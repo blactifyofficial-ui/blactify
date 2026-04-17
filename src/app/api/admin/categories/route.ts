@@ -9,12 +9,12 @@ export async function POST(request: Request) {
     const auth = await verifyAdminAuth(request);
     if (auth.error) return auth.error;
     try {
-        const { name, slug, size_config, image_url } = await request.json();
+        const { name, slug, size_config, image_url, image_size_toggle } = await request.json();
 
         // 1. Insert Category
         const { data: categoryData, error: insertError } = await supabaseAdmin
             .from("categories")
-            .insert([{ name, slug, image_url }])
+            .insert([{ name, slug, image_url, image_size_toggle }])
             .select()
             .single();
 
@@ -108,12 +108,12 @@ export async function PUT(request: Request) {
     const auth = await verifyAdminAuth(request);
     if (auth.error) return auth.error;
     try {
-        const { id, name, slug, size_config, image_url } = await request.json();
+        const { id, name, slug, size_config, image_url, image_size_toggle } = await request.json();
 
         // 1. Update Category
         const { data: categoryData, error: updateError } = await supabaseAdmin
             .from("categories")
-            .update({ name, slug, image_url })
+            .update({ name, slug, image_url, image_size_toggle })
             .eq("id", id)
             .select()
             .single();

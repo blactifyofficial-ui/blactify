@@ -110,6 +110,7 @@ export function useAdminCategories({ page, pageSize }: UseAdminCategoriesProps) 
                     name: cat.name,
                     slug: cat.slug,
                     image_url: cat.image_url,
+                    image_size_toggle: cat.image_size_toggle,
                     created_at: cat.created_at,
                     size_config: cat.category_measurements?.map(cm => cm.measurement_types?.name).filter(Boolean) || cat.size_config || [],
                     product_count: activeProducts.length,

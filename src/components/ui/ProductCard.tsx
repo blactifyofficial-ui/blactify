@@ -20,9 +20,13 @@ interface ProductCardProps {
     onImageLoad?: () => void;
     hidePrice?: boolean;
     priority?: boolean;
+    isLarge?: boolean;
 }
 
-export function ProductCard({ product, className, onImageLoad, hidePrice, priority }: ProductCardProps) {
+export function ProductCard({ product, className, onImageLoad, hidePrice, priority, isLarge }: ProductCardProps) {
+    // Determine if large from product category if not explicitly passed
+    const isActuallyLarge = isLarge || product.categories?.image_size_toggle;
+
     const { addItem } = useCartStore();
     const { user } = useAuth();
 
@@ -35,15 +39,27 @@ export function ProductCard({ product, className, onImageLoad, hidePrice, priori
 
     return (
         <div className={cn("group flex flex-col gap-3", className)}>
-            <div className="relative aspect-[3/4] w-full overflow-hidden bg-zinc-100 product-image-container">
-                <Link href={`/product/${product.handle || product.id}`} className="relative block h-full w-full bg-zinc-50">
+            <div className={cn(
+                "relative w-full overflow-hidden bg-zinc-100 product-image-container",
+                isActuallyLarge ? "aspect-auto" : "aspect-[3/4]"
+            )}>
+                <Link href={`/product/${product.handle || product.id}`} className={cn("relative block w-full bg-zinc-50", !isActuallyLarge && "h-full")}>
                     {(product.product_images?.[0]?.url || product.main_image) ? (
                         <Image
                             src={(product.product_images?.[0]?.url || product.main_image) || ""}
-                            alt={product.name}
-                            fill
-                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                             alt={product.name}
+                             fill={!isActuallyLarge}
+                             width={isActuallyLarge ? 3024 : undefined}
+                             height={isActuallyLarge ? 4032 : undefined}
+                             sizes={isActuallyLarge 
+                                ? "(min-width: 1200px) calc((100vw - 0px * 0) * 1), (min-width: 768px) calc((100vw - 0px * -1) * 1), calc((100vw - 0px * 0) * 1)"
+                                : "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                             }
+                             className={cn(
+                                 "transition-transform duration-500 group-hover:scale-105",
+                                 isActuallyLarge ? "w-full h-auto" : "object-cover",
+                                 isActuallyLarge && "product-image"
+                             )}
                             priority={priority}
                             loading={priority ? "eager" : "lazy"}
                             onLoad={onImageLoad}

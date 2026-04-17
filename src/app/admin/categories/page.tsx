@@ -44,6 +44,7 @@ export default function AdminCategoriesPage() {
     const [currentField, setCurrentField] = useState("");
     const [formError, setFormError] = useState("");
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [imageSizeToggle, setImageSizeToggle] = useState(false);
 
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
@@ -109,6 +110,7 @@ export default function AdminCategoriesPage() {
         setEditingId(null);
         setFormError("");
         setCurrentField("");
+        setImageSizeToggle(false);
     };
 
     const handleEdit = (category: Category) => {
@@ -116,6 +118,7 @@ export default function AdminCategoriesPage() {
         setNewCategoryName(category.name);
         setNewImageUrl(category.image_url || "");
         setNewSizeFields(category.size_config || []);
+        setImageSizeToggle(category.image_size_toggle || false);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -137,7 +140,8 @@ export default function AdminCategoriesPage() {
                 name: newCategoryName,
                 slug,
                 image_url: newImageUrl,
-                size_config: newSizeFields
+                size_config: newSizeFields,
+                image_size_toggle: imageSizeToggle
             };
 
             const token = await auth.currentUser?.getIdToken();
@@ -212,7 +216,7 @@ export default function AdminCategoriesPage() {
                     image={croppingImage}
                     onCrop={handleCropComplete}
                     onCancel={() => setCroppingImage(null)}
-                    aspectRatio={4 / 5}
+                    aspectRatio={1}
                 />
             )}
 
@@ -286,7 +290,7 @@ export default function AdminCategoriesPage() {
                                             )}
                                         </div>
                                         <div className="flex-1 space-y-2">
-                                            <p className="text-[10px] text-zinc-400 font-medium">Upload a high-quality vertical image (4:5 ratio) representing this category.</p>
+                                            <p className="text-[10px] text-zinc-400 font-medium">Upload a high-quality square image (1:1 ratio) representing this category.</p>
                                             {newImageUrl && (
                                                 <button
                                                     type="button"
@@ -346,6 +350,30 @@ export default function AdminCategoriesPage() {
                                                 </button>
                                             </div>
                                         ))}
+                                    </div>
+                                </div>
+                                
+                                <div className="space-y-4 pt-4 border-t border-zinc-50">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <span className="text-[9px] font-semibold uppercase tracking-wide text-zinc-400 block mb-1">Large Layout</span>
+                                            <p className="text-[10px] text-zinc-400 font-medium">Use full-width images for this category</p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setImageSizeToggle(!imageSizeToggle)}
+                                            className={cn(
+                                                "relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2",
+                                                imageSizeToggle ? "bg-black" : "bg-zinc-200"
+                                            )}
+                                        >
+                                            <span
+                                                className={cn(
+                                                    "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+                                                    imageSizeToggle ? "translate-x-6" : "translate-x-1"
+                                                )}
+                                            />
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -411,6 +439,11 @@ export default function AdminCategoriesPage() {
                                                     ))}
                                                     {(!cat.size_config || cat.size_config.length === 0) && (
                                                         <span className="text-[8px] font-bold text-zinc-300 uppercase tracking-wide">No sizes set</span>
+                                                    )}
+                                                    {cat.image_size_toggle && (
+                                                        <span className="text-[8px] font-bold text-black border border-black/10 bg-black/5 px-2 py-0.5 rounded-full uppercase tracking-wide">
+                                                            Large View
+                                                        </span>
                                                     )}
                                                 </div>
                                             </div>

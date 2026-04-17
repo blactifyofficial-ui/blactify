@@ -32,6 +32,7 @@ import {
     CategoryNameSchema
 } from "@/lib/validation";
 import { Drop } from "@/lib/drops-local";
+import { Category, Product } from "@/types/database";
 
 interface ProductVariant {
     id?: string;
@@ -47,7 +48,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
 
     const [loading, setLoading] = useState(isEditing);
     const [saving, setSaving] = useState(false);
-    const [categories, setCategories] = useState<Record<string, unknown>[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
 
     // Main Form Data
     const [formData, setFormData] = useState({
@@ -484,6 +485,10 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
         }));
     };
 
+    // Helper to get image size toggle for cropper
+    const currentCategory = categories?.find(c => String(c.id) === formData.category_id);
+    const categoryHasLargeLayout = !!currentCategory?.image_size_toggle;
+
     if (loading) {
         return (
             <div className="min-h-[60vh] flex items-center justify-center">
@@ -561,8 +566,8 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                     className={`w-full pl-12 pr-10 py-4 bg-zinc-50 border ${errors.category_id ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all cursor-pointer font-medium appearance-none`}
                                 >
                                     <option value="">Select Category</option>
-                                    {categories.map((cat: Record<string, unknown>) => (
-                                        <option key={cat.id as string} value={cat.id as string}>{cat.name as string}</option>
+                                    {categories.map((cat: Category) => (
+                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
                                     ))}
                                 </select>
                                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-300 pointer-events-none" size={16} />
@@ -735,9 +740,9 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                             <th className="px-4 py-3">Size</th>
                                             <th className="px-4 py-3">Stock</th>
                                             {/* Dynamic Measurement Headers */}
-                                            {((categories.find(c => String(c.id) === formData.category_id)?.category_measurements as Record<string, unknown>[]) || []).map((cm: Record<string, unknown>) => (
-                                                <th key={(cm.measurement_types as Record<string, unknown>).id as string} className="px-4 py-3 whitespace-nowrap">
-                                                    {(cm.measurement_types as Record<string, unknown>).name as string}
+                                            {(categories.find(c => String(c.id) === formData.category_id)?.category_measurements || []).map((cm) => (
+                                                <th key={cm.measurement_types.id} className="px-4 py-3 whitespace-nowrap">
+                                                    {cm.measurement_types.name}
                                                 </th>
                                             ))}
                                             <th className="px-4 py-3 text-right">Actions</th>
@@ -757,12 +762,12 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                                     />
                                                 </td>
                                                 {/* Dynamic Measurement Inputs */}
-                                                {((categories.find(c => String(c.id) === formData.category_id)?.category_measurements as Record<string, unknown>[]) || []).map((cm: Record<string, unknown>) => (
-                                                    <td key={(cm.measurement_types as Record<string, unknown>).id as string} className="px-4 py-3">
+                                                {(categories.find(c => String(c.id) === formData.category_id)?.category_measurements || []).map((cm) => (
+                                                    <td key={cm.measurement_types.id} className="px-4 py-3">
                                                         <input
                                                             type="text"
-                                                            value={variant.measurements[(cm.measurement_types as Record<string, unknown>).id as string] || ""}
-                                                            onChange={(e) => updateVariantMeasurement(index, (cm.measurement_types as Record<string, unknown>).id as string, e.target.value)}
+                                                            value={variant.measurements[cm.measurement_types.id] || ""}
+                                                            onChange={(e) => updateVariantMeasurement(index, cm.measurement_types.id, e.target.value)}
                                                             className="w-20 px-3 py-1 bg-white border border-zinc-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-black/5 outline-none transition-all"
                                                         />
                                                     </td>
@@ -820,14 +825,14 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                 <div className="pt-2">
                                     <h4 className="text-[10px] font-bold uppercase text-zinc-400 tracking-wide pl-1 mb-2">Measurements</h4>
                                     <div className="flex flex-wrap gap-4">
-                                        {((categories.find(c => String(c.id) === formData.category_id)?.category_measurements as Record<string, unknown>[]) || []).map((cm: Record<string, unknown>) => (
-                                            <div key={(cm.measurement_types as Record<string, unknown>).id as string} className="space-y-1 w-full sm:w-32">
-                                                <span className="text-[10px] font-bold uppercase text-zinc-500 tracking-wide pl-1">{(cm.measurement_types as Record<string, unknown>).name as string}</span>
+                                        {(categories.find(c => String(c.id) === formData.category_id)?.category_measurements || []).map((cm) => (
+                                            <div key={cm.measurement_types.id} className="space-y-1 w-full sm:w-32">
+                                                <span className="text-[10px] font-bold uppercase text-zinc-500 tracking-wide pl-1">{cm.measurement_types.name}</span>
                                                 <input
                                                     type="text"
                                                     placeholder="Val"
-                                                    value={newVariantMeasurements[(cm.measurement_types as Record<string, unknown>).id as string] || ""}
-                                                    onChange={(e) => setNewVariantMeasurements({ ...newVariantMeasurements, [(cm.measurement_types as Record<string, unknown>).id as string]: e.target.value })}
+                                                    value={newVariantMeasurements[cm.measurement_types.id] || ""}
+                                                    onChange={(e) => setNewVariantMeasurements({ ...newVariantMeasurements, [cm.measurement_types.id]: e.target.value })}
                                                     className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-medium"
                                                 />
                                             </div>
@@ -968,13 +973,14 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
             {
                 croppingImage && (
                     <ImageCropper
+                        key={croppingField}
                         image={croppingImage}
                         onCrop={handleCropComplete}
                         onCancel={() => {
                             setCroppingImage(null);
                             setCroppingField(null);
                         }}
-                        aspectRatio={1}
+                        aspectRatio={categoryHasLargeLayout ? 0.75 : 1}
                     />
                 )
             }

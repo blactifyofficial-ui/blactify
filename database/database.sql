@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS categories (
     slug TEXT NOT NULL UNIQUE,
     image_url TEXT,
     size_config JSONB DEFAULT '[]', -- Legacy support
+    image_size_toggle BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
