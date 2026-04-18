@@ -1,0 +1,134 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { useCartStore } from "@/store/useCartStore";
+import { Plus } from "lucide-react";
+import { useAuth } from "@/store/AuthContext";
+
+
+
+import { Magnetic } from "@/components/ui/Magnetic";
+import { Product } from "@/types/database";
+
+export type { Product }; // Re-export for compatibility
+
+interface ProductCardProps {
+    product: Product;
+    className?: string;
+    onImageLoad?: () => void;
+    hidePrice?: boolean;
+    priority?: boolean;
+    isLarge?: boolean;
+}
+
+export function ProductCard({ product, className, onImageLoad, hidePrice, priority, isLarge }: ProductCardProps) {
+    // Determine if large from product category if not explicitly passed
+    const isActuallyLarge = isLarge || product.categories?.image_size_toggle;
+
+    const { addItem } = useCartStore();
+    const { user } = useAuth();
+
+
+
+
+    // Use price_offer as the primary price if available
+    const displayPrice = product.price_offer || product.price_base;
+    const hasDiscount = product.price_offer && product.price_offer < product.price_base;
+
+    return (
+        <div className={cn("group flex flex-col gap-3", className)}>
+            <div className={cn(
+                "relative w-full overflow-hidden bg-white/5 product-image-container",
+                isActuallyLarge ? "aspect-auto" : "aspect-[3/4]"
+            )}>
+                <Link href={`/product/${product.handle || product.id}`} className={cn("relative block w-full bg-black", !isActuallyLarge && "h-full")}>
+                    {(product.product_images?.[0]?.url || product.main_image) ? (
+                        <Image
+                            src={(product.product_images?.[0]?.url || product.main_image) || ""}
+                             alt={product.name}
+                             fill={!isActuallyLarge}
+                             width={isActuallyLarge ? 3024 : undefined}
+                             height={isActuallyLarge ? 4032 : undefined}
+                             sizes={isActuallyLarge 
+                                ? "(min-width: 1200px) calc((100vw - 0px * 0) * 1), (min-width: 768px) calc((100vw - 0px * -1) * 1), calc((100vw - 0px * 0) * 1)"
+                                : "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                             }
+                             className={cn(
+                                 "transition-transform duration-500 group-hover:scale-105",
+                                 isActuallyLarge ? "w-full h-auto" : "object-cover",
+                                 isActuallyLarge && "product-image"
+                             )}
+                            priority={priority}
+                            loading={priority ? "eager" : "lazy"}
+                            onLoad={onImageLoad}
+                        />
+                    ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-white/5 text-[10px] font-bold uppercase tracking-widest text-zinc-600">
+                            No Image
+                        </div>
+                    )}
+                </Link>
+                {product.tag && (
+                    <div className="absolute left-3 top-3 bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-black">
+                        {product.tag}
+                    </div>
+                )}
+                {(product.product_variants?.every(v => v.stock <= 0) ?? (product.stock ?? 0) <= 0) && (
+                    <div className="absolute right-3 top-3 bg-white px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-black shadow-sm z-10 pointer-events-none rounded-sm border border-white">
+                        Out of Stock
+                    </div>
+                )}
+                {(product.product_variants?.some(v => v.stock > 0) ?? (product.stock ?? 0) > 0) && (
+                    <div className="absolute bottom-3 right-3 z-20">
+                        <Magnetic strength={0.3}>
+                            <button
+                                aria-label="Add to cart"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    if (!user) {
+                                        window.dispatchEvent(new CustomEvent("open-auth-modal"));
+                                        return;
+                                    }
+                                    addItem(product);
+                                }}
+                                className="flex h-10 w-10 items-center justify-center rounded-md bg-black text-white shadow-lg opacity-0 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 active:scale-90 border border-white/10"
+                            >
+                                <Plus size={20} />
+                            </button>
+                        </Magnetic>
+                    </div>
+                )}
+            </div>
+            <div className="flex flex-col gap-1">
+                <Link href={`/product/${product.handle || product.id}`}>
+                    <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-zinc-500 mb-1 block">
+                        {product.categories?.name || product.category || "General"}
+                    </span>
+                    <h3 className="text-[11px] md:text-[12px] font-medium text-white lowercase leading-tight">
+                        {product.name}
+                    </h3>
+                </Link>
+                {!hidePrice && (
+                    <div className="flex items-center gap-2">
+                        {hasDiscount ? (
+                            <>
+                                <span className="text-[11px] md:text-[12px] font-medium text-white">
+                                    ₹{displayPrice.toFixed(2)}
+                                </span>
+                                <span className="text-[11px] md:text-[12px] text-zinc-500 line-through">
+                                    ₹{product.price_base.toFixed(2)}
+                                </span>
+                            </>
+                        ) : (
+                            <span className="text-[11px] md:text-[12px] font-medium text-white">
+                                ₹{displayPrice.toFixed(2)}
+                            </span>
+                        )}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}

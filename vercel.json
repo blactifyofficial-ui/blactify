@@ -1,0 +1,9 @@
+{
+    "functions": {
+        "src/app/api/**/*": {
+            "regions": [
+                "sin1"
+            ]
+        }
+    }
+}

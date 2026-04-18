@@ -1,0 +1,522 @@
+"use client";
+
+import { useEffect, useState, use, useCallback } from "react";
+import Image from "next/image";
+import { toast } from "sonner";
+import { getAdminOrderById, updateAdminOrder } from "@/app/actions/orders";
+import { auth } from "@/lib/firebase";
+import { Order } from "@/types/database";
+import {
+    ArrowLeft,
+    Clock,
+    Package,
+    User,
+    Mail,
+    Phone,
+    MapPin,
+    AlertCircle,
+    CheckCircle2,
+    Truck,
+    Calendar,
+    CreditCard,
+    Box,
+    Activity,
+    RefreshCw
+} from "lucide-react";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { AdminLoading, AdminPageHeader, AdminCard } from "@/components/admin/AdminUI";
+
+
+const STATUS_SEQUENCE = ["paid", "processing", "shipped", "delivered"];
+const STATUS_OPTIONS = ["unpaid", "paid", "processing", "shipped", "delivered", "failed"];
+
+const getAvailableStatuses = (currentStatus: string) => {
+    const status = currentStatus?.toLowerCase();
+    if (status === "failed") return ["failed"];
+    if (status === "delivered") return ["delivered"];
+    const currentIndex = STATUS_SEQUENCE.indexOf(status);
+    if (currentIndex === -1) return STATUS_OPTIONS;
+    const available = [status];
+    if (currentIndex < STATUS_SEQUENCE.length - 1) {
+        available.push(STATUS_SEQUENCE[currentIndex + 1]);
+    }
+    if (status !== "delivered" && !available.includes("failed")) {
+        available.push("failed");
+    }
+    return available;
+};
+
+export default function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params);
+    const [order, setOrder] = useState<Order | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [statusUpdating, setStatusUpdating] = useState<boolean>(false);
+    const [trackingId, setTrackingId] = useState("");
+    const [itemMeasurements, setItemMeasurements] = useState<Record<string, Array<{ value: string; measurement_types: { name: string } }>>>({});
+    const [itemImages, setItemImages] = useState<Record<string, string>>({});
+
+    const fetchOrder = useCallback(async (showToast = false) => {
+        if (showToast) setLoading(true); // only show global loader on initial or forced full refresh
+        try {
+            const token = await auth.currentUser?.getIdToken();
+            const result = await getAdminOrderById(id, token);
+            if (result.success && result.order) {
+                setOrder(result.order);
+                setTrackingId(result.order.tracking_id || "");
+                if (showToast) toast.success("Data Synchronized");
+            } else {
+                throw new Error(result.error || "Order not found");
+            }
+        } catch {
+            toast.error("Protocol Error", { description: "Failure to retrieve mission parameters." });
+        } finally {
+            setLoading(false);
+        }
+    }, [id]);
+
+    useEffect(() => {
+        fetchOrder();
+    }, [fetchOrder]);
+
+    useEffect(() => {
+        if (!order?.items) return;
+        async function fetchItemDetails() {
+            try {
+                const { supabase } = await import("@/lib/supabase");
+                const measurementsMap: Record<string, Array<{ value: string; measurement_types: { name: string } }>> = {};
+                const imagesMap: Record<string, string> = {}; // Start fresh to avoid infinite loop with itemImages
+
+                for (const item of order!.items) {
+                    // Fetch Measurements
+                    if (item.id && item.size) {
+                        const key = `${item.id}-${item.size}`;
+                        const { data: variant } = await supabase
+                            .from('product_variants')
+                            .select(`
+                                id,
+                                variant_measurements (
+                                    value,
+                                    measurement_types (
+                                        name
+                                    )
+                                )
+                            `)
+                            .eq('product_id', item.id)
+                            .eq('size', item.size)
+                            .maybeSingle();
+
+                        if (variant?.variant_measurements) {
+                            measurementsMap[key] = (variant.variant_measurements as unknown as { value: string; measurement_types: { name: string } | { name: string }[] }[]).map(m => ({
+                                value: String(m.value),
+                                measurement_types: (Array.isArray(m.measurement_types) ? m.measurement_types[0] : m.measurement_types) as { name: string }
+                            }));
+                        }
+                    }
+
+                    // Fetch Image Fallback if missing
+                    const hasImage = item.main_image || item.image || item.imageUrl || (item.product_images && item.product_images.length > 0);
+                    if (!hasImage && item.id) {
+                        const { data: product } = await supabase
+                            .from('products')
+                            .select(`
+                                product_images (
+                                    url
+                                )
+                            `)
+                            .eq('id', item.id)
+                            .maybeSingle();
+
+                        if (product?.product_images && Array.isArray(product.product_images) && product.product_images.length > 0) {
+                            const img = product.product_images[0].url;
+                            if (img) imagesMap[item.id] = img;
+                        }
+                    }
+                }
+
+                setItemMeasurements(measurementsMap);
+                setItemImages(prev => ({ ...prev, ...imagesMap }));
+            } catch (err) {
+                console.error("Error fetching item details:", err);
+            }
+        }
+        fetchItemDetails();
+    }, [order]);
+
+    const handleUpdateStatus = async (newStatus: string) => {
+        if (!order) return;
+        setStatusUpdating(true);
+        const normalizedStatus = newStatus.toLowerCase();
+        try {
+            const token = await auth.currentUser?.getIdToken();
+            const result = await updateAdminOrder(id, { status: normalizedStatus }, token);
+            if (!result.success) throw new Error(result.error);
+
+            toast.success("Status Synchronized", {
+                description: `Vector updated to ${normalizedStatus.toUpperCase()}`,
+            });
+            setOrder({ ...order, status: normalizedStatus as Order['status'] });
+        } catch {
+            toast.error("Transmission Failed");
+        } finally {
+            setStatusUpdating(false);
+        }
+    };
+
+    const handleUpdateTracking = async () => {
+        if (!order || (!trackingId.trim() && !order.tracking_id)) return;
+        setStatusUpdating(true);
+        try {
+            const token = await auth.currentUser?.getIdToken();
+            const result = await updateAdminOrder(id, { tracking_id: trackingId }, token);
+            if (!result.success) throw new Error(result.error);
+
+            toast.success("Logistics Updated", { description: "Tracking sequence finalized." });
+            setOrder({ ...order, tracking_id: trackingId } as Order);
+        } catch {
+            toast.error("Process Failure");
+        } finally {
+            setStatusUpdating(false);
+        }
+    };
+
+    const getStatusIcon = (status: string | undefined) => {
+        switch (status?.toLowerCase()) {
+            case 'unpaid': return AlertCircle;
+            case 'paid': return CreditCard;
+            case 'processing': return Clock;
+            case 'shipped': return Truck;
+            case 'delivered': return CheckCircle2;
+            case 'failed': return Activity;
+            default: return Package;
+        }
+    };
+
+    if (loading) return <AdminLoading message="Accessing deployment detailed registry..." />;
+
+    if (!order) {
+        return (
+            <div className="text-center py-32">
+                <AlertCircle className="mx-auto text-zinc-100 mb-6" size={64} />
+                <h2 className="text-zinc-900 font-semibold uppercase tracking-wide text-sm mb-4">Order Not Found</h2>
+                <Link href="/admin/orders" className="flex items-center gap-2 text-zinc-400 hover:text-black transition-colors mb-6 text-xs font-bold uppercase tracking-wide">
+                    <ArrowLeft size={16} />
+                    Back to Orders
+                </Link>
+            </div>
+        );
+    }
+
+    const StatusIcon = getStatusIcon(order.status);
+    const itemsSubtotal = (order.items || []).reduce((acc: number, item) => {
+        const price = (Number(item.price) || Number(item.price_offer) || Number(item.price_base) || 0);
+        return acc + (price * Number(item.quantity));
+    }, 0);
+    const shippingCharge = order.amount - itemsSubtotal;
+
+    return (
+        <div className="space-y-12 animate-in fade-in duration-700 pb-20 max-w-6xl mx-auto">
+            <AdminPageHeader
+                title="Order Details"
+                subtitle={`Order #${order.id.slice(0, 12)}`}
+            >
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => fetchOrder(true)}
+                        disabled={loading || statusUpdating}
+                        className="p-3 bg-white border border-zinc-100 text-zinc-400 rounded-2xl hover:text-black hover:border-black/20 transition-all active:scale-90 disabled:opacity-50 shadow-sm"
+                        title="Refresh order details"
+                    >
+                        <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
+                    </button>
+
+                    {(order.status === 'pending' || order.status === 'unpaid') && (
+                        <button
+                            onClick={async () => {
+                                setStatusUpdating(true);
+                                try {
+                                    const { syncAdminOrderWithGateway } = await import("@/app/actions/orders");
+                                    const token = await auth.currentUser?.getIdToken();
+                                    const res = await syncAdminOrderWithGateway(order.id, token);
+                                    if (res.success) {
+                                        toast.success("Reconciliation Success", { description: res.message });
+                                        fetchOrder();
+                                    } else {
+                                        toast.error("Reconciliation Halted", { description: res.error });
+                                    }
+                                } catch {
+                                    toast.error("Process Error");
+                                } finally {
+                                    setStatusUpdating(false);
+                                }
+                            }}
+                            disabled={statusUpdating}
+                            className="px-6 py-3 bg-red-600 text-white text-[9px] font-semibold uppercase tracking-wide rounded-2xl hover:bg-red-700 transition-all disabled:opacity-50 shadow-xl shadow-red-600/20 animate-pulse"
+                        >
+                            Reconcile with Gateway
+                        </button>
+                    )}
+
+
+                    <div className="relative group">
+                        <select
+                            value={order.status?.toLowerCase() || ""}
+                            disabled={statusUpdating}
+                            onChange={(e) => handleUpdateStatus(e.target.value)}
+                            className="appearance-none pl-12 pr-10 py-3 bg-white border border-zinc-100 rounded-2xl text-[10px] font-semibold uppercase tracking-wide focus:outline-none focus:ring-4 focus:ring-black/5 focus:border-black/10 transition-all disabled:opacity-50 cursor-pointer shadow-sm min-w-[200px]"
+                        >
+                            {getAvailableStatuses(order.status).map(opt => (
+                                <option key={opt} value={opt}>{opt.toUpperCase()}</option>
+                            ))}
+                        </select>
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <StatusIcon size={18} className={cn(
+                                "transition-colors duration-300",
+                            order.status?.toLowerCase() === 'failed' || order.status?.toLowerCase() === 'unpaid' ? "text-red-500" : "text-black"
+                        )} />
+                        </div>
+                    </div>
+                </div>
+            </AdminPageHeader>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                <div className="lg:col-span-2 space-y-10">
+                    <AdminCard title="Order Items" icon={<Package size={18} />} subtitle={`Items: ${order.items?.length || 0}`}>
+                        <div className="divide-y divide-zinc-50 -mx-8 -mb-8">
+                            {(order.items || []).map((item, idx: number) => (
+                                <div key={idx} className="px-8 py-8 flex items-center justify-between group hover:bg-zinc-50 transition-colors duration-500">
+                                    <div className="flex items-center gap-6">
+                                        <div className="w-20 h-20 bg-zinc-50 rounded-[2rem] overflow-hidden flex-shrink-0 relative shadow-inner">
+                                            {(item.main_image || item.image || item.imageUrl || (item.product_images && item.product_images[0]?.url) || itemImages[item.id]) ? (
+                                                <Image
+                                                    src={item.main_image || item.image || item.imageUrl || item.product_images?.[0]?.url || itemImages[item.id] || ""}
+                                                    alt={item.name}
+                                                    fill
+                                                    sizes="80px"
+                                                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-zinc-200">
+                                                    <Box size={32} />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <h4 className="font-semibold text-lg tracking-tight">{item.name}</h4>
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-[9px] font-semibold uppercase tracking-wide text-zinc-400 bg-white px-3 py-1 rounded-full border border-zinc-50">QTY: {item.quantity}</span>
+                                                {item.size && (
+                                                    <span className="text-[9px] font-semibold uppercase tracking-wide text-zinc-900 bg-black/5 px-3 py-1 rounded-full">SIZE: {item.size}</span>
+                                                )}
+                                            </div>
+                                            {item.size && itemMeasurements[`${item.id}-${item.size}`] && (
+                                                <div className="flex flex-wrap gap-2 pt-2">
+                                                    {(itemMeasurements[`${item.id}-${item.size}`] || []).map((m, i) => (
+                                                        <div key={i} className="px-2 py-1 bg-zinc-50 border border-black/5 rounded-lg flex flex-col items-start min-w-[70px] shadow-sm">
+                                                            <span className="text-[7px] font-semibold uppercase tracking-wide text-zinc-400">{m.measurement_types?.name}</span>
+                                                            <span className="text-[10px] font-semibold text-black">{m.value}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-semibold text-xl tracking-tighter">₹{((item.price || item.price_offer || item.price_base || 0) * item.quantity).toLocaleString()}</p>
+                                        <p className="text-[9px] text-zinc-300 font-semibold uppercase tracking-wide">₹{(item.price || item.price_offer || item.price_base || 0).toLocaleString()} / UNIT</p>
+                                    </div>
+                                </div>
+                            ))}
+                            <div className="p-8 bg-zinc-50/50 space-y-4">
+                                <div className="flex justify-between text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
+                                    <span>ITEMS SUBTOTAL</span>
+                                    <span className="text-zinc-900">₹{itemsSubtotal.toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
+                                    <span>SHIPPING FEE</span>
+                                    <span className={cn(
+                                        "font-semibold",
+                                        shippingCharge > 0 ? "text-zinc-900" : "text-green-600 tracking-wide"
+                                    )}>
+                                        {shippingCharge > 0 ? `₹${shippingCharge.toLocaleString()}` : "FREE SHIPPING"}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between pt-6 border-t border-zinc-100">
+                                    <span className="text-sm font-semibold uppercase tracking-wide text-zinc-900">ORDER TOTAL</span>
+                                    <span className="text-3xl font-semibold tracking-tighter text-black">₹{order.amount.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </AdminCard>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <AdminCard 
+                            title="Shipping Details" 
+                            icon={<MapPin size={18} />}
+                            subtitle="Delivery Destination"
+                        >
+                            <div className="space-y-6">
+                                <div className="p-6 bg-zinc-50 rounded-[2rem] border border-zinc-100 relative overflow-hidden group">
+                                    <div className="relative z-10 space-y-4">
+                                        <div className="pb-4 border-b border-zinc-100 mb-2">
+                                            <p className="text-[10px] font-semibold uppercase tracking-wide text-red-600 mb-2">Shipping Address</p>
+                                            <p className="text-xl font-semibold tracking-tight text-black">{order.customer_details?.name}</p>
+                                        </div>
+                                        
+                                        <div className="space-y-1.5">
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="text-[8px] font-semibold text-zinc-300 uppercase tracking-wide leading-none mb-1">[Street & Area]</span>
+                                                <p className="text-[12px] font-semibold tracking-tight text-zinc-900">
+                                                    {order.shipping_address?.address || (order.shipping_address as { address?: string; line1?: string }).line1}
+                                                    {(order.shipping_address?.apartment || (order.shipping_address as { apartment?: string; line2?: string }).line2) && (
+                                                        <span className=" ">, {order.shipping_address.apartment || (order.shipping_address as { apartment?: string; line2?: string }).line2}</span>
+                                                    )}
+                                                </p>
+                                            </div>
+
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="text-[8px] font-semibold text-zinc-300 uppercase tracking-wide leading-none mb-1">[City & Region]</span>
+                                                <p className="text-[12px] font-semibold tracking-tight text-zinc-900">
+                                                    {order.shipping_address?.city}{order.shipping_address?.district && <>, {order.shipping_address.district}</>}
+                                                </p>
+                                            </div>
+
+                                            <div className="flex flex-col gap-0.5 pt-2">
+                                                <span className="text-[8px] font-semibold text-zinc-300 uppercase tracking-wide leading-none mb-1">[Geographic Vector]</span>
+                                                <p className="text-[13px] font-semibold tracking-wide text-black flex items-center gap-2">
+                                                    <span className="uppercase">{order.shipping_address?.state}</span>
+                                                    <span className="text-zinc-200">—</span>
+                                                    <span className="bg-black text-white px-2 py-0.5 rounded text-[10px]">{order.shipping_address?.pincode || (order.shipping_address as { pincode?: string; postal_code?: string }).postal_code}</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Subtle decorative glow */}
+                                    <div className="absolute -right-4 -bottom-4 w-32 h-32 bg-white rounded-full blur-2xl opacity-50 group-hover:bg-red-50/50 transition-colors duration-500"></div>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <div className="flex items-center gap-3 px-5 py-3 bg-zinc-50 rounded-2xl border border-zinc-100">
+                                        <Phone size={14} className="text-zinc-400" />
+                                        <span className="text-xs font-semibold tracking-wide">{order.customer_details?.phone}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </AdminCard>
+
+                        <AdminCard title="Shipment Tracking" icon={<Activity size={18} />}>
+                            <div className="space-y-6">
+                                <div className="space-y-3">
+                                    <label className="text-[9px] text-zinc-400 font-semibold uppercase tracking-wide mb-1.5 block">
+                                        Tracking Number
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={trackingId}
+                                            onChange={(e) => setTrackingId(e.target.value)}
+                                            placeholder="Enter tracking number..."
+                                            className="flex-1 bg-zinc-50 border border-zinc-100 rounded-2xl px-5 py-3 text-xs font-bold focus:outline-none focus:ring-4 focus:ring-black/5 transition-all placeholder:text-zinc-300"
+                                        />
+                                        <button
+                                            onClick={handleUpdateTracking}
+                                            disabled={statusUpdating || trackingId === (order.tracking_id || "")}
+                                            className="px-6 py-3 bg-black text-white text-[9px] font-semibold uppercase tracking-wide rounded-2xl hover:bg-zinc-800 transition-all disabled:opacity-50 shadow-xl shadow-black/10"
+                                        >
+                                            SAVE
+                                        </button>
+                                    </div>
+                                    
+                                    {/* Register Shipping & Download Label */}
+                                    <div className="pt-6 space-y-4">
+                                        {!order.tracking_id ? (
+                                            <button
+                                                onClick={async () => {
+                                                    setStatusUpdating(true);
+                                                    try {
+                                                        const { registerAdminOrderShipping } = await import("@/app/actions/orders");
+                                                        const token = await auth.currentUser?.getIdToken();
+                                                        const res = await registerAdminOrderShipping(order.id, token);
+                                                        if (res.success) {
+                                                            toast.success("Shipment Registered", { description: `AWB: ${res.awb}` });
+                                                            fetchOrder();
+                                                        } else {
+                                                            toast.error("Registration Failed", { description: res.error });
+                                                        }
+                                                    } catch {
+                                                        toast.error("Process Error");
+                                                    } finally {
+                                                        setStatusUpdating(false);
+                                                    }
+                                                }}
+                                                disabled={statusUpdating || (order.status !== "paid" && order.status !== "unpaid")}
+                                                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-black text-white text-[10px] font-semibold uppercase tracking-wide rounded-2xl hover:bg-zinc-800 hover:shadow-2xl hover:shadow-black/20 transition-all disabled:opacity-50 shadow-xl shadow-black/10"
+                                            >
+                                                <Truck size={18} />
+                                                Register Delhivery Shipment
+                                            </button>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                <div className="flex items-center gap-3 p-4 bg-green-50 rounded-2xl border border-green-100">
+                                                    <CheckCircle2 className="text-green-600" size={18} />
+                                                    <span className="text-[10px] font-semibold text-green-700 uppercase tracking-wide">Shipment Registered</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <p className="text-[8px] text-zinc-300 font-semibold uppercase tracking-wide leading-tight">
+                                        This ID will be visible to the customer in their account dashboard.
+                                    </p>
+                                </div>
+                            </div>
+                        </AdminCard>
+                    </div>
+                </div>
+
+                <div className="space-y-10">
+                    <AdminCard title="Customer Details" icon={<User size={18} />} subtitle="Contact Information">
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-5 p-4 hover:bg-zinc-50 rounded-[1.5rem] transition-colors group">
+                                <div className="w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                    <User size={20} />
+                                </div>
+                                <div className="space-y-0.5">
+                                    <p className="text-[8px] text-zinc-400 font-semibold uppercase tracking-wide">Name</p>
+                                    <p className="text-sm font-semibold tracking-tight">{order.customer_details?.name || "Guest Customer"}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-5 p-4 hover:bg-zinc-50 rounded-[1.5rem] transition-colors group">
+                                <div className="w-12 h-12 bg-zinc-100 text-black rounded-2xl flex items-center justify-center group-hover:bg-black group-hover:text-white transition-all group-hover:scale-110">
+                                    <Mail size={20} />
+                                </div>
+                                <div className="space-y-0.5 overflow-hidden">
+                                    <p className="text-[8px] text-zinc-400 font-semibold uppercase tracking-wide">Email</p>
+                                    <p className="text-[11px] font-semibold tracking-wide truncate">{order.customer_details?.email || "N/A"}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </AdminCard>
+
+                    <AdminCard title="Payment Details" icon={<CreditCard size={18} />} subtitle="Gateway Status">
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <p className="text-[8px] text-zinc-400 font-semibold uppercase tracking-wide">Transaction ID</p>
+                                <p className="text-[10px] font-mono font-semibold break-all bg-zinc-50 p-4 rounded-2xl border border-zinc-100 shadow-inner">
+                                    {order.payment_id || "UNPAID"}
+                                </p>
+                            </div>
+                            <div className="pt-4 border-t border-zinc-50 flex items-center gap-4">
+                                <Calendar size={16} className="text-zinc-400" />
+                                <div className="space-y-0.5">
+                                    <p className="text-[8px] text-zinc-400 font-semibold uppercase tracking-wide">Order Date</p>
+                                    <p className="text-xs font-semibold tracking-wide">{new Date(order.created_at).toLocaleString()}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </AdminCard>
+                </div>
+            </div>
+        </div>
+    );
+}

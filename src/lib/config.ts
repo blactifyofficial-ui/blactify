@@ -1,0 +1,7 @@
+export const SELLER_CONFIG = {
+    email: process.env.SELLER_EMAIL || "blactifyofficial@gmail.com",
+    resendApiKey: process.env.RESEND_API_KEY || "",
+    fromEmail: (process.env.RESEND_FROM_EMAIL || "Blactify Studio <support@blactify.com>").trim().replace(/^["']|["']$/g, ""),
+    telegramToken: process.env.TELEGRAM_BOT_TOKEN || "",
+    telegramChatId: process.env.TELEGRAM_CHAT_ID || "",
+};

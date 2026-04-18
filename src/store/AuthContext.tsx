@@ -1,0 +1,59 @@
+"use client";
+
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { onAuthStateChanged, User, signOut as firebaseSignOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { syncUserProfile } from "@/lib/profile-client";
+
+interface AuthContextType {
+    user: User | null;
+    isAdmin: boolean;
+    loading: boolean;
+    signOut: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType>({
+    user: null,
+    isAdmin: false,
+    loading: true,
+    signOut: async () => { },
+});
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+    const [user, setUser] = useState<User | null>(null);
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [loading, setLoading] = useState(true);
+
+    const signOut = async () => {
+        await firebaseSignOut(auth);
+    };
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            setUser(user);
+
+            if (user) {
+                try {
+                    const adminStatus = await syncUserProfile(user);
+                    setIsAdmin(adminStatus);
+                } catch {
+                    setIsAdmin(false);
+                }
+            } else {
+                setIsAdmin(false);
+            }
+
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    return (
+        <AuthContext.Provider value={{ user, isAdmin, loading, signOut }}>
+            {children}
+        </AuthContext.Provider>
+    );
+}
+
+export const useAuth = () => useContext(AuthContext);

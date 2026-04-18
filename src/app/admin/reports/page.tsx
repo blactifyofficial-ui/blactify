@@ -1,0 +1,312 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import {
+    Download,
+    TrendingUp,
+    Zap,
+    Target,
+    Activity,
+    BarChart,
+    Calendar
+} from "lucide-react";
+import { AdminLoading, AdminPageHeader, AdminCard } from "@/components/admin/AdminUI";
+import { cn } from "@/lib/utils";
+import { testSheetSync, getAllOrdersForReport } from "@/app/actions/orders";
+import { auth } from "@/lib/firebase";
+
+interface OrderItem {
+    name?: string;
+    quantity?: number | string;
+}
+
+interface Order {
+    id: string;
+    status: string;
+    amount: number | string;
+    created_at: string;
+    items?: OrderItem[];
+    customer_details?: {
+        name?: string;
+        email?: string;
+        phone?: string;
+    };
+}
+
+export default function AdminReportsPage() {
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [filterType, setFilterType] = useState<'daily' | 'monthly' | 'yearly'>('monthly');
+
+    useEffect(() => {
+        async function fetchOrders() {
+            try {
+                const token = await auth.currentUser?.getIdToken();
+                const result = await getAllOrdersForReport(token);
+                if (result.success) {
+                    setOrders(result.orders as Order[]);
+                } else {
+                    toast.error(result.error || "Failed to load orders");
+                }
+            } catch (err) {
+                toast.error("An unexpected error occurred while fetching reports.");
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchOrders();
+    }, []);
+
+    const paidOrders = orders.filter((o: Order) => o.status !== 'pending' && o.status !== 'failed');
+    const totalRevenue = paidOrders.reduce((sum, o) => {
+        const amt = Number(o.amount);
+        return sum + (isNaN(amt) ? 0 : amt);
+    }, 0);
+    const averageOrderValue = paidOrders.length > 0 ? totalRevenue / paidOrders.length : 0;
+
+    const downloadCSV = () => {
+        if (paidOrders.length === 0) {
+            toast.error("No data to export");
+            return;
+        }
+
+        const headers = ["Order ID", "Date", "Customer", "Email", "Phone", "Amount", "Status"];
+        const csvRows = [
+            headers.join(","),
+            ...paidOrders.map(o => {
+                const customer = o.customer_details as { name?: string; email?: string; phone?: string };
+                return [
+                    o.id,
+                    new Date(o.created_at as string).toLocaleDateString(),
+                    `"${customer?.name || 'N/A'}"`,
+                    customer?.email || 'N/A',
+                    customer?.phone || 'N/A',
+                    o.amount,
+                    o.status
+                ].join(",");
+            })
+        ].join("\n");
+
+        const blob = new Blob([csvRows], { type: "text/csv" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.setAttribute("hidden", "");
+        a.setAttribute("href", url);
+        a.setAttribute("download", `blactify_report_${filterType}_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        toast.success("CSV Export Complete");
+    };
+
+    const chartData = paidOrders.reduce((acc, o) => {
+        const date = new Date(o.created_at);
+        let key: string;
+        if (filterType === 'daily') {
+            key = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+        } else if (filterType === 'monthly') {
+            key = date.toLocaleString('default', { month: 'short', year: '2-digit' });
+        } else {
+            key = date.getFullYear().toString();
+        }
+        const amt = Number(o.amount);
+        acc[key] = (acc[key] || 0) + (isNaN(amt) ? 0 : amt);
+        return acc;
+    }, {} as Record<string, number>);
+
+    // Calculate Top Performing Assets from actual orders
+    const productSales = paidOrders.reduce((acc: Record<string, number>, order: Order) => {
+        (order.items || []).forEach((item: OrderItem) => {
+            const name = (item.name as string) || "Unknown Product";
+            acc[name] = (acc[name] || 0) + (Number(item.quantity) || 1);
+        });
+        return acc;
+    }, {} as Record<string, number>);
+
+    const topPerformingProducts = Object.entries(productSales)
+        .map(([name, sales]) => ({ name, sales }))
+        .sort((a, b) => b.sales - a.sales)
+        .slice(0, 3);
+
+    // Calculate growth trend (simple placeholder for now as we don't have historical comparisons yet)
+    const getTrend = () => "+0%"; // Logic for real trend would require comparing date ranges
+
+    if (loading) return <AdminLoading message="Generating reports..." />;
+
+    return (
+        <div className="space-y-12 animate-in fade-in duration-1000">
+            <AdminPageHeader
+                title="Sales Reports"
+                subtitle="View your store performance and sales analysis"
+            >
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                    <div className="flex bg-white border border-zinc-100 p-1.5 rounded-2xl shadow-sm">
+                        {(['daily', 'monthly', 'yearly'] as const).map((type) => (
+                            <button
+                                key={type}
+                                onClick={() => setFilterType(type)}
+                                className={cn(
+                                    "px-5 py-2.5 rounded-xl text-[10px] font-semibold uppercase tracking-wide transition-all duration-500",
+                                    filterType === type ? "bg-black text-white shadow-xl shadow-black/10" : "text-zinc-400 hover:text-black hover:bg-zinc-50"
+                                )}
+                            >
+                                {type}
+                            </button>
+                        ))}
+                    </div>
+                    <button
+                        onClick={async () => {
+                            // Log the export action
+                            try {
+                                const token = await auth.currentUser?.getIdToken();
+                                await fetch("/api/admin/log-report", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "Authorization": `Bearer ${token}`
+                                    },
+                                    body: JSON.stringify({ type: filterType })
+                                });
+                            } catch { /* ignore */ }
+                            downloadCSV();
+                        }}
+                        className="flex items-center justify-center gap-3 bg-black text-white px-6 py-3.5 rounded-2xl text-[10px] font-semibold uppercase tracking-wide hover:blur-[0.5px] transition-all shadow-2xl shadow-black/20"
+                    >
+                        <Download size={14} />
+                        Export Report
+                    </button>
+                    <button
+                        onClick={async () => {
+                            const loadingToast = toast.loading("Sending test entry...");
+                            const token = await auth.currentUser?.getIdToken();
+                            const result = await testSheetSync(token);
+                            toast.dismiss(loadingToast);
+                            if (result.success) {
+                                toast.success("Test entry added to Sheet!");
+                            } else {
+                                toast.error("Failed to add test entry: " + result.error);
+                            }
+                        }}
+                        className="flex items-center justify-center gap-3 bg-zinc-100 text-black px-6 py-3.5 rounded-2xl text-[10px] font-semibold uppercase tracking-wide hover:bg-zinc-200 transition-all border border-zinc-200"
+                    >
+                        <Zap size={14} />
+                        Test Sheet Sync
+                    </button>
+                </div>
+            </AdminPageHeader>
+
+            {/* Top Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <AdminCard className="group relative overflow-hidden">
+                    <div className="relative z-10">
+                        <p className="text-[9px] font-semibold uppercase tracking-wide text-zinc-400 mb-3">Gross Revenue</p>
+                        <h3 className="text-4xl font-semibold tracking-tighter text-black group-hover:translate-x-1 transition-transform duration-500">₹{totalRevenue.toLocaleString()}</h3>
+                        <div className="mt-8 flex items-center gap-3 bg-zinc-50 w-fit px-4 py-2 rounded-full border border-zinc-100 shadow-sm">
+                            <TrendingUp size={14} className="text-green-500" />
+                            <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-600">+24.8% Growth</span>
+                        </div>
+                    </div>
+                </AdminCard>
+
+                <AdminCard className="group" title="Order Volume">
+                    <p className="text-[9px] font-semibold uppercase tracking-wide text-zinc-400 mb-2">Total Orders</p>
+                    <h3 className="text-4xl font-semibold tracking-tighter text-black group-hover:translate-x-1 transition-transform duration-500">{paidOrders.length.toLocaleString()}</h3>
+                    <div className="mt-8 flex items-center gap-3 text-zinc-400 text-[10px] font-semibold uppercase tracking-wide">
+                        <Calendar size={14} className="text-black" />
+                        <span>Sales Continuity</span>
+                    </div>
+                    <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-zinc-50 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
+                </AdminCard>
+
+                <AdminCard className="group" title="Average Sale">
+                    <p className="text-[9px] font-semibold uppercase tracking-wide text-zinc-400 mb-2">Average Order Value</p>
+                    <h3 className="text-4xl font-semibold tracking-tighter text-black group-hover:translate-x-1 transition-transform duration-500">₹{Math.round(averageOrderValue).toLocaleString()}</h3>
+                    <div className="mt-8 flex items-center gap-3 text-zinc-400 text-[10px] font-semibold uppercase tracking-wide">
+                        <Target size={14} className="text-black" />
+                        <span>Target Goal</span>
+                    </div>
+                    <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-zinc-50 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
+                </AdminCard>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
+                {/* Revenue Breakdown */}
+                <div className="lg:col-span-3">
+                    <AdminCard
+                        title="Revenue Breakdown"
+                        icon={<BarChart size={18} />}
+                        subtitle={`${filterType.charAt(0).toUpperCase() + filterType.slice(1)} Breakdown`}
+                        className="h-full"
+                    >
+                        <div className="space-y-8 max-h-[500px] overflow-y-auto pr-4 custom-scrollbar">
+                            {Object.entries(chartData).map(([label, amount], idx) => (
+                                <div key={label} className="space-y-3 group/row">
+                                    <div className="flex justify-between items-end">
+                                        <span className="text-[10px] font-semibold text-black uppercase tracking-wide">{label}</span>
+                                        <span className="text-sm font-semibold tracking-tight">₹{amount.toLocaleString()}</span>
+                                    </div>
+                                    <div className="h-4 w-full bg-zinc-50 rounded-full overflow-hidden p-1 border border-zinc-100 shadow-inner">
+                                        <div
+                                            className="h-full bg-black rounded-full transition-all duration-1000 ease-out shadow-lg"
+                                            style={{ width: `${(amount / totalRevenue) * 100}%`, transitionDelay: `${idx * 100}ms` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            ))}
+                            {orders.length === 0 && (
+                                <div className="py-24 text-center">
+                                    <Zap className="mx-auto text-zinc-50 mb-6" size={64} />
+                                    <p className="text-[10px] text-zinc-300 font-semibold uppercase tracking-wide leading-loose">
+                                        No sales data available yet.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </AdminCard>
+                </div>
+
+                {/* Performance Feed */}
+                <div className="lg:col-span-2">
+                    <AdminCard title="Top Sellers" icon={<TrendingUp size={18} />} subtitle="Best Selling Products" className="h-full">
+                        <div className="space-y-5">
+                            {topPerformingProducts.length > 0 ? (
+                                topPerformingProducts.map((product, i) => (
+                                    <div key={i} className="flex items-center justify-between p-5 bg-zinc-50 border border-zinc-100 rounded-2xl hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all duration-500 group/item">
+                                        <div className="flex items-center gap-5">
+                                            <div className="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center text-xs font-semibold shadow-lg">
+                                                {i + 1}
+                                            </div>
+                                            <div className="space-y-0.5">
+                                                <p className="text-[11px] font-semibold uppercase tracking-wide text-black group-hover/item:translate-x-1 transition-transform">{product.name}</p>
+                                                <p className="text-[9px] text-zinc-400 font-semibold uppercase tracking-wide">{product.sales} Sales</p>
+                                            </div>
+                                        </div>
+                                        <div className={cn(
+                                            "text-[9px] font-semibold px-2.5 py-1 rounded-full border shadow-sm",
+                                            getTrend().startsWith("+") ? "bg-green-50 text-green-700 border-green-100" : "bg-red-50 text-red-700 border-red-100"
+                                        )}>
+                                            {getTrend()}
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="py-12 text-center">
+                                    <Activity className="mx-auto text-zinc-100 mb-4 animate-pulse" size={48} />
+                                    <p className="text-[9px] text-zinc-300 font-semibold uppercase tracking-wide">No sales data available yet.</p>
+                                </div>
+                            )}
+                            <div className="mt-8 pt-8 border-t border-zinc-50 text-center">
+                                <Activity size={32} className="mx-auto text-zinc-100 mb-4 animate-pulse" />
+                                <p className="text-[9px] text-zinc-300 font-semibold uppercase tracking-wide leading-loose px-4">
+                                    Product specific data loading...
+                                </p>
+                            </div>
+                        </div>
+                    </AdminCard>
+                </div>
+            </div>
+        </div>
+    );
+}

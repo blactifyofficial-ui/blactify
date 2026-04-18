@@ -1,0 +1,269 @@
+"use server";
+
+import { createClient } from "@supabase/supabase-js";
+import { revalidatePath } from "next/cache";
+import { Resend } from "resend";
+import { SELLER_CONFIG } from "@/lib/config";
+import { verifyActionAdminAuth } from "@/lib/auth-server";
+import { sendMulticastAdminNotification } from "@/lib/notifications-server";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://dummy.supabase.co";
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "dummy";
+
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+        autoRefreshToken: false,
+        persistSession: false
+    }
+});
+
+export async function getStoreSettings() {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from("store_settings")
+            .select("*")
+            .eq("id", true)
+            .single();
+
+        if (error) {
+            return { purchases_enabled: true, maintenance_mode: false, maintenance_message: '' };
+        }
+
+        return data;
+    } catch {
+        return { purchases_enabled: true, maintenance_mode: false, maintenance_message: '' };
+    }
+}
+
+export async function togglePurchaseStatus(status: boolean, token?: string) {
+    try {
+        const auth = await verifyActionAdminAuth(token);
+        const { error } = await supabaseAdmin
+            .from("store_settings")
+            .upsert({ id: true, purchases_enabled: status });
+
+        if (error) {
+            return { success: false, error: error.message };
+        }
+
+        // Send email notification directly using Resend
+        if (SELLER_CONFIG.resendApiKey) {
+            try {
+                const resend = new Resend(SELLER_CONFIG.resendApiKey);
+                const statusText = status ? "ENABLED" : "DISABLED";
+                const statusColor = status ? "#10b981" : "#ef4444";
+                const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+
+                const html = `
+                    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eeeeee; border-radius: 12px; overflow: hidden; color: #333333;">
+                        <div style="background-color: #333639; padding: 30px; text-align: center;">
+                            <h1 style="color: #ffffff; margin: 0; text-transform: uppercase; letter-spacing: 0.2em; font-size: 24px; font-weight: 800;">
+                                BLACTIFY
+                            </h1>
+                        </div>
+                        
+                        <div style="padding: 40px; text-align: center;">
+                            <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #111111; text-transform: uppercase; letter-spacing: 0.05em;">
+                                Store Status Update
+                            </h2>
+                            
+                            <div style="background-color: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 30px;">
+                                <p style="margin: 0 0 10px 0; color: #64748b; font-size: 14px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.1em;">Current Status</p>
+                                <p style="margin: 0; color: ${statusColor}; font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em;">
+                                    ${statusText}
+                                </p>
+                            </div>
+
+                            <div style="text-align: left; background-color: #fcfcfc; padding: 20px; border-radius: 8px; font-size: 13px; color: #444444; line-height: 1.6;">
+                                <p style="margin: 0;"><strong>Updated By:</strong> Admin (Manual Action)</p>
+                                <p style="margin: 5px 0 0 0;"><strong>Timestamp:</strong> ${timestamp}</p>
+                            </div>
+                        </div>
+
+                        <div style="background-color: #fcfcfc; padding: 30px; text-align: center; border-top: 1px solid #eeeeee;">
+                            <p style="margin: 0; font-size: 12px; color: #aaaaaa; letter-spacing: 0.05em;">
+                                &copy; ${new Date().getFullYear()} BLACTIFY. All rights reserved.
+                            </p>
+                        </div>
+                    </div>
+                `;
+
+                await resend.emails.send({
+                    from: SELLER_CONFIG.fromEmail,
+                    to: [SELLER_CONFIG.email],
+                    subject: `[ALERT] Store Purchases ${statusText}`,
+                    html: html,
+                });
+            } catch {
+                // Ignore email errors
+            }
+        }
+
+        revalidatePath("/checkout", "page");
+        revalidatePath("/checkout", "layout");
+        revalidatePath("/shop", "page");
+        revalidatePath("/shop", "layout");
+        revalidatePath("/product", "layout");
+        revalidatePath("/product/[id]", "page");
+        revalidatePath("/product/[id]", "layout");
+        revalidatePath("/", "layout");
+
+        // Send Firebase Notification
+        try {
+            if (!status) {
+                await sendMulticastAdminNotification(
+                    "🚨 Purchase Infrastructure STOPPED",
+                    "Store purchases have been manually disabled by an admin.",
+                    { type: "purchase_toggle", enabled: "false" }
+                );
+            } else {
+                await sendMulticastAdminNotification(
+                    "✅ Purchase Infrastructure RESTORED",
+                    "Store purchases are now active and live.",
+                    { type: "purchase_toggle", enabled: "true" }
+                );
+            }
+        } catch (fcmErr) {
+            console.error("Failed to send purchase toggle FCM alert", fcmErr);
+        }
+
+        // Log the action
+        const { logAction } = await import("@/lib/logger");
+        await logAction({
+            action_type: "purchase_toggle",
+            details: { enabled: status },
+            user_email: auth.email
+        });
+
+        return { success: true };
+    } catch {
+        return { success: false, error: "Failed to update settings" };
+    }
+}
+
+// ── Maintenance Mode ─────────────────────────────────────────────
+
+export async function getMaintenanceStatus() {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from("store_settings")
+            .select("maintenance_mode, maintenance_message, bypass_ips")
+            .eq("id", true)
+            .single();
+
+        if (error) {
+            return { maintenance_mode: false, maintenance_message: '', bypass_ips: [] };
+        }
+
+        return {
+            maintenance_mode: data?.maintenance_mode ?? false,
+            maintenance_message: data?.maintenance_message ?? '',
+            bypass_ips: data?.bypass_ips ?? [],
+        };
+    } catch {
+        return { maintenance_mode: false, maintenance_message: '', bypass_ips: [] };
+    }
+}
+
+export async function toggleMaintenanceMode(enabled: boolean, message: string, token?: string) {
+    try {
+        const auth = await verifyActionAdminAuth(token);
+
+        const { error } = await supabaseAdmin
+            .from("store_settings")
+            .upsert({
+                id: true,
+                maintenance_mode: enabled,
+                maintenance_message: message || 'We\'re performing scheduled maintenance. We\'ll be back shortly.',
+            });
+
+        if (error) {
+            return { success: false, error: error.message };
+        }
+
+        // Send email notification
+        if (SELLER_CONFIG.resendApiKey) {
+            try {
+                const resend = new Resend(SELLER_CONFIG.resendApiKey);
+                const statusText = enabled ? "ENABLED" : "DISABLED";
+                const statusColor = enabled ? "#ef4444" : "#10b981";
+                const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+
+                const html = `
+                    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eeeeee; border-radius: 12px; overflow: hidden;">
+                        <div style="background-color: #333639; padding: 30px; text-align: center;">
+                            <h1 style="color: #ffffff; margin: 0; text-transform: uppercase; letter-spacing: 0.2em; font-size: 24px;">BLACTIFY</h1>
+                        </div>
+                        <div style="padding: 40px; text-align: center;">
+                            <h2 style="margin: 0 0 20px; font-size: 20px; color: #111;">🔧 Maintenance Mode ${statusText}</h2>
+                            <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+                                <p style="margin: 0 0 10px; color: #64748b; font-size: 14px; text-transform: uppercase; font-weight: 700;">Status</p>
+                                <p style="margin: 0; color: ${statusColor}; font-size: 24px; font-weight: 900;">${statusText}</p>
+                            </div>
+                            <div style="text-align: left; background: #fcfcfc; padding: 20px; border-radius: 8px; font-size: 13px; color: #444;">
+                                <p style="margin: 0;"><strong>Message:</strong> ${message || 'Default maintenance message'}</p>
+                                <p style="margin: 5px 0 0;"><strong>By:</strong> ${auth.email}</p>
+                                <p style="margin: 5px 0 0;"><strong>Time:</strong> ${timestamp}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                await resend.emails.send({
+                    from: SELLER_CONFIG.fromEmail,
+                    to: [SELLER_CONFIG.email],
+                    subject: `[ALERT] Maintenance Mode ${statusText}`,
+                    html,
+                });
+            } catch {
+                // Ignore email errors
+            }
+        }
+
+        // Revalidate all user-facing paths
+        revalidatePath('/', 'layout');
+        revalidatePath('/shop', 'page');
+        revalidatePath('/checkout', 'page');
+
+        // Log the action
+        const { logAction } = await import("@/lib/logger");
+        await logAction({
+            action_type: 'maintenance_toggle',
+            details: { enabled, message },
+            user_email: auth.email,
+        });
+
+        return { success: true };
+    } catch {
+        return { success: false, error: 'Failed to update maintenance mode' };
+    }
+}
+
+export async function updateBypassIPs(ips: string[], token?: string) {
+    try {
+        const auth = await verifyActionAdminAuth(token);
+        
+        const { error } = await supabaseAdmin
+            .from("store_settings")
+            .upsert({
+                id: true,
+                bypass_ips: ips,
+            });
+
+        if (error) {
+            return { success: false, error: error.message };
+        }
+
+        // Log the action
+        const { logAction } = await import("@/lib/logger");
+        await logAction({
+            action_type: 'update_bypass_ips',
+            details: { ips },
+            user_email: auth.email,
+        });
+
+        return { success: true };
+    } catch {
+        return { success: false, error: 'Failed to update whitelist' };
+    }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "Blactify Studio Developer",
+  "short_name": "Blactify Studio | Dev",
+  "description": "Blactify Studio Developer Mission Control",
+  "id": "/developer",
+  "start_url": "/developer",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0E0E10",
+  "theme_color": "#34D399",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
