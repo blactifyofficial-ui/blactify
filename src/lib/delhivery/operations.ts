@@ -11,7 +11,7 @@ export async function processOrderShippingInternal(order: Order) {
 
     const awb = AWB_RESULT.waybills[0];
     const originPin = process.env.DELHIVERY_ORIGIN_PINCODE || "673638";
-    const shopName = process.env.DELHIVERY_WAREHOUSE_NAME || "Blactify";
+    const shopName = process.env.DELHIVERY_WAREHOUSE_NAME || "Blactify Studio";
 
     const shipmentData = {
         shipments: [
@@ -37,8 +37,8 @@ export async function processOrderShippingInternal(order: Order) {
         ],
         pickup_location: {
             name: shopName,
-            add: "Blactify Warehouse, Kozhikode, Kerala",
-            phone: "9188484192",
+            add: "Blactify Studio, Kozhikode, Kerala",
+            phone: "9207965510",
             pin: originPin
         }
     };
