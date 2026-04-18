@@ -10,7 +10,11 @@ export async function POST(request: Request) {
     if (auth.error) return auth.error;
     try {
         const body = await request.json();
-        const { id, name, handle, price_base, price_offer, category_id, description, variants, images } = body;
+        const { id, name, handle, price_base, price_offer, category_id, description, weight, variants, images } = body;
+        
+        if (weight !== undefined && weight !== null && Number(weight) < 0) {
+            return NextResponse.json({ error: "Weight cannot be negative" }, { status: 400 });
+        }
 
         // 1. Calculate Total Stock from variants in body
         const totalStock = variants?.reduce((acc: number, v: { stock: number }) => acc + (Number(v.stock) || 0), 0) || 0;
@@ -26,6 +30,7 @@ export async function POST(request: Request) {
                 price_offer: (price_offer !== null && price_offer !== undefined && price_offer !== "") ? Number(price_offer) : null,
                 category_id,
                 description,
+                weight: weight ? Number(weight) : 0,
                 out_of_stock_at: totalStock <= 0 ? new Date().toISOString() : null,
                 updated_at: new Date().toISOString()
             }]);
@@ -104,7 +109,11 @@ export async function PUT(request: Request) {
     if (auth.error) return auth.error;
     try {
         const body = await request.json();
-        const { id, name, handle, price_base, price_offer, category_id, description, variants, images } = body;
+        const { id, name, handle, price_base, price_offer, category_id, description, weight, variants, images } = body;
+        
+        if (weight !== undefined && weight !== null && Number(weight) < 0) {
+            return NextResponse.json({ error: "Weight cannot be negative" }, { status: 400 });
+        }
 
         // 1. Calculate Total Stock from variants in body
         const totalStock = variants?.reduce((acc: number, v: { stock: number }) => acc + (Number(v.stock) || 0), 0) || 0;
@@ -119,6 +128,7 @@ export async function PUT(request: Request) {
                 price_offer: (price_offer !== null && price_offer !== undefined && price_offer !== "") ? Number(price_offer) : null,
                 category_id,
                 description,
+                weight: weight ? Number(weight) : 0,
                 out_of_stock_at: totalStock <= 0 ? new Date().toISOString() : null,
                 updated_at: new Date().toISOString()
             })

@@ -74,6 +74,7 @@ export interface Product {
     category?: string; // Fallback
     tag?: string;
     out_of_stock_at?: string;
+    weight?: number;
 
     // Normalized relationships
     product_images?: {

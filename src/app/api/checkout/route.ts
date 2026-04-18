@@ -45,7 +45,7 @@ export async function POST(req: Request) {
         const productIds = items.map(i => i.id);
         const { data: products, error: dbError } = await supabaseAdmin
             .from("products")
-            .select("id, price_base, price_offer")
+            .select("id, price_base, price_offer, weight")
             .in("id", productIds);
 
         if (dbError || !products) {
@@ -72,9 +72,14 @@ export async function POST(req: Request) {
         if (!isFreeShipping) {
             if (pincode && pincode.length === 6) {
                 try {
-                    // Estimate weight: 500g per item
-                    const estimatedWeight = items.reduce((acc, item) => acc + (item.quantity * 500), 0);
-                    const deliveryResult = await getShippingChargesInternal(pincode, estimatedWeight);
+                    // Calculate weight: Use product weight (kg to g) or fallback to 500g per item
+                    const totalWeight = items.reduce((acc, item) => {
+                        const product = products.find(p => p.id === item.id);
+                        const weightPerUnit = (product?.weight && Number(product.weight) > 0) ? Number(product.weight) * 1000 : 500;
+                        return acc + (item.quantity * weightPerUnit);
+                    }, 0);
+                    
+                    const deliveryResult = await getShippingChargesInternal(pincode, totalWeight);
                     
                     if (deliveryResult.success && typeof deliveryResult.charge === 'number') {
                         shippingCharge = deliveryResult.charge;

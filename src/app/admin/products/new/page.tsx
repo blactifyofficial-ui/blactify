@@ -63,6 +63,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
         image2: "",
         image3: "",
         description: "",
+        weight: "" as string | number,
         variants: [] as ProductVariant[],
         drop_id: ""
     });
@@ -237,6 +238,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                 image2: (img2?.url || "") as string,
                 image3: (img3?.url || "") as string,
                 description: (data.description || "") as string,
+                weight: data.weight ?? "" as string | number,
                 variants: loadedVariants
             }));
         } catch {
@@ -357,6 +359,7 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                 price_offer: (formData.price_offer !== "" && formData.price_offer !== null) ? Number(formData.price_offer) : null,
                 category_id: formData.category_id || null,
                 description: formData.description,
+                weight: (formData.weight !== "" && formData.weight !== null) ? Number(formData.weight) : 0,
                 variants: formData.variants,
                 images: images
             };
@@ -692,6 +695,24 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                                     className={`w-full pl-12 pr-6 py-4 bg-zinc-50 border ${errors.price_offer ? 'border-red-400' : 'border-zinc-100'} rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-bold text-green-600 placeholder:text-zinc-400`}
                                 />
                                 {errors.price_offer && <p className="text-[10px] text-red-500 mt-1 font-bold ml-2">{errors.price_offer}</p>}
+                            </div>
+                        </label>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <label className="block">
+                            <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500 mb-2 block">Shipping Weight (kg)</span>
+                            <div className="relative">
+                                <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300" size={16} />
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    placeholder="0.00"
+                                    value={formData.weight}
+                                    onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                                    className="w-full pl-12 pr-6 py-4 bg-zinc-50 border border-zinc-100 rounded-2xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-medium placeholder:text-zinc-400"
+                                />
                             </div>
                         </label>
 

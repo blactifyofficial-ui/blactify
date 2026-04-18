@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS products (
     tag TEXT, -- "New Arrival", "Limited Edition", etc.
     stock INTEGER DEFAULT 0, -- Denormalized total stock
     size_variants TEXT[] DEFAULT '{}', -- Denormalized size list
+    weight NUMERIC DEFAULT 0 CHECK (weight >= 0), -- Shipping weight in kg
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

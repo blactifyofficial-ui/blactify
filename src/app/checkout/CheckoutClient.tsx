@@ -123,6 +123,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
     const [isPincodeServiceable, setIsPincodeServiceable] = useState<boolean | null>(null);
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [productWeights, setProductWeights] = useState<Record<string, number>>({});
 
     const activeItems = useMemo(() => (isDirect ? (directItem ? [directItem] : []) : items) as CartItem[], [isDirect, directItem, items]);
 
@@ -145,6 +146,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
         name: string;
         price_base: number;
         price_offer?: number;
+        weight?: number;
         product_variants: { size: string; stock: number }[];
     }
 
@@ -153,7 +155,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
             const productIds = activeItems.map(item => item.id);
             const { data: currentProducts, error } = await supabase
                 .from("products")
-                .select("id, name, price_base, price_offer, product_variants(size, stock)")
+                .select("id, name, price_base, price_offer, weight, product_variants(size, stock)")
                 .in("id", productIds);
 
             if (error) throw error;
@@ -211,6 +213,13 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
 
             setStockErrors(newStockErrors);
             setPriceErrors(newPriceErrors);
+
+            // Store weights for shipping calculation
+            const weights: Record<string, number> = {};
+            currentProducts?.forEach((p: ValidatedProduct) => {
+                weights[p.id] = p.weight || 0;
+            });
+            setProductWeights(weights);
 
             // Return true if no FATAL errors (like stock or missing product)
             return { isValid: !hasErrors, currentProducts: currentProducts as ValidatedProduct[] };
@@ -326,10 +335,14 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
 
                             if (!isFreeByRule) {
                                 try {
-                                    // Estimate weight: 500g per item
-                                    const estimatedWeight = activeItems.reduce((acc, item) => acc + (item.quantity * 500), 0);
+                                    // Calculate weight: Use fetched product weight (kg to g) or fallback to 500g
+                                    const totalWeight = activeItems.reduce((acc, item) => {
+                                        const wKg = productWeights[item.id];
+                                        const weightGrams = (wKg && wKg > 0) ? (wKg * 1000) : 500;
+                                        return acc + (item.quantity * weightGrams);
+                                    }, 0);
 
-                                    const result = await getShippingCharges(pincode, estimatedWeight);
+                                    const result = await getShippingCharges(pincode, totalWeight);
                                     if (result.success && typeof result.charge === 'number') {
                                         setDynamicShippingCharge(result.charge);
                                         toast.info(`Shipping cost calculated: ₹${result.charge}`);
@@ -357,7 +370,7 @@ function CheckoutContent({ initialSettings }: { initialSettings: { purchases_ena
 
         const timer = setTimeout(verifyPincode, 500); // Debounce
         return () => clearTimeout(timer);
-    }, [formData.pincode, activeItems, subtotal]);
+    }, [formData.pincode, activeItems, subtotal, productWeights]);
 
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
