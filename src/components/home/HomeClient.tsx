@@ -87,6 +87,18 @@ export default function HomeClient({ initialCategories }: HomeClientProps) {
                     </div>
                 </section>
             )}
+            
+            {/* Brand Statement Section */}
+            <section className="px-6 py-12 md:py-24 bg-white">
+                <div className="mx-auto max-w-5xl">
+                    <h2
+                        className="text-[32px] md:text-[64px] brand-statement leading-[1.1] text-black"
+                    >
+                        Born from a shared love of the game, rooted in a vision of authenticity and creativity expressed through what we wear. For us, it's about the good times, on and off the course, self-expression, and an appreciation for the cultural overlaps we get to experience along the way.
+                    </h2>
+                </div>
+            </section>
+
             {/* Promotional Image Section */}
             <section className="px-6 py-12 md:py-20 bg-white">
                 <div className="mx-auto max-w-4xl">

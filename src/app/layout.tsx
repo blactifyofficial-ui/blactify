@@ -20,6 +20,13 @@ const yapari = localFont({
   display: "swap",
 });
 
+const druk = localFont({
+  src: "../../public/fonts/DrukWideBold.woff",
+  variable: "--font-druk",
+  display: "swap",
+});
+
+
 
 
 export const metadata: Metadata = {
@@ -117,7 +124,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://cdn.shopify.com" />
 
       </head>
-      <body className={`${outfit.variable} ${yapari.variable} font-sans antialiased text-black`}>
+      <body className={`${outfit.variable} ${yapari.variable} ${druk.variable} font-sans antialiased text-black`}>
         <script dangerouslySetInnerHTML={{ __html: `
           if ('serviceWorker' in navigator) {
             const isInternal = 

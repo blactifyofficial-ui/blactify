@@ -17,16 +17,23 @@ export async function POST(req: Request) {
         const validated = UploadSchema.safeParse(body);
 
         if (!validated.success) {
+            console.error("[UPLOAD_API] Validation Failed:", validated.error.issues[0].message);
             return NextResponse.json({ error: validated.error.issues[0].message }, { status: 400 });
         }
 
         const { image } = validated.data;
 
+        // Diagnostic check for production
+        if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY) {
+            console.error("[UPLOAD_API] Missing Cloudinary Environment Variables");
+            return NextResponse.json({ error: "Storage configuration missing on server" }, { status: 500 });
+        }
+
         // Upload to Cloudinary
         const result = await cloudinary.uploader.upload(image, {
             folder: 'blactify-products',
             format: 'webp',
-            resource_type: 'image', // Ensure it's treated as an image
+            resource_type: 'image',
         });
 
         return NextResponse.json({
@@ -34,7 +41,10 @@ export async function POST(req: Request) {
             public_id: result.public_id,
         });
     } catch (err: unknown) {
-        return NextResponse.json({ error: err instanceof Error ? err.message : 'Upload failed' }, { status: 500 });
+        console.error("[UPLOAD_API] Unexpected Error:", err);
+        return NextResponse.json({ 
+            error: err instanceof Error ? err.message : 'Upload failed internal server error' 
+        }, { status: 500 });
     }
 }
 

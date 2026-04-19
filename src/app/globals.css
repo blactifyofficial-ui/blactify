@@ -16,6 +16,7 @@
   --font-heading: var(--font-outfit);
   --font-inter: var(--font-outfit), ui-sans-serif, system-ui;
   --font-yapari: var(--font-yapari);
+  --font-druk: var(--font-druk);
 
   --animate-in: in 1s ease-out;
   --animate-fade-in: fade-in 1s ease-out forwards;
@@ -264,6 +265,18 @@ body {
     will-change: transform, opacity;
     transform: translateZ(0);
     backface-visibility: hidden;
+  }
+
+  .font-druk {
+    font-family: var(--font-druk);
+    text-transform: uppercase;
+  }
+
+  .brand-statement {
+    font-family: var(--font-outfit);
+    font-weight: 700; /* Robust weight to match image */
+    letter-spacing: 0; /* Normal tracking as seen in image */
+    line-height: 1.1;
   }
 }
 

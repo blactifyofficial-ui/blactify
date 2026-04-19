@@ -291,9 +291,12 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
             } else {
                 throw new Error(data.error || "Upload failed");
             }
-        } catch {
-
-            toast.error("Failed to upload image. Please try again.");
+        } catch (error) {
+            console.error("Upload error:", error);
+            const message = error instanceof Error ? error.message : "Failed to upload image";
+            toast.error(message, {
+                description: "Check server logs for details."
+            });
         } finally {
             setUploading(null);
         }
