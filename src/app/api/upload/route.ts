@@ -6,7 +6,7 @@ import { z } from "zod";
 
 
 const UploadSchema = z.object({
-    image: z.string().min(1, "No image data provided").refine((s) => s.length < 5 * 1024 * 1024, "Image must be under 5MB"),
+    image: z.string().min(1, "No image data provided").refine((s) => s.length < 15 * 1024 * 1024, "Image must be under 15MB"),
 });
 
 export async function POST(req: Request) {
@@ -33,6 +33,7 @@ export async function POST(req: Request) {
         const result = await cloudinary.uploader.upload(image, {
             folder: 'blactify-products',
             format: 'webp',
+            quality: 'auto',
             resource_type: 'image',
         });
 
