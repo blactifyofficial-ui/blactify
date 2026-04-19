@@ -449,7 +449,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                             if (measurements.length === 0) return null;
 
                                             return measurements
-                                                .sort((a, b) => (a.measurement_types?.id || 0) - (b.measurement_types?.id || 0))
+                                                .sort((a, b) => (Number(a.measurement_types?.id) || 0) - (Number(b.measurement_types?.id) || 0))
                                                 .map((m, i) => (
                                                     <div key={i} className="flex items-center gap-1.5">
                                                         <span className="text-sm font-normal text-black">{m.measurement_types?.name}:</span>

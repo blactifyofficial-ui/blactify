@@ -41,25 +41,16 @@ export function ProductCard({ product, className, onImageLoad, hidePrice, priori
         <div className={cn("group flex flex-col gap-3", className)}>
             <div className={cn(
                 "relative w-full overflow-hidden bg-zinc-100 product-image-container",
-                isActuallyLarge ? "aspect-auto" : "aspect-[3/4]"
+                isActuallyLarge ? "aspect-[2/3]" : "aspect-[3/4]"
             )}>
-                <Link href={`/product/${product.handle || product.id}`} className={cn("relative block w-full bg-zinc-50", !isActuallyLarge && "h-full")}>
+                <Link href={`/product/${product.handle || product.id}`} className="relative block w-full h-full bg-zinc-50">
                     {(product.product_images?.[0]?.url || product.main_image) ? (
                         <Image
                             src={(product.product_images?.[0]?.url || product.main_image) || ""}
                              alt={product.name}
-                             fill={!isActuallyLarge}
-                             width={isActuallyLarge ? 3024 : undefined}
-                             height={isActuallyLarge ? 4032 : undefined}
-                             sizes={isActuallyLarge 
-                                ? "(min-width: 1200px) calc((100vw - 0px * 0) * 1), (min-width: 768px) calc((100vw - 0px * -1) * 1), calc((100vw - 0px * 0) * 1)"
-                                : "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                             }
-                             className={cn(
-                                 "transition-transform duration-500 group-hover:scale-105",
-                                 isActuallyLarge ? "w-full h-auto" : "object-cover",
-                                 isActuallyLarge && "product-image"
-                             )}
+                             fill
+                             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                             className="transition-transform duration-500 group-hover:scale-105 object-cover"
                             priority={priority}
                             loading={priority ? "eager" : "lazy"}
                             onLoad={onImageLoad}
