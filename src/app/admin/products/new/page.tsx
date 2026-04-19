@@ -284,12 +284,23 @@ export default function ProductFormPage({ params }: { params?: Promise<{ id: str
                     "Authorization": `Bearer ${token}`
                 },
             });
-            const data = await res.json();
 
+            // Check if response is JSON (safely handle Nginx 413/502/504 errors)
+            const contentType = res.headers.get("content-type");
+            if (!res.ok) {
+                if (contentType && contentType.includes("application/json")) {
+                    const data = await res.json();
+                    throw new Error(data.error || `Error ${res.status}`);
+                } else {
+                    // This is likely an Nginx HTML error page
+                    if (res.status === 413) throw new Error("Image too large for server (413). Update Nginx config.");
+                    throw new Error(`Server error ${res.status}. Check EC2 Nginx logs.`);
+                }
+            }
+
+            const data = await res.json();
             if (data.url) {
                 setFormData(prev => ({ ...prev, [field]: data.url }));
-            } else {
-                throw new Error(data.error || "Upload failed");
             }
         } catch (error) {
             console.error("Upload error:", error);
