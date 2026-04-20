@@ -177,29 +177,6 @@ export async function confirmOrder(orderData: z.infer<typeof OrderSyncSchema>, t
 
         // --- POST-CONFIRMATION SIDE EFFECTS (non-blocking) ---
 
-        // 1. Out-of-stock check
-        try {
-            const productIds = Array.from(new Set(data.items.map(item => item.id)));
-            const { data: productsWithStock } = await supabaseAdmin
-                .from("products")
-                .select("id, product_variants(stock)")
-                .in("id", productIds);
-
-            if (productsWithStock) {
-                for (const product of productsWithStock) {
-                    const totalStock = (product.product_variants as { stock: number }[])?.reduce((acc, v) => acc + v.stock, 0) || 0;
-                    if (totalStock <= 0) {
-                        await supabaseAdmin
-                            .from("products")
-                            .update({ out_of_stock_at: new Date().toISOString() })
-                            .eq("id", product.id)
-                            .is("out_of_stock_at", null);
-                    }
-                }
-            }
-        } catch (stockErr) {
-            console.error("Failed to update out_of_stock_at after order:", stockErr);
-        }
 
         // 2. Admin Push Notification
         const { sendMulticastAdminNotification } = await import("./notifications-server");

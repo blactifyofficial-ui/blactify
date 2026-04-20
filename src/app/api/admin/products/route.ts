@@ -16,8 +16,9 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Weight cannot be negative" }, { status: 400 });
         }
 
-        // 1. Calculate Total Stock from variants in body
+        // 1. Calculate Aggregates
         const totalStock = variants?.reduce((acc: number, v: { stock: number }) => acc + (Number(v.stock) || 0), 0) || 0;
+        const sizeVariants = Array.from(new Set(variants?.map((v: { size: string }) => v.size) || []));
 
         // 2. Insert Product
         const { error: productError } = await supabaseAdmin
@@ -31,6 +32,8 @@ export async function POST(request: Request) {
                 category_id,
                 description,
                 weight: weight ? Number(weight) : 0,
+                stock: totalStock,
+                size_variants: sizeVariants,
                 out_of_stock_at: totalStock <= 0 ? new Date().toISOString() : null,
                 updated_at: new Date().toISOString()
             }]);
@@ -115,8 +118,9 @@ export async function PUT(request: Request) {
             return NextResponse.json({ error: "Weight cannot be negative" }, { status: 400 });
         }
 
-        // 1. Calculate Total Stock from variants in body
+        // 1. Calculate Aggregates
         const totalStock = variants?.reduce((acc: number, v: { stock: number }) => acc + (Number(v.stock) || 0), 0) || 0;
+        const sizeVariants = Array.from(new Set(variants?.map((v: { size: string }) => v.size) || []));
 
         // 2. Update Product
         const { error: productError } = await supabaseAdmin
@@ -129,6 +133,8 @@ export async function PUT(request: Request) {
                 category_id,
                 description,
                 weight: weight ? Number(weight) : 0,
+                stock: totalStock,
+                size_variants: sizeVariants,
                 out_of_stock_at: totalStock <= 0 ? new Date().toISOString() : null,
                 updated_at: new Date().toISOString()
             })

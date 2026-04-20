@@ -41,8 +41,6 @@ CREATE TABLE IF NOT EXISTS products (
     out_of_stock_at TIMESTAMPTZ,
     show_on_home BOOLEAN DEFAULT FALSE,
     featured_at TIMESTAMPTZ,
-    home_order INTEGER,
-    out_of_stock_at TIMESTAMPTZ,
     tag TEXT, -- "New Arrival", "Limited Edition", etc.
     stock INTEGER DEFAULT 0, -- Denormalized total stock
     size_variants TEXT[] DEFAULT '{}', -- Denormalized size list
@@ -364,6 +362,51 @@ $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS tr_cleanup_expired_otps ON signup_otps;
 CREATE TRIGGER tr_cleanup_expired_otps AFTER INSERT ON signup_otps FOR EACH STATEMENT EXECUTE FUNCTION delete_expired_otps();
+
+-- 3. Product Stock & Metadata Synchronization
+-- Automatically keeps the 'products' table denormalized columns in sync with 'product_variants'
+CREATE OR REPLACE FUNCTION sync_product_denormalized_data()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_product_id TEXT;
+    v_total_stock INTEGER;
+    v_sizes TEXT[];
+BEGIN
+    -- Determine the product_id to sync (works for INSERT, UPDATE, DELETE)
+    IF (TG_OP = 'DELETE') THEN
+        v_product_id := OLD.product_id;
+    ELSE
+        v_product_id := NEW.product_id;
+    END IF;
+
+    -- Calculate aggregates
+    SELECT 
+        COALESCE(SUM(stock), 0),
+        ARRAY_AGG(DISTINCT size ORDER BY size)
+    INTO v_total_stock, v_sizes
+    FROM product_variants
+    WHERE product_id = v_product_id;
+
+    -- Update products table
+    UPDATE products
+    SET 
+        stock = v_total_stock,
+        size_variants = COALESCE(v_sizes, '{}'),
+        out_of_stock_at = CASE 
+            WHEN v_total_stock <= 0 THEN COALESCE(out_of_stock_at, NOW())
+            ELSE NULL 
+        END,
+        updated_at = NOW()
+    WHERE id = v_product_id;
+
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS tr_variant_stock_sync ON product_variants;
+CREATE TRIGGER tr_variant_stock_sync
+AFTER INSERT OR UPDATE OR DELETE ON product_variants
+FOR EACH ROW EXECUTE FUNCTION sync_product_denormalized_data();
 
 -- 3. Order Creation RPC (v2)
 CREATE OR REPLACE FUNCTION create_order_v2(
