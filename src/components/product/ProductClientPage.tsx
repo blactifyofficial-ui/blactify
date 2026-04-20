@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { useCartStore } from "@/store/useCartStore";
-import { ChevronRight, ChevronLeft, Star, ShieldCheck, Truck, Send, X } from "lucide-react";
+import { ChevronRight, ChevronLeft, Star, ShieldCheck, Truck, Send, X, Share2 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/store/AuthContext";
 import { fetchReviews, postReview } from "@/lib/review-sync";
@@ -211,6 +211,32 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
         router.push("/checkout?direct=true");
     }, [user, product, isNoSize, selectedSize, router]);
 
+    const handleShare = async () => {
+        if (!product) return;
+        
+        // Use production domain for shared links
+        const shareUrl = `https://blactify.com/product/${product.id}`;
+        
+        const shareData = {
+            title: product.name,
+            text: `Check out ${product.name} on Blactify!`,
+            url: shareUrl,
+        };
+
+        try {
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else {
+                await navigator.clipboard.writeText(shareUrl);
+                toast.success("Link copied to clipboard!");
+            }
+        } catch (err) {
+            // Silently handle errors like user cancelling the share
+            console.error("Share failed:", err);
+        }
+    };
+
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -365,10 +391,21 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                     {/* Product Details Section */}
                     <div className="px-6 pt-10 pb-20 lg:pt-0 lg:sticky lg:top-24">
                         <div className="flex flex-col gap-2 mb-8">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
-                                {product.categories?.name || product.category || "General"}
-                            </span>
-                            <h2 className="text-3xl font-medium text-black leading-tight uppercase">{product.name}</h2>
+                            <div className="flex items-start justify-between gap-4 w-full">
+                                <div className="flex flex-col gap-2">
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                                        {product.categories?.name || product.category || "General"}
+                                    </span>
+                                    <h2 className="text-3xl font-medium text-black leading-tight uppercase">{product.name}</h2>
+                                </div>
+                                <button 
+                                    onClick={handleShare}
+                                    className="p-1 hover:opacity-70 transition-all active:scale-95 group"
+                                    title="Share product"
+                                >
+                                    <Share2 size={16} className="text-zinc-400 group-hover:text-black transition-colors" />
+                                </button>
+                            </div>
                             <div className="flex items-center gap-4 mt-1">
                                 <div className="flex items-center gap-3">
                                     {hasDiscount ? (
@@ -419,7 +456,7 @@ export default function ProductClientPage({ initialProduct, initialReviews, init
                                                 onClick={() => !isOutOfStock && setSelectedSize(size)}
                                                 disabled={isOutOfStock}
                                                 className={cn(
-                                                    "relative h-12 min-w-[64px] px-4 rounded-sm flex items-center justify-center text-sm font-normal transition-all duration-200 border",
+                                                    "relative h-10 min-w-[56px] px-3 rounded-sm flex items-center justify-center text-xs font-normal transition-all duration-200 border",
                                                     selectedSize === size
                                                         ? "bg-black text-white border-black"
                                                         : "bg-white text-black border-zinc-200",
