@@ -13,6 +13,25 @@ export const SupportTicketSchema = z.object({
     message: z.string().min(10, "Message must be at least 10 characters").max(2000),
 });
 
+// --- STUDIO BOOKING SCHEMAS ---
+export const StudioBookingSchema = z.object({
+    name: z.string().min(2, "Name must be at least 2 characters"),
+    phone: z.string()
+        .min(10, "Phone number must be at least 10 digits")
+        .max(15, "Phone number is too long")
+        .regex(/^[+]?[0-9\s-]+$/, "Invalid phone number format"),
+    booking_date: z.string().min(1, "Booking date is required").refine((date) => {
+        const selectedDate = new Date(date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return selectedDate >= today;
+    }, { message: "Booking date cannot be in the past" }),
+    start_time: z.string().min(1, "Starting time is required"),
+    duration: z.string().min(1, "Duration is required"),
+    photo_type: z.enum(["model_shoot", "product_shoot", "other"]),
+    query: z.string().max(1000, "Message is too long (max 1000 characters)").optional().nullable(),
+});
+
 // --- ORDER SCHEMAS ---
 export const OrderItemSchema = z.object({
     id: z.string(),

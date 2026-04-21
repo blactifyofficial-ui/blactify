@@ -31,6 +31,11 @@ export function Footer() {
                             <h3 className="text-sm font-bold text-black tracking-tight">Connect</h3>
                             <ul className="space-y-4 text-xs font-medium text-zinc-900">
                                 <li>
+                                    <Link href="/book-studio" className="hover:text-zinc-500 transition-colors">
+                                        Book Studio
+                                    </Link>
+                                </li>
+                                <li>
                                     <a href="tel:+919207965510" className="hover:text-zinc-500 transition-colors">
                                         Contact
                                     </a>
